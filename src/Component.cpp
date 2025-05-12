@@ -1,6 +1,6 @@
-/// @file    Entity.cpp
+/// @file    Component.cpp
 /// @author  Matthew Green
-/// @date    2025-05-12 16:24:39
+/// @date    2025-05-12 16:28:03
 /// 
 /// @section LICENSE
 /// 
@@ -8,7 +8,7 @@
 /// Unauthorized copying of this file, via any medium is strictly prohibited
 /// Proprietary and confidential
 
-#include "velecs/ecs/Entity.hpp"
+#include "velecs/ecs/Component.hpp"
 
 namespace velecs::ecs {
 

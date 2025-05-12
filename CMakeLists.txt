@@ -23,6 +23,8 @@ add_subdirectory(libs/entt)
 # Source files for the library
 set(LIB_SOURCES
     src/Entity.cpp
+    src/Component.cpp
+    src/Transform.cpp
 )
 
 # Always build the library

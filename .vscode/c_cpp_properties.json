@@ -4,7 +4,8 @@
             "name": "Win32",
             "includePath": [
                 "${workspaceFolder}/**",
-                "${env:VULKAN_SDK}/Include"
+                "${env:VULKAN_SDK}/Include",
+                "${workspaceFolder}/../velecs-math/**"
             ],
             "defines": [
                 "_DEBUG",

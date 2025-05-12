@@ -9,6 +9,7 @@
 /// Proprietary and confidential
 
 #include "velecs/ecs/Entity.hpp"
+#include "velecs/ecs/EntityRegistry.hpp"
 
 namespace velecs::ecs {
 
@@ -16,7 +17,18 @@ namespace velecs::ecs {
 
 // Constructors and Destructors
 
+Entity::Entity(entt::registry& registry, entt::entity handle)
+    : registry(registry), handle(handle), name("Entity") {}
+
 // Public Methods
+
+Entity Entity::Create()
+{
+    entt::registry& registry = EntityRegistry::GetRegistry();
+    entt::entity handle =  registry.create();
+    Entity entity = Entity(registry, handle);
+    return entity;
+}
 
 // Protected Fields
 

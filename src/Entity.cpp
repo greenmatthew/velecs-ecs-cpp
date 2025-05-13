@@ -65,14 +65,13 @@ void Entity::ProcessDestructionQueue()
 
 // Private Fields
 
-std::vector<std::unique_ptr<Entity>> Entity::destructionQueue = std::vector<std::unique_ptr<Entity>>(10);
+std::vector<std::unique_ptr<Entity>> Entity::destructionQueue;
 
 // Private Methods
 
 void Entity::Destroy()
 {
     registry.destroy(handle);
-    delete this;
 }
 
 } // namespace velecs::ecs

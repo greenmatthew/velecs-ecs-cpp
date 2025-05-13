@@ -10,7 +10,7 @@
 
 #include "velecs/ecs/Entity.hpp"
 #include "velecs/ecs/internal/EntityRegistry.hpp"
-#include "velecs/ecs/internal/EntityPersistence.hpp"
+#include "velecs/ecs/internal/SceneNodePersistence.hpp"
 
 #include <memory>
 
@@ -25,7 +25,7 @@ Entity::Entity(entt::registry& registry, entt::entity handle)
 
 // Public Methods
 
-EntityRef Entity::Create()
+SceneNodeRef<Entity> Entity::Create()
 {
     entt::registry& registry = EntityRegistry::GetRegistry();
     entt::entity handle =  registry.create();
@@ -33,16 +33,16 @@ EntityRef Entity::Create()
     auto entityPtr = std::make_unique<Entity>(registry, handle);
 
     // Store the unique_ptr in the persistence component
-    auto& persistence = registry.emplace<EntityPersistence>(handle, std::move(entityPtr));
+    auto& persistence = registry.emplace<SceneNodePersistence>(handle, std::move(entityPtr));
 
-    return persistence.CreateEntityRef();
+    return SceneNodeRef<Entity>(reinterpret_cast<Entity**>(persistence.GetUnsafePtrPtr()));
 }
 
-void Entity::RequestDestroy(EntityRef entityRef)
+void Entity::RequestDestroy(SceneNodeRef<Entity> SceneNodeRef)
 {
-    if (entityRef.IsAlive())
+    if (SceneNodeRef.IsAlive())
     {
-        auto& persistence = entityRef->registry.get<EntityPersistence>(entityRef->handle);
+        auto& persistence = SceneNodeRef->registry.get<SceneNodePersistence>(SceneNodeRef->handle);
         auto ptr = persistence.Transfer(); // transfers ownership of std::unique_ptr<Entity>
         destructionQueue.push_back(std::move(ptr));
     }

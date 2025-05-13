@@ -1,4 +1,4 @@
-/// @file    EntityPersistence.hpp
+/// @file    SceneNodePersistence.hpp
 /// @author  Matthew Green
 /// @date    2025-05-13 10:43:18
 /// 
@@ -16,11 +16,11 @@ namespace velecs::ecs {
 
 class Entity;
 
-/// @struct EntityPersistence
+/// @struct SceneNodePersistence
 /// @brief Brief description.
 ///
 /// Rest of description.
-struct EntityPersistence {
+struct SceneNodePersistence {
     friend class Entity;
 
 public:
@@ -31,11 +31,11 @@ public:
     // Constructors and Destructors
 
     /// @brief Default constructor.
-    EntityPersistence(std::unique_ptr<Entity> entity)
+    SceneNodePersistence(std::unique_ptr<Entity> entity)
         : entityPtr(std::move(entity)) {}
 
     /// @brief Default deconstructor.
-    ~EntityPersistence() = default;
+    ~SceneNodePersistence() = default;
 
     // Public Methods
 
@@ -51,10 +51,9 @@ private:
 
     std::unique_ptr<Entity> entityPtr;
 
-    inline EntityRef CreateEntityRef()
+    inline SceneNode** GetUnsafePtrPtr()
     {
-        Entity** rawEntityPtrPtr = reinterpret_cast<Entity**>(&entityPtr);
-        return EntityRef(rawEntityPtrPtr);
+        return reinterpret_cast<SceneNode**>(&entityPtr);
     }
 
     inline std::unique_ptr<Entity> Transfer()

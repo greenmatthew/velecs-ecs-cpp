@@ -1,6 +1,6 @@
-/// @file    Entity.hpp
+/// @file    IComponentContainer.hpp
 /// @author  Matthew Green
-/// @date    2025-05-12 16:24:57
+/// @date    2025-05-13 14:19:43
 /// 
 /// @section LICENSE
 /// 
@@ -11,55 +11,28 @@
 #pragma once
 
 #include "velecs/ecs/TypeConstraints.hpp"
-#include "velecs/ecs/SceneNodeRef.hpp"
-#include "velecs/ecs/SceneNode.hpp"
-
-#include <iostream>
-
-#include <entt/entt.hpp>
 
 namespace velecs::ecs {
 
-/// @class Entity
+/// @class IComponentContainer
 /// @brief Brief description.
 ///
 /// Rest of description.
-class Entity : public SceneNode {
+class IComponentContainer {
 public:
     // Enums
 
     // Public Fields
 
-    std::string name;
-
     // Constructors and Destructors
 
-    /// @brief Disable default constructor.
-    Entity() = delete;
-
     /// @brief Default constructor.
-    Entity(entt::registry& registry, entt::entity handle);
+    IComponentContainer() = default;
 
     /// @brief Default deconstructor.
-    // ~Entity() = default;
-    ~Entity()
-    {
-        std::cout << "Entity '" << name << "' destroyed" << std::endl;
-    }
+    ~IComponentContainer() = default;
 
     // Public Methods
-
-    static SceneNodeRef<Entity> Create();
-
-    inline bool IsValid() const
-    {
-        return registry.valid(handle);
-    }
-
-    inline static bool IsAlive(const Entity* entity)
-    {
-        return entity != nullptr && entity->IsValid();
-    }
 
     template<typename T, typename = IsComponent<T>>
     inline T& AddComponent()
@@ -80,10 +53,6 @@ public:
     template<typename T, typename = IsComponent<T>>
     void TryGetComponent();
 
-    static void RequestDestroy(SceneNodeRef<Entity> SceneNodeRef);
-
-    static void ProcessDestructionQueue();
-
 protected:
     // Protected Fields
 
@@ -92,20 +61,7 @@ protected:
 private:
     // Private Fields
 
-    static std::vector<std::unique_ptr<Entity>> destructionQueue;
-
-    entt::registry& registry;
-    const entt::entity handle;
-
     // Private Methods
-
-    /// @brief Copy constructor disabled externally
-    Entity(const Entity&) = default;
-
-    /// @brief Assignment operator disabled externally
-    Entity& operator=(const Entity&) = default;
-
-    void Destroy();
 };
 
 } // namespace velecs::ecs

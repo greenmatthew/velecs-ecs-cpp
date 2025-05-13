@@ -17,6 +17,9 @@
 namespace velecs::ecs {
 
 class SceneNode;
+class FolderNode;
+class VirtualNode;
+class Entity;
 
 /// @class SceneNodeRef
 /// @brief A lightweight reference wrapper for SceneNode objects.
@@ -29,6 +32,8 @@ class SceneNode;
 template <typename T = SceneNode>
 class SceneNodeRef {
     friend class SceneNode;
+    friend class FolderNode;
+    friend class VirtualNode;
     friend class Entity;
 
 public:

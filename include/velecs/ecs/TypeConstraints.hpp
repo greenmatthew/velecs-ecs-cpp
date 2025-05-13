@@ -14,7 +14,6 @@
 
 namespace velecs::ecs {
 
-class Entity;
 class Component;
 class SceneNode;
 

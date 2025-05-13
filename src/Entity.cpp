@@ -35,9 +35,7 @@ EntityRef Entity::Create()
     // Store the unique_ptr in the persistence component
     auto& persistence = registry.emplace<EntityPersistence>(handle, std::move(entityPtr));
 
-    Entity** rawEntityPtrPtr = reinterpret_cast<Entity**>(&persistence.entity);
-    
-    return EntityRef(rawEntityPtrPtr);
+    return persistence.CreateEntityRef();
 }
 
 void Entity::RequestDestroy(EntityRef entityRef)

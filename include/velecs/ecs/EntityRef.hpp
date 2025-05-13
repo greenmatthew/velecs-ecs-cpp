@@ -25,6 +25,8 @@ class Entity;
 /// omitting safety checks in operators for efficiency - users must verify validity
 /// before access using IsAlive().
 class EntityRef {
+    friend struct EntityPersistence;
+
 public:
     // Enums
 
@@ -80,9 +82,6 @@ protected:
     // Protected Methods
 
 private:
-
-    friend class Entity;
-
     // Private Fields
 
     /// @brief Double pointer to the Entity.

@@ -21,28 +21,23 @@ class Entity;
 ///
 /// Rest of description.
 struct EntityPersistence {
+    friend class Entity;
+
 public:
     // Enums
 
     // Public Fields
 
-    std::unique_ptr<Entity> entity;
-
     // Constructors and Destructors
 
     /// @brief Default constructor.
     EntityPersistence(std::unique_ptr<Entity> entity)
-        : entity(std::move(entity)) {}
+        : entityPtr(std::move(entity)) {}
 
     /// @brief Default deconstructor.
     ~EntityPersistence() = default;
 
     // Public Methods
-
-    inline std::unique_ptr<Entity> Transfer()
-    {
-        return std::move(entity);
-    }
 
 protected:
     // Protected Fields
@@ -53,6 +48,19 @@ private:
     // Private Fields
 
     // Private Methods
+
+    std::unique_ptr<Entity> entityPtr;
+
+    inline EntityRef CreateEntityRef()
+    {
+        Entity** rawEntityPtrPtr = reinterpret_cast<Entity**>(&entityPtr);
+        return EntityRef(rawEntityPtrPtr);
+    }
+
+    inline std::unique_ptr<Entity> Transfer()
+    {
+        return std::move(entityPtr);
+    }
 };
 
 } // namespace velecs::ecs

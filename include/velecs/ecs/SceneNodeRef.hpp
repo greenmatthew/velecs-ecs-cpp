@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include "velecs/ecs/TypeConstraints.hpp"
+
 #include <memory>
 
 namespace velecs::ecs {
@@ -104,6 +106,7 @@ private:
 
     // Private Methods
 
+    template <typename U = T, typename = IsSceneNode<U>>
     inline explicit SceneNodeRef(T** sceneNodePtrPtr)
         : sceneNodePtrPtr(sceneNodePtrPtr) {}
 };

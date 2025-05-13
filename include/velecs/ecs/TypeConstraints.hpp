@@ -16,8 +16,12 @@ namespace velecs::ecs {
 
 class Entity;
 class Component;
+class SceneNode;
 
 template <typename T>
 using IsComponent = std::enable_if_t<std::is_base_of_v<Component, T>>;
+
+template <typename T>
+using IsSceneNode = std::enable_if_t<std::is_base_of_v<SceneNode, T>>;
 
 } // namespace velecs::ecs

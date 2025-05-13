@@ -10,7 +10,10 @@
 
 #pragma once
 
-#include <velecs/ecs/TypeConstraints.hpp>
+#include "velecs/ecs/TypeConstraints.hpp"
+#include "velecs/ecs/EntityRef.hpp"
+
+#include <iostream>
 
 #include <entt/entt.hpp>
 
@@ -37,14 +40,28 @@ public:
     Entity(entt::registry& registry, entt::entity handle);
 
     /// @brief Default deconstructor.
-    ~Entity() = default;
+    // ~Entity() = default;
+    ~Entity()
+    {
+        std::cout << "Entity '" << name << "' destroyed" << std::endl;
+    }
 
     // Public Methods
 
-    static Entity Create();
+    static EntityRef Create();
+
+    inline bool IsValid() const
+    {
+        return registry.valid(handle);
+    }
+
+    inline static bool IsAlive(const Entity* entity)
+    {
+        return entity != nullptr && entity->IsValid();
+    }
 
     template<typename T, typename = IsComponent<T>>
-    T& AddComponent()
+    inline T& AddComponent()
     {
         return registry.emplace<T>(handle);
     }
@@ -62,6 +79,10 @@ public:
     template<typename T, typename = IsComponent<T>>
     void TryGetComponent();
 
+    static void RequestDestroy(EntityRef entityRef);
+
+    static void ProcessDestructionQueue();
+
 protected:
     // Protected Fields
 
@@ -69,6 +90,8 @@ protected:
 
 private:
     // Private Fields
+
+    static std::vector<std::unique_ptr<Entity>> destructionQueue;
 
     entt::registry& registry;
     const entt::entity handle;
@@ -80,6 +103,8 @@ private:
 
     /// @brief Assignment operator disabled externally
     Entity& operator=(const Entity&) = default;
+
+    void Destroy();
 };
 
 } // namespace velecs::ecs

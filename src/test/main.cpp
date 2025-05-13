@@ -15,13 +15,16 @@ int main()
     // const auto entity = registry.create();
     // registry.destroy(entity);
 
-    Entity entity = Entity::Create();
-    std::cout << "Transform: " << entity.name << std::endl;
+    auto entity = Entity::Create();
+    std::cout << "Transform: " << entity->name << std::endl;
 
-    Transform& transform = entity.AddComponent<Transform>();
+    Transform& transform = entity->AddComponent<Transform>();
     std::cout << "\tPosition: " << transform.pos << std::endl;
     std::cout << "\tScale: " << transform.scale << std::endl;
     std::cout << "\tRotation: " << transform.rot << std::endl;
+
+    Entity::RequestDestroy(entity);
+    Entity::ProcessDestructionQueue();
 
     return EXIT_SUCCESS;
 }

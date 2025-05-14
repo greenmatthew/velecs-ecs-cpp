@@ -15,7 +15,7 @@ int main()
     std::cout << "\tPosition: " << parentTransform.GetPos() << std::endl;
     std::cout << "\tScale: " << parentTransform.GetScale() << std::endl;
     std::cout << "\tRotation: " << parentTransform.GetEulerAnglesDeg() << std::endl;
-    std::cout << "\tModel Matrix: " << parentTransform.GetModelMatrix() << std::endl;
+    std::cout << "\tModel Matrix:\n" << parentTransform.GetModelMatrix() << std::endl;
 
     Entity child = Entity::Create();
     if (child.TryGetComponent<Name>(name)) name->SetName("child");
@@ -25,7 +25,7 @@ int main()
     std::cout << "\tPosition: " << childTransform.GetPos() << std::endl;
     std::cout << "\tScale: " << childTransform.GetScale() << std::endl;
     std::cout << "\tRotation: " << childTransform.GetEulerAnglesDeg() << std::endl;
-    std::cout << "\tModel Matrix: " << childTransform.GetModelMatrix() << std::endl;
+    std::cout << "\tModel Matrix:\n" << childTransform.GetModelMatrix() << std::endl;
 
     Entity::RequestDestroy(parent);
     Entity::ProcessDestructionQueue();

@@ -25,7 +25,6 @@ set(LIB_SOURCES
     src/Entity.cpp
     src/Component.cpp
     src/components/Transform.cpp
-    src/components/Hierarchy.cpp
 )
 
 # Always build the library

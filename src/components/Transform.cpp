@@ -19,10 +19,36 @@ namespace velecs::ecs {
 // Constructors and Destructors
 
 Transform::Transform()
-    : pos(Vec3::ZERO), scale(Vec3::ONE), rot(Quat::IDENTITY), cachedModelMat(Mat4::IDENTITY) {}
+    : parent(Entity::INVALID), pos(Vec3::ZERO), scale(Vec3::ONE), rot(Quat::IDENTITY), cachedModelMat(Mat4::IDENTITY) {}
 
 
 // Public Methods
+
+void Transform::SetParent(const Entity& newParent)
+{
+    GetParent().GetTransform().RemoveChild(GetOwner());
+    parent = newParent;
+}
+
+void Transform::AddChild(const Entity& child)
+{
+    // Only add if not already a child
+    if (childrenHandles.find(child) == childrenHandles.end())
+    {
+        children.emplace_back(child);
+        childrenHandles.insert(child);
+    }
+}
+
+void Transform::RemoveChild(const Entity& child)
+{
+    auto it = std::find(children.begin(), children.end(), child);
+    if (it != children.end())
+    {
+        childrenHandles.erase(child);
+        children.erase(it);
+    }
+}
 
 Vec3 Transform::GetPos() const
 {

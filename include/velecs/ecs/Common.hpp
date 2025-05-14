@@ -17,4 +17,3 @@
 #include "velecs/ecs/Component.hpp"
 #include "velecs/ecs/components/Name.hpp"
 #include "velecs/ecs/components/Transform.hpp"
-#include "velecs/ecs/components/Hierarchy.hpp"

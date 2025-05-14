@@ -49,7 +49,7 @@ public:
 
     void SetParent(const Entity& newParent);
     
-    inline const std::vector<Entity>& const GetChildren() const
+    inline const std::vector<Entity>& GetChildren() const
     {
         return children;
     }

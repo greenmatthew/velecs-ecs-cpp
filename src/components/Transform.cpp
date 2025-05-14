@@ -8,7 +8,7 @@
 /// Unauthorized copying of this file, via any medium is strictly prohibited
 /// Proprietary and confidential
 
-#include "velecs/ecs/Transform.hpp"
+#include "velecs/ecs/components/Transform.hpp"
 
 using namespace velecs::math;
 

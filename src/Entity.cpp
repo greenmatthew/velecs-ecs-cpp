@@ -9,7 +9,7 @@
 /// Proprietary and confidential
 
 #include "velecs/ecs/Entity.hpp"
-#include "velecs/ecs/Name.hpp"
+#include "velecs/ecs/components/Name.hpp"
 
 #include <memory>
 

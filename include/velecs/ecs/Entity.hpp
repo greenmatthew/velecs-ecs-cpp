@@ -14,6 +14,7 @@
 #include "velecs/ecs/Component.hpp"
 
 #include <iostream>
+#include <functional>
 
 #include <entt/entt.hpp>
 
@@ -131,6 +132,11 @@ public:
         return (outComponent != nullptr);
     }
 
+    size_t GetHashCode() const
+    {
+        return std::hash<entt::entity>{}(handle);
+    }
+
     /// @brief Requests an entity to be destroyed.
     /// @details This adds the entity to a queue for destruction rather than destroying it immediately.
     /// @param entity The entity to be queued for destruction.
@@ -171,3 +177,16 @@ private:
 };
 
 } // namespace velecs::ecs
+
+
+namespace std {
+
+template <>
+struct hash<velecs::ecs::Entity> {
+    size_t operator()(const velecs::ecs::Entity& entity) const
+    {
+        return entity.GetHashCode();
+    }
+};
+
+} // namespace std

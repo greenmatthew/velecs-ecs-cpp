@@ -8,6 +8,7 @@ using namespace velecs::math;
 int main()
 {
     Entity parent = Entity::Create();
+    auto& parentHierarchy = parent.AddComponent<Hierarchy>();
     Name* name = nullptr;
     if (parent.TryGetComponent<Name>(name)) name->SetName("parent");
     std::cout << "Transform: " << (parent.TryGetComponent<Name>(name) ? name->GetName() : "Unknown") << std::endl;
@@ -18,6 +19,8 @@ int main()
     std::cout << "\tModel Matrix:\n" << parentTransform.GetModelMatrix() << std::endl;
 
     Entity child = Entity::Create();
+    auto& childHierarchy = child.AddComponent<Hierarchy>();
+    childHierarchy.SetParent(parent);
     if (child.TryGetComponent<Name>(name)) name->SetName("child");
     std::cout << "Transform: " << (child.TryGetComponent<Name>(name) ? name->GetName() : "Unknown") << std::endl;
     Transform& childTransform = child.AddComponent<Transform>();

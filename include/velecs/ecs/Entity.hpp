@@ -20,6 +20,9 @@
 
 namespace velecs::ecs {
 
+class Name;
+class Transform;
+
 /// @class Entity
 /// @brief Brief description.
 ///
@@ -77,6 +80,16 @@ public:
     {
         return registry.valid(handle);
     }
+
+    std::string GetName() const;
+
+    void SetName(const std::string& newName);
+
+    /// @brief Gets the Transform component of this entity.
+    /// @details This is a convenience method that assumes the entity has a Transform component.
+    ///          This method should only be called when you know the entity has a Transform.
+    /// @return A reference to the entity's Transform component.
+    Transform& GetTransform() const;
 
     /// @brief Adds a component of type T to the entity.
     /// @tparam T The type of component to add.
@@ -150,6 +163,17 @@ protected:
     // Protected Fields
 
     // Protected Methods
+
+    /// @brief Retrieves a component reference when the component is known to exist.
+    /// @details This is an internal method that should only be used when you're certain the component exists.
+    ///          It avoids the overhead of TryGetComponent for components that are guaranteed to be present.
+    /// @tparam T The component type to retrieve.
+    /// @return A reference to the component.
+    template<typename T, typename = IsComponent<T>>
+    inline T& GetComponent() const
+    {
+        return *registry.try_get<T>(handle);
+    }
 
 private:
     // Private Fields

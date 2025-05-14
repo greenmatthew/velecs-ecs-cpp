@@ -9,8 +9,7 @@
 /// Proprietary and confidential
 
 #include "velecs/ecs/Entity.hpp"
-#include "velecs/ecs/internal/EntityRegistry.hpp"
-#include "velecs/ecs/internal/SceneNodePersistence.hpp"
+#include "velecs/ecs/Name.hpp"
 
 #include <memory>
 
@@ -20,42 +19,31 @@ namespace velecs::ecs {
 
 // Constructors and Destructors
 
-Entity::Entity(entt::registry& registry, entt::entity handle)
-    : registry(registry), handle(handle), name("Entity") {}
-
 // Public Methods
 
-SceneNodeRef<Entity> Entity::Create()
+Entity Entity::Create()
 {
-    entt::registry& registry = EntityRegistry::GetRegistry();
-    entt::entity handle =  registry.create();
-
-    auto entityPtr = std::make_unique<Entity>(registry, handle);
-
-    // Store the unique_ptr in the persistence component
-    auto& persistence = registry.emplace<SceneNodePersistence>(handle, std::move(entityPtr));
-
-    return SceneNodeRef<Entity>(reinterpret_cast<Entity**>(persistence.GetUnsafePtrPtr()));
+    entt::entity handle = registry.create();
+    Entity result = Entity(handle);
+    Name& name = result.AddComponent<Name>("Entity");
+    return result;
 }
 
-void Entity::RequestDestroy(SceneNodeRef<Entity> SceneNodeRef)
+void Entity::RequestDestroy(Entity entity)
 {
-    if (SceneNodeRef.IsAlive())
+    if (entity.IsValid())
     {
-        auto& persistence = SceneNodeRef->registry.get<SceneNodePersistence>(SceneNodeRef->handle);
-        auto ptr = persistence.Transfer(); // transfers ownership of std::unique_ptr<Entity>
-        destructionQueue.push_back(std::move(ptr));
+        destructionQueue.push_back(entity);
     }
 }
 
 void Entity::ProcessDestructionQueue()
 {
-    for (auto& entityPtr : destructionQueue)
+    for (auto& entity : destructionQueue)
     {
-        entityPtr->Destroy();
+        entity.Destroy();
     }
     
-    // Clear the queue (this will destroy all unique_ptrs and release their memory)
     destructionQueue.clear();
 }
 
@@ -65,7 +53,8 @@ void Entity::ProcessDestructionQueue()
 
 // Private Fields
 
-std::vector<std::unique_ptr<Entity>> Entity::destructionQueue;
+entt::registry Entity::registry;
+std::vector<Entity> Entity::destructionQueue;
 
 // Private Methods
 

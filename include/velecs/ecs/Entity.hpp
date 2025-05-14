@@ -11,8 +11,6 @@
 #pragma once
 
 #include "velecs/ecs/TypeConstraints.hpp"
-#include "velecs/ecs/SceneNodeRef.hpp"
-#include "velecs/ecs/SceneNode.hpp"
 
 #include <iostream>
 
@@ -24,41 +22,32 @@ namespace velecs::ecs {
 /// @brief Brief description.
 ///
 /// Rest of description.
-class Entity : public SceneNode {
+class Entity {
 public:
     // Enums
 
     // Public Fields
 
+    static const Entity INVALID;
+
     std::string name;
 
     // Constructors and Destructors
 
-    /// @brief Disable default constructor.
-    Entity() = delete;
-
     /// @brief Default constructor.
-    Entity(entt::registry& registry, entt::entity handle);
+    inline explicit Entity()
+        : handle(entt::null) {}
 
     /// @brief Default deconstructor.
-    // ~Entity() = default;
-    ~Entity()
-    {
-        std::cout << "Entity '" << name << "' destroyed" << std::endl;
-    }
+    ~Entity() = default;
 
     // Public Methods
 
-    static SceneNodeRef<Entity> Create();
+    static Entity Create();
 
     inline bool IsValid() const
     {
         return registry.valid(handle);
-    }
-
-    inline static bool IsAlive(const Entity* entity)
-    {
-        return entity != nullptr && entity->IsValid();
     }
 
     template<typename T, typename = IsComponent<T>>
@@ -67,20 +56,33 @@ public:
         return registry.emplace<T>(handle);
     }
 
-    // template<typename T, IsComponent<T>, typename... Args>
-    // void AddComponent(Args &&...args)
-    // {
-    //     auto& comp = registry.emplace<T>(handle, std::forward<Args>(args)...);
-    //     // return comp;
-    // }
+    template<typename T, typename = IsComponent<T>, typename... Args>
+    inline T& AddComponent(Args &&...args)
+    {
+        return registry.emplace<T>(handle, std::forward<Args>(args)...);
+    }
 
     template<typename T, typename = IsComponent<T>>
-    void RemoveComponent();
+    inline void RemoveComponent()
+    {
+        registry.remove<T>(handle);
+    }
 
     template<typename T, typename = IsComponent<T>>
-    void TryGetComponent();
+    inline bool TryGetComponent(T*& outComponent)
+    {
+        outComponent = registry.try_get<T>(handle);
+        return (outComponent != nullptr);
+    }
 
-    static void RequestDestroy(SceneNodeRef<Entity> SceneNodeRef);
+    template<typename T, typename = IsComponent<T>>
+    inline bool TryGetComponent(const T*& outComponent)
+    {
+        outComponent = registry.try_get<T>(handle);
+        return (outComponent != nullptr);
+    }
+
+    static void RequestDestroy(Entity entity);
 
     static void ProcessDestructionQueue();
 
@@ -92,18 +94,15 @@ protected:
 private:
     // Private Fields
 
-    static std::vector<std::unique_ptr<Entity>> destructionQueue;
-
-    entt::registry& registry;
+    static entt::registry registry;
+    static std::vector<Entity> destructionQueue;
+    
     const entt::entity handle;
 
     // Private Methods
 
-    /// @brief Copy constructor disabled externally
-    Entity(const Entity&) = default;
-
-    /// @brief Assignment operator disabled externally
-    Entity& operator=(const Entity&) = default;
+    inline explicit Entity(entt::entity handle)
+        : handle(handle) {}
 
     void Destroy();
 };

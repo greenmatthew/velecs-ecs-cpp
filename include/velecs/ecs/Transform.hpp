@@ -13,6 +13,8 @@
 #include "velecs/ecs/Component.hpp"
 
 #include "velecs/math/Vec3.hpp"
+#include "velecs/math/Quat.hpp"
+#include "velecs/math/Mat4.hpp"
 
 namespace velecs::ecs {
 
@@ -26,10 +28,6 @@ public:
 
     // Public Fields
 
-    math::Vec3 pos;
-    math::Vec3 scale;
-    math::Vec3 rot;
-
     // Constructors and Destructors
 
     /// @brief Default constructor.
@@ -40,6 +38,22 @@ public:
 
     // Public Methods
 
+    math::Vec3 GetPos() const;
+    void SetPos(const math::Vec3& newPos);
+
+    math::Vec3 GetScale() const;
+    void SetScale(const math::Vec3& newScale);
+
+    math::Vec3 GetEulerAngles() const;
+    math::Vec3 GetEulerAnglesDeg() const;
+    void SetEulerAngles(const math::Vec3& newAngles);
+    void SetEulerAnglesDeg(const math::Vec3& newAnglesDeg);
+
+    math::Quat GetRot() const;
+    void SetRot(const math::Quat& newRot);
+
+    math::Mat4 GetModelMatrix() const;
+
 protected:
     // Protected Fields
 
@@ -48,7 +62,16 @@ protected:
 private:
     // Private Fields
 
+    math::Vec3 pos;
+    math::Vec3 scale;
+    math::Quat rot;
+
+    mutable bool isDirty = true;
+    mutable math::Mat4 cachedModelMat;
+
     // Private Methods
+
+    math::Mat4 CalculateModel() const;
 };
 
 } // namespace velecs::ecs

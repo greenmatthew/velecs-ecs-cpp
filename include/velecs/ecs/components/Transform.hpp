@@ -97,6 +97,8 @@ public:
 
     math::Mat4 GetModelMatrix() const;
 
+    math::Mat4 GetWorldMatrix() const;
+
 protected:
     // Protected Fields
 
@@ -113,12 +115,19 @@ private:
     math::Vec3 scale;
     math::Quat rot;
 
-    mutable bool isDirty = true;
+    mutable bool isModelDirty = true;
     mutable math::Mat4 cachedModelMat;
+
+    mutable bool isWorldDirty = true;
+    mutable math::Mat4 cachedWorldMat;
 
     // Private Methods
 
     math::Mat4 CalculateModel() const;
+    math::Mat4 CalculateWorld() const;
+
+    void SetWorldDirty();
+    void SetDirty();
 };
 
 } // namespace velecs::ecs

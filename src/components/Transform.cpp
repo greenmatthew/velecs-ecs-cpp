@@ -19,8 +19,12 @@ namespace velecs::ecs {
 // Constructors and Destructors
 
 Transform::Transform()
-    : parent(Entity::INVALID), pos(Vec3::ZERO), scale(Vec3::ONE), rot(Quat::IDENTITY), cachedModelMat(Mat4::IDENTITY) {}
-
+    : parent(Entity::INVALID),
+        pos(Vec3::ZERO),
+        scale(Vec3::ONE),
+        rot(Quat::IDENTITY),
+        cachedModelMat(Mat4::IDENTITY),
+        cachedWorldMat(Mat4::IDENTITY) {}
 
 // Public Methods
 
@@ -64,7 +68,7 @@ Vec3 Transform::GetPos() const
 void Transform::SetPos(const Vec3& newPos)
 {
     pos = newPos;
-    isDirty = true;
+    SetDirty();
 }
 
 Vec3 Transform::GetScale() const
@@ -75,7 +79,7 @@ Vec3 Transform::GetScale() const
 void Transform::SetScale(const Vec3& newScale)
 {
     scale = newScale;
-    isDirty = true;
+    SetDirty();
 }
 
 Vec3 Transform::GetEulerAngles() const
@@ -91,13 +95,13 @@ Vec3 Transform::GetEulerAnglesDeg() const
 void Transform::SetEulerAngles(const Vec3& newAngles)
 {
     rot = Quat::FromEulerAngles(newAngles);
-    isDirty = true;
+    SetDirty();
 }
 
 void Transform::SetEulerAnglesDeg(const Vec3& newAnglesDeg)
 {
     rot = Quat::FromEulerAnglesDeg(newAnglesDeg);
-    isDirty = true;
+    SetDirty();
 }
 
 Quat Transform::GetRot() const
@@ -108,17 +112,27 @@ Quat Transform::GetRot() const
 void Transform::SetRot(const Quat& newRot)
 {
     rot = newRot;
-    isDirty = true;
+    SetDirty();
 }
 
 Mat4 Transform::GetModelMatrix() const
 {
-    if (isDirty)
+    if (isModelDirty)
     {
         cachedModelMat = CalculateModel();
-        isDirty = false;
+        isModelDirty = false;
     }
     return cachedModelMat;
+}
+
+Mat4 Transform::GetWorldMatrix() const
+{
+    if (isWorldDirty)
+    {
+        cachedWorldMat = CalculateWorld();
+        isWorldDirty = false;
+    }
+    return cachedWorldMat;
 }
 
 // Protected Fields
@@ -136,6 +150,29 @@ Mat4 Transform::CalculateModel() const
     Mat4 S = Mat4::FromScale(scale);
 
     return T * R * S;
+}
+
+Mat4 Transform::CalculateWorld() const
+{
+    // If there is no parent then the model is the world matrix.
+    if (!parent) return GetModelMatrix();
+    // If there is get the parent's world matrix and apply it to the model matrix.
+    else return parent.GetTransform().GetWorldMatrix() * GetModelMatrix();
+}
+
+void Transform::SetWorldDirty()
+{
+    isWorldDirty = true;
+    for (auto& child : GetChildren())
+    {
+        child.GetTransform().SetWorldDirty();
+    }
+}
+
+void Transform::SetDirty()
+{
+    isModelDirty = true;
+    SetWorldDirty();
 }
 
 } // namespace velecs::ecs

@@ -12,11 +12,15 @@
 
 namespace velecs::ecs {
 
+class Entity;
+
 /// @class Component
 /// @brief Brief description.
 ///
 /// Rest of description.
 class Component {
+    friend class Entity;
+
 public:
     // Enums
 
@@ -32,6 +36,8 @@ public:
 
     // Public Methods
 
+    Entity GetOwner() const;
+
 protected:
     // Protected Fields
 
@@ -40,7 +46,11 @@ protected:
 private:
     // Private Fields
 
+    Entity* owner = nullptr;
+
     // Private Methods
+
+    void SetOwner(const Entity& entity);
 };
 
 } // namespace velecs::ecs

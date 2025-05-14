@@ -84,7 +84,7 @@ public:
     inline T& AddComponent()
     {
         T& comp = registry.emplace<T>(handle);
-        comp.owner = *this;
+        comp.SetOwner(*this);
         return comp;
     }
 
@@ -97,7 +97,7 @@ public:
     inline T& AddComponent(Args &&...args)
     {
         T& comp = registry.emplace<T>(handle, std::forward<Args>(args)...);
-        comp.owner = *this;
+        comp.SetOwner(*this);
         return comp;
     }
 

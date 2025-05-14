@@ -9,6 +9,7 @@
 /// Proprietary and confidential
 
 #include "velecs/ecs/Component.hpp"
+#include "velecs/ecs/Entity.hpp"
 
 namespace velecs::ecs {
 
@@ -18,6 +19,11 @@ namespace velecs::ecs {
 
 // Public Methods
 
+Entity Component::GetOwner() const
+{
+    return owner ? *owner : Entity::INVALID;
+}
+
 // Protected Fields
 
 // Protected Methods
@@ -25,5 +31,10 @@ namespace velecs::ecs {
 // Private Fields
 
 // Private Methods
+
+void Component::SetOwner(const Entity& entity)
+{
+    owner = const_cast<Entity*>(&entity);
+}
 
 } // namespace velecs::ecs

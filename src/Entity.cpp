@@ -17,6 +17,8 @@ namespace velecs::ecs {
 
 // Public Fields
 
+const Entity Entity::INVALID;
+
 // Constructors and Destructors
 
 // Public Methods

@@ -74,15 +74,30 @@ public:
         return handle != other.handle;
     }
 
+    /// @brief Boolean conversion operator.
+    /// @details Allows the entity to be used in conditional expressions.
+    ///          An entity evaluates to true if it is valid, false otherwise.
+    /// @return True if the entity is valid, false otherwise.
+    inline explicit operator bool() const
+    {
+        return IsValid();
+    }
+
     /// @brief Checks if the entity is valid.
     /// @return True if the entity handle is valid in the registry, false otherwise.
     inline bool IsValid() const
     {
-        return registry.valid(handle);
+        return handle != entt::null && registry.valid(handle);
     }
 
+    /// @brief Gets the name of this entity.
+    /// @details Retrieves the name stored in the Name component of this entity.
+    /// @return A string containing the entity's name.
     std::string GetName() const;
 
+    /// @brief Sets the name of this entity.
+    /// @details Updates the name stored in the Name component of this entity.
+    /// @param newName The new name to assign to this entity.
     void SetName(const std::string& newName);
 
     /// @brief Gets the Transform component of this entity.

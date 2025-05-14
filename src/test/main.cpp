@@ -17,8 +17,10 @@ int main()
 
     Entity child = Entity::Create();
     Transform& childTransform = child.GetTransform();
+    childTransform.SetParent(parent);
     childTransform.SetPos(Vec3::FORWARD * 10);
     std::cout << "Transform: " << child.GetName() << std::endl;
+    std::cout << "\tParent:" << (childTransform.GetParent() ? childTransform.GetParent().GetName() : "(n/a)") << '\n' << std::endl;
     std::cout << "\tPosition: " << childTransform.GetPos() << std::endl;
     std::cout << "\tScale: " << childTransform.GetScale() << std::endl;
     std::cout << "\tRotation: " << childTransform.GetEulerAnglesDeg() << std::endl;

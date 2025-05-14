@@ -26,7 +26,13 @@ Transform::Transform()
 
 void Transform::SetParent(const Entity& newParent)
 {
-    GetParent().GetTransform().RemoveChild(GetOwner());
+    // If the new parent is the same then ignore.
+    if (parent == newParent) return;
+
+    // If there is already a parent then remove it as a child
+    if (parent) parent.GetTransform().RemoveChild(GetOwner());
+
+    // Assign new parent.
     parent = newParent;
 }
 

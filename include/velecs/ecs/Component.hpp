@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include <memory>
+
 namespace velecs::ecs {
 
 class Entity;
@@ -29,13 +31,33 @@ public:
     // Constructors and Destructors
 
     /// @brief Default constructor.
-    Component() = default;
+    Component();
+
+    /// @brief Copy constructor.
+    /// @param other The component to copy from.
+    Component(const Component& other);
 
     /// @brief Default deconstructor.
     ~Component() = default;
 
     // Public Methods
 
+    /// @brief Copy assignment operator.
+    /// @param other The component to copy from.
+    /// @return Reference to this component after assignment.
+    Component& operator=(const Component& other);
+    
+    /// @brief Move constructor.
+    /// @param other The component to move from.
+    Component(Component&& other) noexcept;
+    
+    /// @brief Move assignment operator.
+    /// @param other The component to move from.
+    /// @return Reference to this component after assignment.
+    Component& operator=(Component&& other) noexcept;
+
+    /// @brief Gets the owning entity of this component.
+    /// @return The entity that owns this component.
     Entity GetOwner() const;
 
 protected:
@@ -46,7 +68,7 @@ protected:
 private:
     // Private Fields
 
-    Entity* owner = nullptr;
+    std::unique_ptr<Entity> ownerPtr;
 
     // Private Methods
 

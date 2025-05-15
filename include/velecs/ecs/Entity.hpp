@@ -46,13 +46,21 @@ public:
     /// @return A newly created entity with a valid handle.
     static Entity Create();
 
+    /// @brief Copy constructor
+    /// @param other The entity to copy from
+    inline Entity(const Entity& other)
+        : handle(other.handle) {}
+
     /// @brief Copy assignment operator.
     /// @param other The entity to copy from.
     /// @return A reference to this entity after assignment.
-    inline Entity& operator=(const Entity& other)
+    inline Entity& operator=(const Entity& other) noexcept
     {
         if (this != &other) // Check for self-assignment
         {
+            // Since handle is const to prevent accidental modification,
+            // we need to use const_cast here to enable the desired
+            // reassignment behavior
             const_cast<entt::entity&>(handle) = other.handle; // Copy handle
         }
         return *this;
@@ -212,7 +220,7 @@ private:
 
     /// @brief Destroys this entity.
     /// @details Removes the entity from the registry.
-    void Destroy();
+    void Destroy() const;
 };
 
 } // namespace velecs::ecs

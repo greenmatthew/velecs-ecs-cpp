@@ -50,7 +50,7 @@ Transform& Entity::GetTransform() const
 
 void Entity::RequestDestroy(Entity entity)
 {
-    if (entity.IsValid())
+    if (entity)
     {
         destructionQueue.push_back(entity);
     }
@@ -58,12 +58,15 @@ void Entity::RequestDestroy(Entity entity)
 
 void Entity::ProcessDestructionQueue()
 {
-    for (auto& entity : destructionQueue)
+    std::vector<Entity> currentQueue = std::move(destructionQueue);
+    destructionQueue.clear();  // Clear it now in case more entities get queued during processing
+
+    for (auto& entity : currentQueue)
     {
-        entity.Destroy();
+        // Ensure entity still is valid and exists
+        // i.e. in case entity was a child of something already destroyed.
+        if (entity) entity.Destroy();
     }
-    
-    destructionQueue.clear();
 }
 
 // Protected Fields
@@ -77,8 +80,20 @@ std::vector<Entity> Entity::destructionQueue;
 
 // Private Methods
 
-void Entity::Destroy()
+void Entity::Destroy() const
 {
+    // Get children references directly from the transform
+    const std::vector<Entity>& children = GetTransform().GetChildren();
+
+    std::cout << "Destroying '" << GetName() << "' and its " << children.size() << " children." << std::endl;
+
+    // Queue all children for destruction without creating copies
+    for (const Entity& child : children)
+    {
+        if (child) child.Destroy();
+        else std::cout << "ERROR: child entity is not valid!" << std::endl;
+    }
+
     registry.destroy(handle);
 }
 

@@ -38,6 +38,9 @@ void Transform::SetParent(const Entity& newParent)
 
     // Assign new parent.
     parent = newParent;
+
+    // Add child to new parent
+    parent.GetTransform().AddChild(GetOwner());
 }
 
 void Transform::AddChild(const Entity& child)

@@ -8,6 +8,7 @@ using namespace velecs::math;
 int main()
 {
     Entity parent = Entity::Create();
+    parent.SetName("Parent Entity");
     Transform& parentTransform = parent.GetTransform();
     parentTransform.SetPos(Vec3::FORWARD * 1);
     std::cout << "Transform: " << parent.GetName() << std::endl;
@@ -18,6 +19,7 @@ int main()
     std::cout << "\tWorld Matrix:\n" << parentTransform.GetWorldMatrix() << std::endl;
 
     Entity child = Entity::Create();
+    child.SetName("Child Entity");
     Transform& childTransform = child.GetTransform();
     childTransform.SetParent(parent);
     childTransform.SetPos(Vec3::FORWARD * 10);
@@ -31,6 +33,9 @@ int main()
 
     Entity::RequestDestroy(parent);
     Entity::ProcessDestructionQueue();
+
+    if (child) std::cout << child.GetName() << " is still alive!" << std::endl;
+    else std::cout << "Entity is no longer alive." << std::endl;
 
     return EXIT_SUCCESS;
 }

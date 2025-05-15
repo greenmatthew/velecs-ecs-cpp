@@ -12,6 +12,8 @@
 
 #include <memory>
 
+#include <entt/entt.hpp>
+
 namespace velecs::ecs {
 
 class Entity;
@@ -31,34 +33,26 @@ public:
     // Constructors and Destructors
 
     /// @brief Default constructor.
-    Component();
-
-    /// @brief Copy constructor.
-    /// @param other The component to copy from.
-    Component(const Component& other);
+    Component() = default;
 
     /// @brief Default deconstructor.
     ~Component() = default;
 
     // Public Methods
 
-    /// @brief Copy assignment operator.
-    /// @param other The component to copy from.
-    /// @return Reference to this component after assignment.
-    Component& operator=(const Component& other);
-    
-    /// @brief Move constructor.
-    /// @param other The component to move from.
-    Component(Component&& other) noexcept;
-    
-    /// @brief Move assignment operator.
-    /// @param other The component to move from.
-    /// @return Reference to this component after assignment.
-    Component& operator=(Component&& other) noexcept;
+    template<typename T, typename = IsComponent<T>>
+    Entity GetOwner()
+    {
+        return GetOwner<T>(*(T*)this);
+    }
 
-    /// @brief Gets the owning entity of this component.
-    /// @return The entity that owns this component.
-    Entity GetOwner() const;
+    template<typename T, typename = IsComponent<T>>
+    static Entity GetOwner(const T& comp)
+    {
+        auto& registry = Entity::GetRegistry();
+        const entt::entity entity = entt::to_entity(registry.storage<T>(), comp);
+        return Entity(entity);
+    }
 
 protected:
     // Protected Fields
@@ -68,11 +62,7 @@ protected:
 private:
     // Private Fields
 
-    std::unique_ptr<Entity> ownerPtr;
-
     // Private Methods
-
-    void SetOwner(const Entity& entity);
 };
 
 } // namespace velecs::ecs

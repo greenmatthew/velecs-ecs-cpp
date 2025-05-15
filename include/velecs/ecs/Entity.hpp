@@ -28,6 +28,7 @@ class Transform;
 ///
 /// Rest of description.
 class Entity {
+    friend class Component;
 public:
     // Enums
 
@@ -121,7 +122,6 @@ public:
     inline T& AddComponent()
     {
         T& comp = registry.emplace<T>(handle);
-        comp.SetOwner(*this);
         return comp;
     }
 
@@ -134,7 +134,6 @@ public:
     inline T& AddComponent(Args &&...args)
     {
         T& comp = registry.emplace<T>(handle, std::forward<Args>(args)...);
-        comp.SetOwner(*this);
         return comp;
     }
 
@@ -217,6 +216,11 @@ private:
     /// @param handle The entity handle to use.
     inline explicit Entity(entt::entity handle)
         : handle(handle) {}
+    
+    inline static entt::registry& GetRegistry()
+    {
+        return registry;
+    }
 
     /// @brief Destroys this entity.
     /// @details Removes the entity from the registry.

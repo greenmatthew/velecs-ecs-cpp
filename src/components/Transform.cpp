@@ -33,14 +33,16 @@ void Transform::SetParent(const Entity& newParent)
     // If the new parent is the same then ignore.
     if (parent == newParent) return;
 
+    Entity owner = this->GetOwner<Transform>();
+
     // If there is already a parent then remove it as a child
-    if (parent) parent.GetTransform().RemoveChild(GetOwner());
+    if (parent) parent.GetTransform().RemoveChild(owner);
 
     // Assign new parent.
     parent = newParent;
 
     // Add child to new parent
-    parent.GetTransform().AddChild(GetOwner());
+    parent.GetTransform().AddChild(owner);
 }
 
 void Transform::AddChild(const Entity& child)

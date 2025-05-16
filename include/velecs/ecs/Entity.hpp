@@ -20,6 +20,8 @@
 
 namespace velecs::ecs {
 
+class EntityBuilder;
+
 class Name;
 class Transform;
 class Relationship;
@@ -29,6 +31,7 @@ class Relationship;
 ///
 /// Rest of description.
 class Entity {
+    friend class EntityBuilder;
     friend class Component;
 
 public:
@@ -45,14 +48,14 @@ public:
 
     // Public Methods
 
-    /// @brief Creates a new entity in the registry.
-    /// @return A newly created entity with a valid handle.
-    static Entity Create();
-
     /// @brief Copy constructor
     /// @param other The entity to copy from
     inline Entity(const Entity& other)
         : handle(other.handle) {}
+    
+    /// @brief Creates a new entity in the registry.
+    /// @return A newly created entity with a valid handle.
+    static EntityBuilder Create();
 
     /// @brief Copy assignment operator.
     /// @param other The entity to copy from.
@@ -68,6 +71,8 @@ public:
         }
         return *this;
     }
+
+    Entity& operator=(const EntityBuilder& other);
 
     /// @brief Equality comparison operator.
     /// @param other The entity to compare with.

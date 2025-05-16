@@ -9,6 +9,8 @@
 /// Proprietary and confidential
 
 #include "velecs/ecs/Entity.hpp"
+#include "velecs/ecs/EntityBuilder.hpp"
+
 #include "velecs/ecs/components/Name.hpp"
 #include "velecs/ecs/components/Relationship.hpp"
 #include "velecs/ecs/components/Transform.hpp"
@@ -26,14 +28,9 @@ const Entity Entity::INVALID;
 
 // Public Methods
 
-Entity Entity::Create()
+EntityBuilder Entity::Create()
 {
-    entt::entity handle = registry.create();
-    Entity result = Entity(handle);
-    result.AddComponent<Name>("Entity");
-    result.AddComponent<Relationship>();
-    result.AddComponent<Transform>();
-    return result;
+    return EntityBuilder();
 }
 
 std::string Entity::GetName() const

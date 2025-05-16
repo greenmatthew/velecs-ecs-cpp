@@ -13,6 +13,7 @@
 #include "velecs/ecs/TypeConstraints.hpp"
 
 #include "velecs/ecs/Entity.hpp"
+#include "velecs/ecs/EntityBuilder.hpp"
 
 #include "velecs/ecs/Component.hpp"
 #include "velecs/ecs/components/Name.hpp"

@@ -24,6 +24,7 @@ add_subdirectory(libs/entt)
 set(LIB_SOURCES
     src/test/main.cpp
     src/Entity.cpp
+    src/EntityBuilder.cpp
     src/Component.cpp
     src/components/Relationship.cpp
     src/components/Transform.cpp
@@ -32,6 +33,7 @@ set(LIB_SOURCES
 # Header files for the library (for IDE organization)
 set(LIB_HEADERS
     include/velecs/ecs/Entity.hpp
+    include/velecs/ecs/EntityBuilder.hpp
     include/velecs/ecs/Component.hpp
     include/velecs/ecs/Common.hpp
     include/velecs/ecs/TypeConstraints.hpp

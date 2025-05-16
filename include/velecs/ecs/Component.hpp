@@ -41,7 +41,7 @@ public:
     // Public Methods
 
     template<typename T, typename = IsComponent<T>>
-    Entity GetOwner()
+    Entity GetOwner() const
     {
         return GetOwner<T>(*(T*)this);
     }

@@ -48,7 +48,6 @@ public:
     /// @brief Iterator type for traversing child entities
     class iterator {
     public:
-        // Iterator traits
         using iterator_category = std::forward_iterator_tag;
         using value_type = Entity;
         using difference_type = std::ptrdiff_t;
@@ -65,8 +64,6 @@ public:
         inline iterator()
             : current(Entity::INVALID), size(0), index(0), traverseForward(true) {}
 
-        // Public Methods
-
         velecs::ecs::Entity operator*();
         velecs::ecs::Entity operator->();
         iterator& operator++();
@@ -74,20 +71,11 @@ public:
         bool operator==(const iterator& other) const;
         bool operator!=(const iterator& other) const;
 
-    protected:
-        // Protected Fields
-
-        // Protected Methods
-
     private:
-        // Private Fields
-
         Entity current;
         const size_t size;
         const bool traverseForward;
         size_t index{0};
-
-        // Private Methods
     };
 
     /// @brief Returns an iterator to the first child entity
@@ -118,13 +106,13 @@ public:
         return iterator();
     }
 
-    /// @class ReverseChildIterable
+    /// @class reverse_iterator
     /// @brief Helper class that enables reverse iteration in range-based for loops
     /// @details This wrapper provides begin/end methods that return reverse iterators,
     ///          allowing for convenient reverse traversal of child entities.
-    class ReverseChildIterable {
+    class reverse_iterator {
     public:
-        ReverseChildIterable(Relationship& rel) : rel(rel) {}
+        reverse_iterator(Relationship& rel) : rel(rel) {}
         
         iterator begin() { return rel.rbegin(); }
         iterator end() { return rel.rend(); }
@@ -136,9 +124,9 @@ public:
     /// @brief Creates a helper object for reverse iteration of children
     /// @return An object that enables reverse traversal in range-based for loops
     /// @details Use with range-based for loops: for (auto& child : relationship.Reverse())
-    ReverseChildIterable Reverse()
+    reverse_iterator Reverse()
     {
-        return ReverseChildIterable(*this);
+        return reverse_iterator(*this);
     }
 
     inline Entity GetParent() const

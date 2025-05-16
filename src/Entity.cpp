@@ -11,6 +11,8 @@
 #include "velecs/ecs/Entity.hpp"
 #include "velecs/ecs/EntityBuilder.hpp"
 
+#include "velecs/ecs/tags/DestroyTag.hpp"
+
 #include "velecs/ecs/components/Name.hpp"
 #include "velecs/ecs/components/Relationship.hpp"
 #include "velecs/ecs/components/Transform.hpp"
@@ -55,21 +57,26 @@ Transform& Entity::GetTransform() const
 
 void Entity::RequestDestroy(Entity entity)
 {
-    if (entity)
-    {
-        destructionQueue.push_back(entity);
-    }
+    if (entity) entity.AddTag<DestroyTag>();
 }
 
 void Entity::ProcessDestructionQueue()
 {
-    std::vector<Entity> currentQueue = std::move(destructionQueue);
-    destructionQueue.clear();  // Clear it now in case more entities get queued during processing
-
-    for (auto& entity : currentQueue)
+    // Create a view of all entities with the DestroyTag
+    auto view = registry.view<DestroyTag>();
+    
+    // Store the entities in a temporary vector
+    // This is necessary because we'll be modifying the registry during iteration
+    std::vector<Entity> toDestroy;
+    for (auto handle : view)
     {
-        // Ensure entity still is valid and exists
-        // i.e. in case entity was a child of something already destroyed.
+        toDestroy.push_back(Entity(handle));
+    }
+    
+    // Now process each entity for destruction
+    for (auto entity : toDestroy)
+    {
+        // Ensure entity is still valid before destroying it
         if (entity) entity.Destroy(true);
     }
 }
@@ -81,7 +88,6 @@ void Entity::ProcessDestructionQueue()
 // Private Fields
 
 entt::registry Entity::registry;
-std::vector<Entity> Entity::destructionQueue;
 
 // Private Methods
 

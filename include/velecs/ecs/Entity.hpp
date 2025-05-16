@@ -124,6 +124,12 @@ public:
     /// @return A reference to the entity's Transform component.
     Transform& GetTransform() const;
 
+    template<typename T, typename = IsTag<T>>
+    inline void AddTag()
+    {
+        registry.emplace<T>(handle);
+    }
+
     /// @brief Adds a component of type T to the entity.
     /// @tparam T The type of component to add.
     /// @return A reference to the newly added component.
@@ -210,7 +216,6 @@ private:
     // Private Fields
 
     static entt::registry registry;
-    static std::vector<Entity> destructionQueue;
     
     const entt::entity handle;
 

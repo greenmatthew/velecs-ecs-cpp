@@ -15,10 +15,14 @@
 namespace velecs::ecs {
 
 class Entity;
+class Tag;
 class Component;
 
 template <typename T>
 using IsEntity = std::enable_if_t<std::is_base_of_v<Entity, T>>;
+
+template <typename T>
+using IsTag = std::enable_if_t<std::is_base_of_v<Tag, T>>;
 
 template <typename T>
 using IsComponent = std::enable_if_t<std::is_base_of_v<Component, T>>;

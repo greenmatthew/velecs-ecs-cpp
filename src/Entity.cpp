@@ -10,6 +10,7 @@
 
 #include "velecs/ecs/Entity.hpp"
 #include "velecs/ecs/components/Name.hpp"
+#include "velecs/ecs/components/Relationship.hpp"
 #include "velecs/ecs/components/Transform.hpp"
 
 #include <memory>
@@ -30,6 +31,7 @@ Entity Entity::Create()
     Entity result = Entity(handle);
     result.AddComponent<Name>("Entity");
     result.AddComponent<Transform>();
+    result.AddComponent<Relationship>();
     return result;
 }
 
@@ -41,6 +43,11 @@ std::string Entity::GetName() const
 void Entity::SetName(const std::string& newName)
 {
     GetComponent<Name>().SetName(newName);
+}
+
+Relationship& Entity::GetRelationship() const
+{
+    return GetComponent<Relationship>();
 }
 
 Transform& Entity::GetTransform() const

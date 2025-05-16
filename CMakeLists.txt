@@ -25,6 +25,7 @@ set(LIB_SOURCES
     src/Entity.cpp
     src/Component.cpp
     src/components/Transform.cpp
+    src/components/ChildIterator.cpp
 )
 
 # Always build the library

@@ -22,6 +22,7 @@ namespace velecs::ecs {
 
 class Name;
 class Transform;
+class Relationship;
 
 /// @class Entity
 /// @brief Brief description.
@@ -29,6 +30,7 @@ class Transform;
 /// Rest of description.
 class Entity {
     friend class Component;
+
 public:
     // Enums
 
@@ -108,6 +110,8 @@ public:
     /// @details Updates the name stored in the Name component of this entity.
     /// @param newName The new name to assign to this entity.
     void SetName(const std::string& newName);
+
+    Relationship& GetRelationship() const;
 
     /// @brief Gets the Transform component of this entity.
     /// @details This is a convenience method that assumes the entity has a Transform component.
@@ -216,7 +220,7 @@ private:
     /// @param handle The entity handle to use.
     inline explicit Entity(entt::entity handle)
         : handle(handle) {}
-    
+
     inline static entt::registry& GetRegistry()
     {
         return registry;

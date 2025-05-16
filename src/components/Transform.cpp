@@ -19,7 +19,8 @@ namespace velecs::ecs {
 // Constructors and Destructors
 
 Transform::Transform()
-    : parent(Entity::INVALID),
+    :
+        parent(Entity::INVALID),
         pos(Vec3::ZERO),
         scale(Vec3::ONE),
         rot(Quat::IDENTITY),

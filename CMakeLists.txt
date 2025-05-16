@@ -25,8 +25,8 @@ set(LIB_SOURCES
     src/test/main.cpp
     src/Entity.cpp
     src/Component.cpp
+    src/components/Relationship.cpp
     src/components/Transform.cpp
-    src/components/ChildIterator.cpp
 )
 
 # Header files for the library (for IDE organization)
@@ -36,8 +36,8 @@ set(LIB_HEADERS
     include/velecs/ecs/Common.hpp
     include/velecs/ecs/TypeConstraints.hpp
     include/velecs/ecs/components/Name.hpp
-    include/velecs/ecs/components/Transform.hpp
     include/velecs/ecs/components/Relationship.hpp
+    include/velecs/ecs/components/Transform.hpp
 )
 
 # Always build the library

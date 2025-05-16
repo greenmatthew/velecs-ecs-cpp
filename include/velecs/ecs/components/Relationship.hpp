@@ -13,7 +13,7 @@
 #include "velecs/ecs/Component.hpp"
 
 #include "velecs/ecs/Entity.hpp"
-#include "velecs/ecs/components/ChildIterator.hpp"
+// #include "velecs/ecs/components/ChildIterator.hpp"
 
 namespace velecs::ecs {
 
@@ -46,34 +46,76 @@ public:
     // Public Methods
 
     /// @brief Iterator type for traversing child entities
-    using iterator = ChildIterator;
+    class iterator {
+    public:
+        // Iterator traits
+        using iterator_category = std::forward_iterator_tag;
+        using value_type = Entity;
+        using difference_type = std::ptrdiff_t;
+        using pointer = Entity;
+        using reference = Entity;
+
+        /// @brief Create a relationship iterator
+        /// @param start First child's associated Entity
+        /// @param size Number of children
+        inline iterator(const Entity start, const size_t size, const bool traverseForward)
+            : current(start), size(size), traverseForward(traverseForward) {}
+        
+        /// @brief Special constructor for end iterator
+        inline iterator()
+            : current(Entity::INVALID), size(0), index(0), traverseForward(true) {}
+
+        // Public Methods
+
+        velecs::ecs::Entity operator*();
+        velecs::ecs::Entity operator->();
+        iterator& operator++();
+        iterator operator++(int);
+        bool operator==(const iterator& other) const;
+        bool operator!=(const iterator& other) const;
+
+    protected:
+        // Protected Fields
+
+        // Protected Methods
+
+    private:
+        // Private Fields
+
+        Entity current;
+        const size_t size;
+        const bool traverseForward;
+        size_t index{0};
+
+        // Private Methods
+    };
 
     /// @brief Returns an iterator to the first child entity
     /// @return Iterator to the first child, or end() if there are no children
     inline iterator begin()
     {
-        return (childCount > 0) ? ChildIterator(firstChild, childCount, true) : end();
+        return (childCount > 0) ? iterator(firstChild, childCount, true) : end();
     }
 
     /// @brief Returns an iterator representing the end of child traversal
     /// @return End iterator with an invalid entity
     inline iterator end()
     {
-        return ChildIterator();
+        return iterator();
     }
 
     /// @brief Returns a reverse iterator to the last child entity
     /// @return Reverse iterator to the last child, or rend() if there are no children
     inline iterator rbegin()
     {
-        return (childCount > 0) ? ChildIterator(firstChild.GetRelationship().prevSibling, childCount, false) : end();
+        return (childCount > 0) ? iterator(firstChild.GetRelationship().prevSibling, childCount, false) : end();
     }
 
     /// @brief Returns a reverse iterator representing the end of reverse traversal
     /// @return Reverse end iterator with an invalid entity
     inline iterator rend()
     {
-        return ChildIterator();
+        return iterator();
     }
 
     /// @class ReverseChildIterable

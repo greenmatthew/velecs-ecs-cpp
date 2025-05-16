@@ -1,14 +1,12 @@
-/// @file    ChildIterator.cpp
+/// @file    Relationship.cpp
 /// @author  Matthew Green
-/// @date    2025-05-15 15:27:29
+/// @date    2025-05-16 11:19:41
 /// 
 /// @section LICENSE
 /// 
 /// Copyright (c) 2025 Matthew Green - All rights reserved
 /// Unauthorized copying of this file, via any medium is strictly prohibited
 /// Proprietary and confidential
-
-#include "velecs/ecs/components/ChildIterator.hpp"
 
 #include "velecs/ecs/components/Relationship.hpp"
 
@@ -20,17 +18,17 @@ namespace velecs::ecs {
 
 // Public Methods
 
-Entity ChildIterator::operator*()
+Entity Relationship::iterator::operator*()
 {
     return current;
 }
 
-Entity ChildIterator::operator->()
+Entity Relationship::iterator::operator->()
 {
     return current;
 }
 
-ChildIterator& ChildIterator::operator++()
+Relationship::iterator& Relationship::iterator::operator++()
 {
     if (index < size - 1)
     {
@@ -48,19 +46,19 @@ ChildIterator& ChildIterator::operator++()
     return *this;
 }
 
-ChildIterator ChildIterator::operator++(int)
+Relationship::iterator Relationship::iterator::operator++(int)
 {
-    ChildIterator tmp = *this;
+    iterator tmp = *this;
     ++(*this);
     return tmp;
 }
 
-bool ChildIterator::operator==(const ChildIterator& other) const
+bool Relationship::iterator::operator==(const iterator& other) const
 {
     return current == other.current;
 }
 
-bool ChildIterator::operator!=(const ChildIterator& other) const
+bool Relationship::iterator::operator!=(const iterator& other) const
 {
     return !(*this == other);
 }

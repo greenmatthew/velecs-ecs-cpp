@@ -228,7 +228,7 @@ private:
 
     /// @brief Destroys this entity.
     /// @details Removes the entity from the registry.
-    void Destroy() const;
+    void Destroy(bool removeParent) const;
 };
 
 } // namespace velecs::ecs

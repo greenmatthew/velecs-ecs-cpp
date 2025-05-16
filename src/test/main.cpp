@@ -22,24 +22,16 @@ int main()
     Entity child = Entity::Create();
     child.SetName("Child Entity");
     Transform& childTransform = child.GetTransform();
-    childTransform.SetParent(parent);
     Relationship& childRelationship = child.GetRelationship();
     childRelationship.SetParent(parent);
     childTransform.SetPos(Vec3::FORWARD * 10);
     std::cout << "Transform: " << child.GetName() << std::endl;
-    std::cout << "\tParent:" << (childTransform.GetParent() ? childTransform.GetParent().GetName() : "(n/a)") << '\n' << std::endl;
+    std::cout << "\tParent:" << (childRelationship.GetParent() ? childRelationship.GetParent().GetName() : "(n/a)") << '\n' << std::endl;
     std::cout << "\tPosition: " << childTransform.GetPos() << std::endl;
     std::cout << "\tScale: " << childTransform.GetScale() << std::endl;
     std::cout << "\tRotation: " << childTransform.GetEulerAnglesDeg() << std::endl;
     std::cout << "\tModel Matrix:\n" << childTransform.GetModelMatrix() << std::endl;
     std::cout << "\tWorld Matrix:\n" << childTransform.GetWorldMatrix() << std::endl;
-
-    for (auto& child : parentRelationship.Reverse())
-    {
-        std::cout << "it name: " << child.GetName() << std::endl;
-    }
-
-    for (auto& child : parentTransform.GetChildren());
 
     Entity::RequestDestroy(parent);
     Entity::ProcessDestructionQueue();

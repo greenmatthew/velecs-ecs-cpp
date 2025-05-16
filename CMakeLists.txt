@@ -22,14 +22,28 @@ add_subdirectory(libs/entt)
 
 # Source files for the library
 set(LIB_SOURCES
+    src/test/main.cpp
     src/Entity.cpp
     src/Component.cpp
     src/components/Transform.cpp
     src/components/ChildIterator.cpp
 )
 
+# Header files for the library (for IDE organization)
+set(LIB_HEADERS
+    include/velecs/ecs/Entity.hpp
+    include/velecs/ecs/Component.hpp
+    include/velecs/ecs/Common.hpp
+    include/velecs/ecs/TypeConstraints.hpp
+    include/velecs/ecs/components/Name.hpp
+    include/velecs/ecs/components/Transform.hpp
+    include/velecs/ecs/components/Relationship.hpp
+)
+
 # Always build the library
-add_library(velecs-ecs ${LIB_SOURCES})
+add_library(velecs-ecs ${LIB_SOURCES} ${LIB_HEADERS})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${LIB_SOURCES} ${LIB_HEADERS})
+
 target_include_directories(velecs-ecs
     PUBLIC 
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -44,6 +58,7 @@ target_link_libraries(velecs-ecs
 if(VELECS_ECS_BUILD_TESTS)
     add_executable(velecs-ecs-test src/test/main.cpp)
     target_link_libraries(velecs-ecs-test PRIVATE velecs-ecs)
+    set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT velecs-ecs-test)
 endif()
 
 # Export the library target for use by parent projects

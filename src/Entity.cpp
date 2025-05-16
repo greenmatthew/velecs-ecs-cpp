@@ -14,6 +14,7 @@
 #include "velecs/ecs/components/Transform.hpp"
 
 #include <memory>
+#include <string>
 
 namespace velecs::ecs {
 
@@ -30,8 +31,8 @@ Entity Entity::Create()
     entt::entity handle = registry.create();
     Entity result = Entity(handle);
     result.AddComponent<Name>("Entity");
-    result.AddComponent<Transform>();
     result.AddComponent<Relationship>();
+    result.AddComponent<Transform>();
     return result;
 }
 
@@ -72,7 +73,7 @@ void Entity::ProcessDestructionQueue()
     {
         // Ensure entity still is valid and exists
         // i.e. in case entity was a child of something already destroyed.
-        if (entity) entity.Destroy();
+        if (entity) entity.Destroy(true);
     }
 }
 
@@ -87,20 +88,24 @@ std::vector<Entity> Entity::destructionQueue;
 
 // Private Methods
 
-void Entity::Destroy() const
+void Entity::Destroy(bool removeParent) const
 {
-    // Get children references directly from the transform
-    const std::vector<Entity>& children = GetTransform().GetChildren();
-
-    std::cout << "Destroying '" << GetName() << "' and its " << children.size() << " children." << std::endl;
-
-    // Queue all children for destruction without creating copies
-    for (const Entity& child : children)
+    auto& relationship = GetRelationship();
+    const size_t childCount = relationship.GetChildCount();
+    if (childCount > 0)
     {
-        if (child) child.Destroy();
-        else std::cout << "ERROR: child entity is not valid!" << std::endl;
+        const auto childCountStr = std::to_string(childCount) + (childCount == 1 ? " child" : " children");
+        std::cout << "Destroying the " << childCountStr << " of '" << GetName() << "':" << std::endl;
+        for (const Entity& child : relationship.Reverse())
+        {
+            if (child) child.Destroy(false);
+            else std::cout << "ERROR: child entity is not valid!" << std::endl;
+        }
     }
 
+    if (removeParent) relationship.SetParent(Entity::INVALID);
+
+    std::cout << "Destroying '" << GetName() << "'!" << std::endl;
     registry.destroy(handle);
 }
 

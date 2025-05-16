@@ -9,6 +9,7 @@
 /// Proprietary and confidential
 
 #include "velecs/ecs/components/Transform.hpp"
+#include "velecs/ecs/components/Relationship.hpp"
 
 using namespace velecs::math;
 
@@ -20,7 +21,6 @@ namespace velecs::ecs {
 
 Transform::Transform()
     :
-        parent(Entity::INVALID),
         pos(Vec3::ZERO),
         scale(Vec3::ONE),
         rot(Quat::IDENTITY),
@@ -28,43 +28,6 @@ Transform::Transform()
         cachedWorldMat(Mat4::IDENTITY) {}
 
 // Public Methods
-
-void Transform::SetParent(const Entity& newParent)
-{
-    // If the new parent is the same then ignore.
-    if (parent == newParent) return;
-
-    Entity owner = this->GetOwner<Transform>();
-
-    // If there is already a parent then remove it as a child
-    if (parent) parent.GetTransform().RemoveChild(owner);
-
-    // Assign new parent.
-    parent = newParent;
-
-    // Add child to new parent
-    parent.GetTransform().AddChild(owner);
-}
-
-void Transform::AddChild(const Entity& child)
-{
-    // Only add if not already a child
-    if (childrenHandles.find(child) == childrenHandles.end())
-    {
-        children.emplace_back(child);
-        childrenHandles.insert(child);
-    }
-}
-
-void Transform::RemoveChild(const Entity& child)
-{
-    auto it = std::find(children.begin(), children.end(), child);
-    if (it != children.end())
-    {
-        childrenHandles.erase(child);
-        children.erase(it);
-    }
-}
 
 Vec3 Transform::GetPos() const
 {
@@ -160,6 +123,9 @@ Mat4 Transform::CalculateModel() const
 
 Mat4 Transform::CalculateWorld() const
 {
+    // auto& relationship = GetOwner<Transform>().GetRelationship();
+    auto& relationship = Component::GetOwner(*this).GetRelationship();
+    auto parent = relationship.GetParent();
     // If there is no parent then the model is the world matrix.
     if (!parent) return GetModelMatrix();
     // If there is get the parent's world matrix and apply it to the model matrix.
@@ -168,8 +134,9 @@ Mat4 Transform::CalculateWorld() const
 
 void Transform::SetWorldDirty()
 {
+    auto& relationship = GetOwner<Transform>().GetRelationship();
     isWorldDirty = true;
-    for (auto& child : GetChildren())
+    for (auto& child : relationship)
     {
         child.GetTransform().SetWorldDirty();
     }

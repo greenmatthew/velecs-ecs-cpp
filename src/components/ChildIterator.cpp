@@ -32,11 +32,8 @@ Entity ChildIterator::operator->()
 
 ChildIterator& ChildIterator::operator++()
 {
-    std::cout << "size: " << size << std::endl;
-    std::cout << "Test: " << (current != Entity::INVALID ? current.GetName() : "invalid") << std::endl;
     if (index < size - 1)
     {
-        
         auto& relationship = current.GetRelationship();
         if (traverseForward) current = relationship.GetNextSibling();
         else current = relationship.GetPrevSibling();

@@ -61,7 +61,7 @@ run-release: build-exec-release
 solution:
     @echo "Creating Visual Studio solution..."
     if (!(Test-Path {{build}})) { New-Item -ItemType Directory -Path {{build}} -Force }
-    cmake -S . -B {{build}} -G "{{generator}}"
+    cmake -S . -B {{build}} -DVELECS_ECS_BUILD_TESTS=ON -G "{{generator}}"
 
 # Open the solution in Visual Studio
 open-solution: solution

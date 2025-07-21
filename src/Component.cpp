@@ -18,6 +18,8 @@ namespace velecs::ecs {
 
 // Constructors and Destructors
 
+Component::~Component() = default;
+
 // Public Methods
 
 // Protected Fields

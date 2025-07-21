@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include "velecs/ecs/TypeConstraints.hpp"
+
 #include <memory>
 
 #include <entt/entt.hpp>
@@ -36,7 +38,7 @@ public:
     Component() = default;
 
     /// @brief Default deconstructor.
-    ~Component() = default;
+    virtual ~Component() = 0;
 
     // Public Methods
 

@@ -31,6 +31,8 @@ set(LIB_SOURCES
     
     src/Entity.cpp
     src/EntityBuilder.cpp
+
+    src/Tag.cpp
     
     src/Component.cpp
     src/components/Relationship.cpp

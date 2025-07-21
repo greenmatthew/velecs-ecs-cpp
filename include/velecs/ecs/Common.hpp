@@ -16,9 +16,9 @@
 #include "velecs/ecs/EntityBuilder.hpp"
 
 #include "velecs/ecs/Tag.hpp"
-#include "velecs/ecs/tags/DestroyTag.hpp"
+#include "velecs/ecs/Tags/DestroyTag.hpp"
 
 #include "velecs/ecs/Component.hpp"
-#include "velecs/ecs/components/Name.hpp"
-#include "velecs/ecs/components/Transform.hpp"
-#include "velecs/ecs/components/Relationship.hpp"
+#include "velecs/ecs/Components/Name.hpp"
+#include "velecs/ecs/Components/Transform.hpp"
+#include "velecs/ecs/Components/Relationship.hpp"

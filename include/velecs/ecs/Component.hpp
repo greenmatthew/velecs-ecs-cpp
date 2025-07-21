@@ -37,7 +37,7 @@ public:
     /// @brief Default constructor.
     Component() = default;
 
-    /// @brief Default deconstructor.
+    /// @brief Pure virtual destructor to make class abstract.
     virtual ~Component() = 0;
 
     // Public Methods

@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include "velecs/ecs/TypeConstraints.hpp"
+
 namespace velecs::ecs {
 
 /// @class Tag
@@ -44,8 +46,8 @@ public:
     /// @brief Default constructor.
     Tag() = default;
 
-    /// @brief Default deconstructor.
-    ~Tag() = default;
+    /// @brief Pure virtual destructor to make class abstract.
+    virtual ~Tag() = 0;
 
     // Public Methods
 

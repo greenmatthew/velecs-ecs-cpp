@@ -196,6 +196,11 @@ public:
     /// @details Iterates through the destruction queue and destroys each entity.
     static void ProcessDestructionQueue();
 
+    inline static entt::registry& GetRegistry()
+    {
+        return registry;
+    }
+
 protected:
     // Protected Fields
 
@@ -230,11 +235,6 @@ private:
     /// @param handle The entity handle to use.
     inline explicit Entity(entt::entity handle)
         : handle(handle) {}
-
-    inline static entt::registry& GetRegistry()
-    {
-        return registry;
-    }
 
     /// @brief Destroys this entity.
     /// @details Removes the entity from the registry.

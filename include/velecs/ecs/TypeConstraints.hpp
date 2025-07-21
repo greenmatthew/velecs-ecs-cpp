@@ -53,6 +53,9 @@ constexpr void validate_component() {
     
     static_assert(!std::is_same_v<T, Component>, 
         "Cannot use Component base class directly. Create a specific component type.");
+    
+    static_assert(!std::is_abstract_v<T>, 
+        "Cannot use abstract component types. Use a concrete derived class instead.");
 }
 
 /// @brief Component constraint that ensures components have data AND inherit from Component

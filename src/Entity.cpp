@@ -109,7 +109,7 @@ void Entity::Destroy(bool removeParent) const
     if (removeParent) relationship.SetParent(Entity::INVALID);
 
     std::cout << "Destroying '" << GetName() << "'!" << std::endl;
-    registry.destroy(handle);
+    registry.destroy(_handle);
 }
 
 } // namespace velecs::ecs

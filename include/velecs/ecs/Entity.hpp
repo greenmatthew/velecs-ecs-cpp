@@ -51,7 +51,7 @@ public:
     /// @brief Copy constructor
     /// @param other The entity to copy from
     inline Entity(const Entity& other)
-        : handle(other.handle) {}
+        : _handle(other._handle) {}
     
     /// @brief Creates a new entity in the registry.
     /// @return A newly created entity with a valid handle.
@@ -67,7 +67,7 @@ public:
             // Since handle is const to prevent accidental modification,
             // we need to use const_cast here to enable the desired
             // reassignment behavior
-            const_cast<entt::entity&>(handle) = other.handle; // Copy handle
+            const_cast<entt::entity&>(_handle) = other._handle; // Copy handle
         }
         return *this;
     }
@@ -79,7 +79,7 @@ public:
     /// @return True if the entities have the same handle, false otherwise.
     inline bool operator==(const Entity& other) const
     {
-        return handle == other.handle;
+        return _handle == other._handle;
     }
 
     /// @brief Inequality comparison operator.
@@ -87,7 +87,7 @@ public:
     /// @return True if the entities have different handles, false otherwise.
     inline bool operator!=(const Entity& other) const
     {
-        return handle != other.handle;
+        return _handle != other._handle;
     }
 
     /// @brief Boolean conversion operator.
@@ -103,7 +103,7 @@ public:
     /// @return True if the entity handle is valid in the registry, false otherwise.
     inline bool IsValid() const
     {
-        return handle != entt::null && registry.valid(handle);
+        return _handle != entt::null && registry.valid(_handle);
     }
 
     /// @brief Gets the name of this entity.
@@ -127,7 +127,7 @@ public:
     template<typename T, typename = IsTag<T>>
     inline void AddTag()
     {
-        registry.emplace<T>(handle);
+        registry.emplace<T>(_handle);
     }
 
     /// @brief Adds a component of type T to the entity.
@@ -136,7 +136,7 @@ public:
     template<typename T, typename = IsComponent<T>>
     inline T& AddComponent()
     {
-        T& comp = registry.emplace<T>(handle);
+        T& comp = registry.emplace<T>(_handle);
         return comp;
     }
 
@@ -148,7 +148,7 @@ public:
     template<typename T, typename = IsComponent<T>, typename... Args>
     inline T& AddComponent(Args &&...args)
     {
-        T& comp = registry.emplace<T>(handle, std::forward<Args>(args)...);
+        T& comp = registry.emplace<T>(_handle, std::forward<Args>(args)...);
         return comp;
     }
 
@@ -157,7 +157,7 @@ public:
     template<typename T, typename = IsComponent<T>>
     inline void RemoveComponent()
     {
-        registry.remove<T>(handle);
+        registry.remove<T>(_handle);
     }
 
     /// @brief Tries to get a component of type T from the entity.
@@ -167,7 +167,7 @@ public:
     template<typename T, typename = IsComponent<T>>
     inline bool TryGetComponent(T*& outComponent)
     {
-        outComponent = registry.try_get<T>(handle);
+        outComponent = registry.try_get<T>(_handle);
         return (outComponent != nullptr);
     }
 
@@ -178,13 +178,13 @@ public:
     template<typename T, typename = IsComponent<T>>
     inline bool TryGetComponent(const T*& outComponent)
     {
-        outComponent = registry.try_get<T>(handle);
+        outComponent = registry.try_get<T>(_handle);
         return (outComponent != nullptr);
     }
 
     size_t GetHashCode() const
     {
-        return std::hash<entt::entity>{}(handle);
+        return std::hash<entt::entity>{}(_handle);
     }
 
     /// @brief Requests an entity to be destroyed.
@@ -214,7 +214,7 @@ protected:
     template<typename T, typename = IsComponent<T>>
     inline T& GetComponent() const
     {
-        return *registry.try_get<T>(handle);
+        return *registry.try_get<T>(_handle);
     }
 
 private:
@@ -222,19 +222,19 @@ private:
 
     static entt::registry registry;
     
-    const entt::entity handle;
+    const entt::entity _handle;
 
     // Private Methods
 
     /// @brief Default constructor.
     /// @details Creates an entity with an invalid handle.
     inline explicit Entity()
-        : handle(entt::null) {}
+        : _handle(entt::null) {}
 
     /// @brief Constructor with handle.
     /// @param handle The entity handle to use.
     inline explicit Entity(entt::entity handle)
-        : handle(handle) {}
+        : _handle(handle) {}
 
     /// @brief Destroys this entity.
     /// @details Removes the entity from the registry.

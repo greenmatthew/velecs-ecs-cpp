@@ -17,6 +17,7 @@ namespace velecs::ecs {
 class Entity;
 class Tag;
 class Component;
+class System;
 
 template <typename T>
 using IsEntity = std::enable_if_t<std::is_base_of_v<Entity, T>>;
@@ -61,5 +62,25 @@ constexpr void validate_component() {
 /// @brief Component constraint that ensures components have data AND inherit from Component
 template <typename T>
 using IsComponent = std::enable_if_t<(validate_component<T>(), std::is_base_of_v<Component, T>)>;
+
+/// @brief Validates system types with custom error messages
+template<typename T>
+constexpr void validate_system() {
+    static_assert(std::is_base_of_v<System, T>, 
+        "Type must inherit from System.");
+    
+    static_assert(!std::is_same_v<T, System>, 
+        "Cannot use System base class directly. Create a specific system type.");
+    
+    static_assert(!std::is_abstract_v<T>, 
+        "Cannot use abstract system types. System must implement Update() method.");
+    
+    static_assert(std::is_default_constructible_v<T>, 
+        "System types must be default constructible.");
+}
+
+/// @brief System constraint that ensures systems are concrete subclasses of System
+template <typename T>
+using IsSystem = std::enable_if_t<(validate_system<T>(), std::is_base_of_v<System, T>)>;
 
 } // namespace velecs::ecs

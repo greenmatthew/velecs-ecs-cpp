@@ -42,6 +42,10 @@ set(LIB_SOURCES
     src/Component.cpp
     src/Components/Relationship.cpp
     src/Components/Transform.cpp
+
+    # Systems
+    src/System.cpp
+    src/SystemStorage.cpp
 )
 
 # Header files for the library (for IDE organization)
@@ -62,6 +66,9 @@ set(LIB_HEADERS
     include/velecs/ecs/Components/Name.hpp
     include/velecs/ecs/Components/Relationship.hpp
     include/velecs/ecs/Components/Transform.hpp
+
+    # Systems
+    include/velecs/ecs/System.hpp
 )
 
 # Always build the library

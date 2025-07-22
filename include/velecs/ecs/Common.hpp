@@ -22,3 +22,5 @@
 #include "velecs/ecs/Components/Name.hpp"
 #include "velecs/ecs/Components/Transform.hpp"
 #include "velecs/ecs/Components/Relationship.hpp"
+
+#include "velecs/ecs/System.hpp"

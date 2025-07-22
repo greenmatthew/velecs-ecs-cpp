@@ -29,32 +29,39 @@ add_subdirectory(libs/entt)
 set(LIB_SOURCES
     src/test/main.cpp
     
+    # Entities
     src/Entity.cpp
     src/EntityBuilder.cpp
 
+
+    # Tags
     src/Tag.cpp
     
+
+    # Components
     src/Component.cpp
-    src/components/Relationship.cpp
-    src/components/Transform.cpp
+    src/Components/Relationship.cpp
+    src/Components/Transform.cpp
 )
 
 # Header files for the library (for IDE organization)
 set(LIB_HEADERS
+    include/velecs/ecs/Common.hpp
     include/velecs/ecs/TypeConstraints.hpp
 
+    # Entities
     include/velecs/ecs/Entity.hpp
     include/velecs/ecs/EntityBuilder.hpp
 
+    # Tags
     include/velecs/ecs/Tag.hpp
-    include/velecs/ecs/tags/DestroyTag.hpp
+    include/velecs/ecs/Tags/DestroyTag.hpp
 
+    # Components
     include/velecs/ecs/Component.hpp
-    include/velecs/ecs/components/Name.hpp
-    include/velecs/ecs/components/Relationship.hpp
-    include/velecs/ecs/components/Transform.hpp
-
-    include/velecs/ecs/Common.hpp
+    include/velecs/ecs/Components/Name.hpp
+    include/velecs/ecs/Components/Relationship.hpp
+    include/velecs/ecs/Components/Transform.hpp
 )
 
 # Always build the library

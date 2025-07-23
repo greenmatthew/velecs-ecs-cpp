@@ -24,14 +24,9 @@ Component::~Component() = default;
 
 // Public Methods
 
-const Entity& Component::GetOwner() const
+Entity Component::GetOwner() const
 {
-    if (!_ownerPtr)
-    {
-        throw std::runtime_error("Component has no owner entity");
-    }
-
-    return *_ownerPtr;
+    return Entity(_handle);
 }
 
 // Protected Fields

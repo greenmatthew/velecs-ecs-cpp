@@ -50,7 +50,7 @@ public:
 
     inline static entt::registry& GetRegistry() { return Registry::Get(); }
 
-    const Entity& GetOwner() const;
+    Entity GetOwner() const;
 
 protected:
     // Protected Fields
@@ -60,7 +60,7 @@ protected:
 private:
     // Private Fields
 
-    Entity* _ownerPtr{nullptr};
+    entt::entity _handle{entt::null};
 
     // Private Methods
 };

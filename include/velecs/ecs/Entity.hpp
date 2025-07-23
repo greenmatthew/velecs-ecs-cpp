@@ -43,6 +43,11 @@ public:
 
     // Constructors and Destructors
 
+    /// @brief Constructor with handle.
+    /// @param handle The entity handle to use.
+    inline explicit Entity(entt::entity handle)
+        : _handle(handle) {}
+
     /// @brief Default deconstructor.
     ~Entity() = default;
 
@@ -99,7 +104,7 @@ public:
     /// @brief Gets the name of this entity.
     /// @details Retrieves the name stored in the Name component of this entity.
     /// @return A string containing the entity's name.
-    std::string GetName() const;
+    const std::string& GetName() const;
 
     /// @brief Sets the name of this entity.
     /// @details Updates the name stored in the Name component of this entity.
@@ -127,7 +132,7 @@ public:
     {
         auto& registry = Registry::Get();
         T& comp = registry.emplace<T>(_handle);
-        comp._ownerPtr = this;
+        comp._handle = _handle;
         return comp;
     }
 
@@ -141,7 +146,7 @@ public:
     {
         auto& registry = Registry::Get();
         T& comp = registry.emplace<T>(_handle, std::forward<Args>(args)...);
-        comp._ownerPtr = this;
+        comp._handle = _handle;
         return comp;
     }
 
@@ -217,11 +222,6 @@ private:
     /// @details Creates an entity with an invalid handle.
     inline explicit Entity()
         : _handle(entt::null) {}
-
-    /// @brief Constructor with handle.
-    /// @param handle The entity handle to use.
-    inline explicit Entity(entt::entity handle)
-        : _handle(handle) {}
 
     /// @brief Destroys this entity.
     /// @details Removes the entity from the registry.

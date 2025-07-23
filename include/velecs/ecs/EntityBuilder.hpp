@@ -50,7 +50,7 @@ public:
     /// @brief Sets the name of the entity.
     /// @param name The name to assign to the entity.
     /// @return Reference to this builder for method chaining.
-    inline EntityBuilder& WithName(std::string name)
+    inline EntityBuilder& WithName(const std::string& name)
     {
         this->name.SetName(name);
         return *this;

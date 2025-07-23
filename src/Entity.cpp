@@ -35,7 +35,7 @@ EntityBuilder Entity::Create()
 
 // Public Methods
 
-std::string Entity::GetName() const
+const std::string& Entity::GetName() const
 {
     return GetComponent<Name>().GetName();
 }

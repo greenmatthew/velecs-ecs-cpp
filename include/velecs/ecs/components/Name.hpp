@@ -47,7 +47,7 @@ public:
 
     inline void SetName(const std::string& newName)
     {
-        name = newName;
+        name = std::move(newName);
     }
 
 protected:

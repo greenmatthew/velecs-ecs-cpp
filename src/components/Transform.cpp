@@ -9,7 +9,6 @@
 /// Proprietary and confidential
 
 #include "velecs/ecs/components/Transform.hpp"
-#include "velecs/ecs/components/Relationship.hpp"
 
 using namespace velecs::math;
 
@@ -104,6 +103,161 @@ Mat4 Transform::GetWorldMatrix() const
     return cachedWorldMat;
 }
 
+void Transform::SetParent(const Entity newParent)
+{
+    if (_parent == newParent) return;  // No change needed
+    
+    const Entity owner = GetOwner();
+    
+    // Remove from current parent's children list
+    if (_parent.IsValid()) {
+        auto& oldParentTransform = _parent.GetTransform();
+        oldParentTransform._children.erase(
+            std::remove(oldParentTransform._children.begin(), 
+                       oldParentTransform._children.end(), owner),
+            oldParentTransform._children.end()
+        );
+    }
+    
+    // Set new parent
+    _parent = newParent;
+    
+    // Add to new parent's children list
+    if (_parent.IsValid()) {
+        auto& newParentTransform = _parent.GetTransform();
+        // Check if we're already in the list (shouldn't happen, but safety first)
+        if (std::find(newParentTransform._children.begin(), 
+                     newParentTransform._children.end(), owner) 
+            == newParentTransform._children.end()) {
+            newParentTransform._children.push_back(owner);
+        }
+    }
+    
+    SetWorldDirty();
+}
+
+bool Transform::HasChild(const Entity child) const
+{
+    return std::find(_children.begin(), _children.end(), child) != _children.end();
+}
+
+Entity Transform::TryGetChild(const size_t index) const
+{
+    if (index >= _children.size()) return Entity::INVALID;
+    return _children[index];
+}
+
+bool Transform::TryAddChild(const Entity child)
+{
+    if (!child.IsValid() || child == GetOwner()) return false;
+    
+    // SetParent handles all the bidirectional relationship logic
+    child.GetTransform().SetParent(GetOwner());
+    return true;
+}
+
+bool Transform::TryRemoveChild(const Entity child)
+{
+    auto it = std::find(_children.begin(), _children.end(), child);
+    if (it == _children.end()) return false;
+    
+    // SetParent(INVALID) will handle removing from our children list
+    if (child.IsValid())
+    {
+        child.GetTransform().SetParent(Entity::INVALID);
+    }
+    
+    return true;
+}
+
+bool Transform::TryRemoveChild(const size_t index)
+{
+    if (index >= _children.size()) return false;
+    
+    Entity child = _children[index];
+    
+    if (child.IsValid())
+    {
+        child.GetTransform().SetParent(Entity::INVALID);
+    }
+
+    return true;
+}
+
+size_t Transform::GetSiblingIndex() const
+{
+    if (!_parent.IsValid()) return 0;
+    
+    const auto& siblings = _parent.GetTransform()._children;
+    auto it = std::find(siblings.begin(), siblings.end(), GetOwner());
+    
+    return (it != siblings.end()) ? std::distance(siblings.begin(), it) : 0;
+}
+
+void Transform::SetSiblingIndex(const size_t index)
+{
+    if (!_parent.IsValid()) return;
+    
+    auto& parentTransform = _parent.GetTransform();
+    auto& siblings = parentTransform._children;
+    
+    // Find our current position
+    auto it = std::find(siblings.begin(), siblings.end(), GetOwner());
+    if (it == siblings.end()) return;  // We're not actually a child?
+    
+    // Remove from current position
+    Entity self = *it;
+    siblings.erase(it);
+    
+    // Insert at new position (clamped to valid range)
+    size_t clampedIndex = std::min(index, siblings.size());
+    siblings.insert(siblings.begin() + clampedIndex, self);
+}
+
+void Transform::SetAsFirstSibling()
+{
+    SetSiblingIndex(0);
+}
+
+void Transform::SetAsLastSibling()
+{
+    if (!_parent.IsValid()) return;
+    SetSiblingIndex(_parent.GetTransform().GetChildCount());
+}
+
+bool Transform::IsChildOf(const Entity parent) const
+{
+    return _parent == parent;
+}
+
+bool Transform::IsDescendantOf(const Entity ancestor) const
+{
+    if (!ancestor) return false;
+    
+    Entity current = _parent;
+    while (current)
+    {
+        if (current == ancestor) return true;
+        current = current.GetTransform()._parent;
+    }
+    return false;
+}
+
+bool Transform::IsAncestorOf(const Entity descendant) const
+{
+    return descendant.IsValid() && descendant.GetTransform().IsDescendantOf(GetOwner());
+}
+
+Entity Transform::GetRoot() const
+{
+    Entity current = GetOwner();
+    while (current.GetTransform()._parent.IsValid())
+    {
+        current = current.GetTransform()._parent;
+    }
+    return current;
+}
+
 // Protected Fields
 
 // Protected Methods
@@ -123,22 +277,17 @@ Mat4 Transform::CalculateModel() const
 
 Mat4 Transform::CalculateWorld() const
 {
-    const auto& owner = GetOwner();
-    auto& relationship = owner.GetRelationship();
-    auto parent = relationship.GetParent();
     // If there is no parent then the model is the world matrix.
-    if (!parent) return GetModelMatrix();
-    // If there is get the parent's world matrix and apply it to the model matrix.
-    else return parent.GetTransform().GetWorldMatrix() * GetModelMatrix();
+    if (!_parent.IsValid()) return GetModelMatrix();
+    return _parent.GetTransform().GetWorldMatrix() * GetModelMatrix();
 }
 
 void Transform::SetWorldDirty()
 {
-    auto& relationship = GetOwner<Transform>().GetRelationship();
     isWorldDirty = true;
-    for (auto& child : relationship)
+    for (const Entity& child : _children)
     {
-        child.GetTransform().SetWorldDirty();
+        if (child.IsValid()) child.GetTransform().SetWorldDirty();
     }
 }
 

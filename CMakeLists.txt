@@ -40,7 +40,6 @@ set(LIB_SOURCES
 
     # Components
     src/Component.cpp
-    src/Components/Relationship.cpp
     src/Components/Transform.cpp
 
     # Systems
@@ -64,7 +63,6 @@ set(LIB_HEADERS
     # Components
     include/velecs/ecs/Component.hpp
     include/velecs/ecs/Components/Name.hpp
-    include/velecs/ecs/Components/Relationship.hpp
     include/velecs/ecs/Components/Transform.hpp
 
     # Systems

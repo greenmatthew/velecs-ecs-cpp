@@ -19,7 +19,6 @@ namespace velecs::ecs {
 EntityBuilder::EntityBuilder()
     : entity(Entity(Entity::GetRegistry().create())),
       name(entity.AddComponent<Name>("Entity")),
-      relationship(entity.AddComponent<Relationship>()),
       transform(entity.AddComponent<Transform>())
     {}
 

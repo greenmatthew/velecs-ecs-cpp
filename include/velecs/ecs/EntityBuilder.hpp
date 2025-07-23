@@ -13,7 +13,6 @@
 #include "velecs/ecs/Entity.hpp"
 
 #include "velecs/ecs/components/Name.hpp"
-#include "velecs/ecs/components/Relationship.hpp"
 #include "velecs/ecs/components/Transform.hpp"
 
 namespace velecs::ecs {
@@ -62,7 +61,7 @@ public:
     /// @return Reference to this builder for method chaining.
     inline EntityBuilder& WithParent(const Entity parent)
     {
-        relationship.SetParent(parent);
+        transform.SetParent(parent);
         return *this;
     }
 
@@ -146,9 +145,6 @@ private:
 
     /// @brief Reference to the entity's name component.
     Name& name;
-    
-    /// @brief Reference to the entity's relationship component.
-    Relationship& relationship;
     
     /// @brief Reference to the entity's transform component.
     Transform& transform;

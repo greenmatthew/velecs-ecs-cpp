@@ -14,11 +14,11 @@
 #include "velecs/ecs/tags/DestroyTag.hpp"
 
 #include "velecs/ecs/components/Name.hpp"
-#include "velecs/ecs/components/Relationship.hpp"
 #include "velecs/ecs/components/Transform.hpp"
 
 #include <memory>
 #include <string>
+#include <algorithm>
 
 namespace velecs::ecs {
 
@@ -43,11 +43,6 @@ std::string Entity::GetName() const
 void Entity::SetName(const std::string& newName)
 {
     GetComponent<Name>().SetName(newName);
-}
-
-Relationship& Entity::GetRelationship() const
-{
-    return GetComponent<Relationship>();
 }
 
 Transform& Entity::GetTransform() const
@@ -93,21 +88,21 @@ entt::registry Entity::registry;
 
 void Entity::Destroy(bool removeParent) const
 {
-    auto& relationship = GetRelationship();
-    const size_t childCount = relationship.GetChildCount();
+    auto& transform = GetTransform();
+    const size_t childCount = transform.GetChildCount();
     if (childCount > 0)
     {
         const auto childCountStr = std::to_string(childCount) + (childCount == 1 ? " child" : " children");
         std::cout << "Destroying the " << childCountStr << " of '" << GetName() << "':" << std::endl;
-        throw std::runtime_error("Fix this!!!! Its not properly iterating.");
-        for (const Entity& child : relationship.Reverse())
+        for (auto it = transform.rbegin(); it != transform.rend(); ++it)
         {
+            const Entity& child = *it;
             if (child) child.Destroy(false);
             else std::cout << "ERROR: child entity is not valid!" << std::endl;
         }
     }
 
-    if (removeParent) relationship.SetParent(Entity::INVALID);
+    if (removeParent) transform.SetParent(Entity::INVALID);
 
     std::cout << "Destroying '" << GetName() << "'!" << std::endl;
     registry.destroy(_handle);

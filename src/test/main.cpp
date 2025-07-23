@@ -39,7 +39,6 @@ int main()
             .WithPos(Vec3::ZERO)
             ;
         Transform& parentTransform = parent.GetTransform();
-        Relationship& parentRelationship = parent.GetRelationship();
         std::cout << "Transform: " << parent.GetName() << std::endl;
         std::cout << "\tPosition: " << parentTransform.GetPos() << std::endl;
         std::cout << "\tScale: " << parentTransform.GetScale() << std::endl;
@@ -53,9 +52,8 @@ int main()
             .WithPos(Vec3::BACKWARD * 10)
             ;
         Transform& childTransform = child.GetTransform();
-        Relationship& childRelationship = child.GetRelationship();
         std::cout << "Transform: " << child.GetName() << std::endl;
-        std::cout << "\tParent:" << (childRelationship.GetParent() ? childRelationship.GetParent().GetName() : "(n/a)") << '\n' << std::endl;
+        std::cout << "\tParent:" << (childTransform.GetParent() ? childTransform.GetParent().GetName() : "(n/a)") << '\n' << std::endl;
         std::cout << "\tPosition: " << childTransform.GetPos() << std::endl;
         std::cout << "\tScale: " << childTransform.GetScale() << std::endl;
         std::cout << "\tRotation: " << childTransform.GetEulerAnglesDeg() << std::endl;

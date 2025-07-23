@@ -32,13 +32,7 @@ public:
     // Constructors and Destructors
 
     /// @brief Default constructor.
-    inline Relationship()
-        : prevSibling(Entity::INVALID), nextSibling(Entity::INVALID)
-    {
-        const auto owner = GetOwner<Relationship>();
-        this->prevSibling = owner;
-        this->nextSibling = owner;
-    }
+    Relationship() = default;
 
     /// @brief Default deconstructor.
     ~Relationship() = default;
@@ -82,7 +76,7 @@ public:
     /// @return Iterator to the first child, or end() if there are no children
     inline iterator begin()
     {
-        return (childCount > 0) ? iterator(firstChild, childCount, true) : end();
+        return (_childCount > 0) ? iterator(_firstChild, _childCount, true) : end();
     }
 
     /// @brief Returns an iterator representing the end of child traversal
@@ -96,7 +90,7 @@ public:
     /// @return Reverse iterator to the last child, or rend() if there are no children
     inline iterator rbegin()
     {
-        return (childCount > 0) ? iterator(firstChild.GetRelationship().prevSibling, childCount, false) : end();
+        return (_childCount > 0) ? iterator(_firstChild.GetRelationship()._prevSibling, _childCount, false) : end();
     }
 
     /// @brief Returns a reverse iterator representing the end of reverse traversal
@@ -131,52 +125,72 @@ public:
 
     inline Entity GetParent() const
     {
-        return parent;
+        return _parent;
     }
 
     void SetParent(const Entity newParent)
     {
         // If the new parent is the same then ignore.
-        if (parent == newParent) return;
+        if (_parent == newParent) return;
 
-        Entity owner = this->GetOwner<Relationship>();
+        const auto& owner = GetOwner();
 
         // If there is already a parent then remove it as a child
-        if (parent) parent.GetRelationship().RemoveChild(owner);
+        if (_parent) _parent.GetRelationship().RemoveChild(owner);
 
         // Assign new parent.
-        parent = newParent;
+        _parent = newParent;
 
         // Add child to new parent
-        parent.GetRelationship().AddChild(owner);
+        _parent.GetRelationship().AddChild(owner);
     }
 
     inline Entity GetPrevSibling() const
     {
-        return prevSibling;
+        return _prevSibling;
     }
 
     inline Entity GetNextSibling() const
     {
-        return nextSibling;
+        return _nextSibling;
     }
 
     inline size_t GetChildCount() const
     {
-        return childCount;
+        return _childCount;
     }
 
     inline Entity GetFirstChild() const
     {
-        return firstChild;
+        return _firstChild;
     }
 
     void AddChild(const Entity child)
     {
-        auto owner = GetOwner<Relationship>();
+        const auto& owner = GetOwner();
         if (child == owner) return;
 
-        if (GetChildCount() == 0) firstChild = child;
+        auto& childRelationship = child.GetRelationship();
+        childRelationship._parent = owner;
+
+        if (_childCount == 0)
+        {
+            _firstChild = child;
+
+            childRelationship._prevSibling = Entity::INVALID;
+            childRelationship._nextSibling = Entity::INVALID;
+        }
+        else if (_childCount == 1)
+        {
+            auto first = GetFirstChild();
+            auto& firstRelationship = first.GetRelationship();
+
+            firstRelationship._nextSibling = child;
+            firstRelationship._prevSibling = child;
+
+            childRelationship._prevSibling = first;
+            childRelationship._nextSibling = first;
+        }
         else
         {
             auto first = GetFirstChild();
@@ -185,49 +199,72 @@ public:
             auto last = firstRelationship.GetPrevSibling();
             auto& lastRelationship = last.GetRelationship();
 
-            firstRelationship.prevSibling = child;
-            lastRelationship.nextSibling = child;
-
-            auto& childRelationship = child.GetRelationship();
-            childRelationship.parent = owner;
-            childRelationship.prevSibling = last;
-            childRelationship.nextSibling = first;
+            firstRelationship._prevSibling = child;
+            lastRelationship._nextSibling = child;
+            
+            childRelationship._prevSibling = last;
+            childRelationship._nextSibling = first;
         }
-        ++childCount;
+        ++_childCount;
     }
 
     
     bool RemoveChild(const Entity child)
     {
-        if (GetOwner<Relationship>() == child) return false;
+        const auto& owner = GetOwner();
+        if (owner == child) return false;
 
-        auto first = firstChild;
+        auto first = _firstChild;
         auto it = first;
-        for(std::size_t i{}; i < childCount; ++i)
+        for(std::size_t i{}; i < _childCount; ++i)
         {
             auto& relationship = it.GetRelationship();
             if (it == child)
             {
-                auto prev = relationship.prevSibling;
-                auto& prevRelationship = prev.GetRelationship();
-                auto next = relationship.nextSibling;
-                auto& nextRelationship = next.GetRelationship();
-
-                prevRelationship.nextSibling = next;
-                nextRelationship.prevSibling = prev;
-
-                if (child == first)
+                if (_childCount == 1)
                 {
-                    if (childCount == 1) firstChild = Entity::INVALID;
-                    else firstChild = next;
+                    // Only one child - simple case
+                    _firstChild = Entity::INVALID;
+                }
+                else if (_childCount == 2)
+                {
+                    // Two children - the remaining child should have INVALID siblings
+                    auto other = (child == first) ? relationship._nextSibling : first;
+                    auto& otherRelationship = other.GetRelationship();
+                    otherRelationship._prevSibling = Entity::INVALID;
+                    otherRelationship._nextSibling = Entity::INVALID;
+                    _firstChild = other;
+                }
+                else
+                {
+                    // Three or more children - update the circular list
+                    auto prev = relationship._prevSibling;
+                    auto next = relationship._nextSibling;
+                    
+                    // Both prev and next should be valid in a 3+ child scenario
+                    if (prev && next)
+                    {
+                        auto& prevRelationship = prev.GetRelationship();
+                        auto& nextRelationship = next.GetRelationship();
+                        
+                        prevRelationship._nextSibling = next;
+                        nextRelationship._prevSibling = prev;
+                        
+                        // Update firstChild if we're removing the first child
+                        if (child == first)
+                        {
+                            _firstChild = next;
+                        }
+                    }
                 }
 
+                // Clean up the removed child's relationship
                 auto& childRelationship = child.GetRelationship();
-                childRelationship.parent = Entity::INVALID;
-                childRelationship.prevSibling = child;
-                childRelationship.nextSibling = child;
+                childRelationship._parent = Entity::INVALID;
+                childRelationship._prevSibling = Entity::INVALID;
+                childRelationship._nextSibling = Entity::INVALID;
 
-                --childCount;
+                --_childCount;
                 return true;
             }
             it = relationship.GetNextSibling();
@@ -244,11 +281,11 @@ protected:
 private:
     // Private Fields
 
-    Entity parent{Entity::INVALID};
-    Entity firstChild{Entity::INVALID};
-    Entity nextSibling;
-    Entity prevSibling;
-    size_t childCount{0};
+    Entity _parent{Entity::INVALID};
+    Entity _firstChild{Entity::INVALID};
+    Entity _nextSibling{Entity::INVALID};
+    Entity _prevSibling{Entity::INVALID};
+    size_t _childCount{0};
 
     // Private Methods
 };

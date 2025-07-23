@@ -6,6 +6,8 @@ using namespace velecs::ecs;
 #include <velecs/math/Vec3.hpp>
 using namespace velecs::math;
 
+#include <stdexcept>
+
 class Velocity : public Component
 {
 public:
@@ -30,59 +32,72 @@ public:
 
 int main()
 {
-    Entity parent = Entity::Create()
-        .WithName("Parent Entity")
-        .WithPos(Vec3::ZERO)
-        ;
-    Transform& parentTransform = parent.GetTransform();
-    Relationship& parentRelationship = parent.GetRelationship();
-    std::cout << "Transform: " << parent.GetName() << std::endl;
-    std::cout << "\tPosition: " << parentTransform.GetPos() << std::endl;
-    std::cout << "\tScale: " << parentTransform.GetScale() << std::endl;
-    std::cout << "\tRotation: " << parentTransform.GetEulerAnglesDeg() << std::endl;
-    std::cout << "\tModel Matrix:\n" << parentTransform.GetModelMatrix() << std::endl;
-    std::cout << "\tWorld Matrix:\n" << parentTransform.GetWorldMatrix() << std::endl;
+    try
+    {
+        Entity parent = Entity::Create()
+            .WithName("Parent Entity")
+            .WithPos(Vec3::ZERO)
+            ;
+        Transform& parentTransform = parent.GetTransform();
+        Relationship& parentRelationship = parent.GetRelationship();
+        std::cout << "Transform: " << parent.GetName() << std::endl;
+        std::cout << "\tPosition: " << parentTransform.GetPos() << std::endl;
+        std::cout << "\tScale: " << parentTransform.GetScale() << std::endl;
+        std::cout << "\tRotation: " << parentTransform.GetEulerAnglesDeg() << std::endl;
+        std::cout << "\tModel Matrix:\n" << parentTransform.GetModelMatrix() << std::endl;
+        std::cout << "\tWorld Matrix:\n" << parentTransform.GetWorldMatrix() << std::endl;
 
-    Entity child = Entity::Create()
-        .WithName("Child Entity")
-        .WithParent(parent)
-        .WithPos(Vec3::BACKWARD * 10)
-        ;
-    Transform& childTransform = child.GetTransform();
-    Relationship& childRelationship = child.GetRelationship();
-    std::cout << "Transform: " << child.GetName() << std::endl;
-    std::cout << "\tParent:" << (childRelationship.GetParent() ? childRelationship.GetParent().GetName() : "(n/a)") << '\n' << std::endl;
-    std::cout << "\tPosition: " << childTransform.GetPos() << std::endl;
-    std::cout << "\tScale: " << childTransform.GetScale() << std::endl;
-    std::cout << "\tRotation: " << childTransform.GetEulerAnglesDeg() << std::endl;
-    std::cout << "\tModel Matrix:\n" << childTransform.GetModelMatrix() << std::endl;
-    std::cout << "\tWorld Matrix:\n" << childTransform.GetWorldMatrix() << std::endl;
+        Entity child = Entity::Create()
+            .WithName("Child Entity")
+            .WithParent(parent)
+            .WithPos(Vec3::BACKWARD * 10)
+            ;
+        Transform& childTransform = child.GetTransform();
+        Relationship& childRelationship = child.GetRelationship();
+        std::cout << "Transform: " << child.GetName() << std::endl;
+        std::cout << "\tParent:" << (childRelationship.GetParent() ? childRelationship.GetParent().GetName() : "(n/a)") << '\n' << std::endl;
+        std::cout << "\tPosition: " << childTransform.GetPos() << std::endl;
+        std::cout << "\tScale: " << childTransform.GetScale() << std::endl;
+        std::cout << "\tRotation: " << childTransform.GetEulerAnglesDeg() << std::endl;
+        std::cout << "\tModel Matrix:\n" << childTransform.GetModelMatrix() << std::endl;
+        std::cout << "\tWorld Matrix:\n" << childTransform.GetWorldMatrix() << std::endl;
 
+        
+        std::cout << "Parent pos: " << parentTransform.GetPos() << std::endl;
+        auto& vel = parent.AddComponent<Velocity>();
+        vel.vel = Vec3::RIGHT;
+        std::cout << "Successfully added 'MoveSystem': " << std::boolalpha << System::TryAddSystem<MoveSystem>() << std::endl;
+        std::cout << "Successfully added 'MoveSystem': " << std::boolalpha << System::TryAddSystem<MoveSystem>() << std::endl;
+        std::cout << "Successfully removed 'MoveSystem': " << std::boolalpha << System::TryRemoveSystem<MoveSystem>() << std::endl;
+        std::cout << "Successfully removed 'MoveSystem': " << std::boolalpha << System::TryRemoveSystem<MoveSystem>() << std::endl;
+        std::cout << "Successfully added 'MoveSystem': " << std::boolalpha << System::TryAddSystem<MoveSystem>() << std::endl;
+
+        auto& registry = Entity::GetRegistry();
+        auto view = registry.view<SystemStorage>();
+        std::cout << "Systems registered: " << std::distance(view.begin(), view.end()) << std::endl;
+        view.each([](auto entity, auto& storage){
+            std::cout << "Calling Update()" << std::endl;
+            storage.system->Update(1.0f);
+        });
+
+        std::cout << "Parent pos: " << parentTransform.GetPos() << std::endl;
+
+        Entity::RequestDestroy(parent);
+        Entity::ProcessDestructionQueue();
+
+        if (child) std::cout << child.GetName() << " is still alive!" << std::endl;
+        else std::cout << "Entity is no longer alive." << std::endl;
+
+        return EXIT_SUCCESS;
+    }
+    catch (std::exception ex)
+    {
+        std::cerr << "Exception: " << ex.what() << std::endl;
+    }
+    catch (...)
+    {
+        std::cerr << "Unknown exception thrown!" << std::endl;
+    }
     
-    std::cout << "Parent pos: " << parentTransform.GetPos() << std::endl;
-    auto& vel = parent.AddComponent<Velocity>();
-    vel.vel = Vec3::RIGHT;
-    std::cout << "Successfully added 'MoveSystem': " << std::boolalpha << System::TryAddSystem<MoveSystem>() << std::endl;
-    std::cout << "Successfully added 'MoveSystem': " << std::boolalpha << System::TryAddSystem<MoveSystem>() << std::endl;
-    std::cout << "Successfully removed 'MoveSystem': " << std::boolalpha << System::TryRemoveSystem<MoveSystem>() << std::endl;
-    std::cout << "Successfully removed 'MoveSystem': " << std::boolalpha << System::TryRemoveSystem<MoveSystem>() << std::endl;
-    std::cout << "Successfully added 'MoveSystem': " << std::boolalpha << System::TryAddSystem<MoveSystem>() << std::endl;
-
-    auto& registry = Entity::GetRegistry();
-    auto view = registry.view<SystemStorage>();
-    std::cout << "Systems registered: " << std::distance(view.begin(), view.end()) << std::endl;
-    view.each([](auto entity, auto& storage){
-        std::cout << "Calling Update()" << std::endl;
-        storage.system->Update(1.0f);
-    });
-
-    std::cout << "Parent pos: " << parentTransform.GetPos() << std::endl;
-
-    Entity::RequestDestroy(parent);
-    Entity::ProcessDestructionQueue();
-
-    if (child) std::cout << child.GetName() << " is still alive!" << std::endl;
-    else std::cout << "Entity is no longer alive." << std::endl;
-
-    return EXIT_SUCCESS;
+    return EXIT_FAILURE;
 }

@@ -12,6 +12,8 @@
 
 #include "velecs/ecs/Entity.hpp"
 
+#include <stdexcept>
+
 namespace velecs::ecs {
 
 // Public Fields
@@ -21,6 +23,16 @@ namespace velecs::ecs {
 Component::~Component() = default;
 
 // Public Methods
+
+const Entity& Component::GetOwner() const
+{
+    if (!_ownerPtr)
+    {
+        throw std::runtime_error("Component has no owner entity");
+    }
+
+    return *_ownerPtr;
+}
 
 // Protected Fields
 

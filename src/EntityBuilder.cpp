@@ -21,7 +21,7 @@ EntityBuilder::EntityBuilder()
       name(entity.AddComponent<Name>("Entity")),
       relationship(entity.AddComponent<Relationship>()),
       transform(entity.AddComponent<Transform>())
-      {}
+    {}
 
 // Public Methods
 

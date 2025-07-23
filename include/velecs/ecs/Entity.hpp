@@ -137,6 +137,7 @@ public:
     inline T& AddComponent()
     {
         T& comp = registry.emplace<T>(_handle);
+        comp._ownerPtr = this;
         return comp;
     }
 
@@ -149,6 +150,7 @@ public:
     inline T& AddComponent(Args &&...args)
     {
         T& comp = registry.emplace<T>(_handle, std::forward<Args>(args)...);
+        comp._ownerPtr = this;
         return comp;
     }
 

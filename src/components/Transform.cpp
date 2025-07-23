@@ -123,7 +123,8 @@ Mat4 Transform::CalculateModel() const
 
 Mat4 Transform::CalculateWorld() const
 {
-    auto& relationship = GetOwner<Transform>().GetRelationship();
+    const auto& owner = GetOwner();
+    auto& relationship = owner.GetRelationship();
     auto parent = relationship.GetParent();
     // If there is no parent then the model is the world matrix.
     if (!parent) return GetModelMatrix();

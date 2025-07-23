@@ -32,9 +32,23 @@ Relationship::iterator& Relationship::iterator::operator++()
 {
     if (index < size - 1)
     {
-        auto& relationship = current.GetRelationship();
-        if (traverseForward) current = relationship.GetNextSibling();
-        else current = relationship.GetPrevSibling();
+        // Safety check: ensure current entity is valid before accessing its relationship
+        if (current)
+        {
+            auto& relationship = current.GetRelationship();
+            if (traverseForward) 
+            {
+                current = relationship.GetNextSibling();
+            }
+            else 
+            {
+                current = relationship.GetPrevSibling();
+            }
+        }
+        else
+        {
+            current = Entity::INVALID; // Ensure we stay invalid if we were already invalid
+        }
         index++;
     }
     else

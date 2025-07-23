@@ -99,6 +99,7 @@ void Entity::Destroy(bool removeParent) const
     {
         const auto childCountStr = std::to_string(childCount) + (childCount == 1 ? " child" : " children");
         std::cout << "Destroying the " << childCountStr << " of '" << GetName() << "':" << std::endl;
+        throw std::runtime_error("Fix this!!!! Its not properly iterating.");
         for (const Entity& child : relationship.Reverse())
         {
             if (child) child.Destroy(false);

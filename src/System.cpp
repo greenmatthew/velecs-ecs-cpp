@@ -26,11 +26,6 @@ System::~System() = default;
 
 // Protected Methods
 
-entt::registry& System::GetRegistry()
-{
-    return Entity::GetRegistry();
-}
-
 // Private Fields
 
 // Private Methods

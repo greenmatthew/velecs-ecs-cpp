@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "velecs/ecs/Registry.hpp"
 #include "velecs/ecs/TypeConstraints.hpp"
 
 #include <memory>
@@ -46,6 +47,8 @@ public:
     virtual ~Component() = 0;
 
     // Public Methods
+
+    inline static entt::registry& GetRegistry() { return Registry::Get(); }
 
     const Entity& GetOwner() const;
 

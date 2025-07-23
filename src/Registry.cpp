@@ -1,6 +1,6 @@
-/// @file    EntityBuilder.cpp
+/// @file    Registry.cpp
 /// @author  Matthew Green
-/// @date    2025-05-16 11:44:30
+/// @date    2025-07-23 11:55:56
 /// 
 /// @section LICENSE
 /// 
@@ -8,7 +8,6 @@
 /// Unauthorized copying of this file, via any medium is strictly prohibited
 /// Proprietary and confidential
 
-#include "velecs/ecs/EntityBuilder.hpp"
 #include "velecs/ecs/Registry.hpp"
 
 namespace velecs::ecs {
@@ -17,11 +16,6 @@ namespace velecs::ecs {
 
 // Constructors and Destructors
 
-EntityBuilder::EntityBuilder()
-    : entity(Entity(Registry::CreateEntity())),
-        name(entity.AddComponent<Name>("Entity")),
-        transform(entity.AddComponent<Transform>()) {}
-
 // Public Methods
 
 // Protected Fields
@@ -29,6 +23,8 @@ EntityBuilder::EntityBuilder()
 // Protected Methods
 
 // Private Fields
+
+entt::registry Registry::_registry;
 
 // Private Methods
 

@@ -28,12 +28,12 @@ const Entity Entity::INVALID;
 
 // Constructors and Destructors
 
-// Public Methods
-
 EntityBuilder Entity::Create()
 {
     return EntityBuilder();
 }
+
+// Public Methods
 
 std::string Entity::GetName() const
 {
@@ -58,7 +58,7 @@ void Entity::RequestDestroy(Entity entity)
 void Entity::ProcessDestructionQueue()
 {
     // Create a view of all entities with the DestroyTag
-    auto view = registry.view<DestroyTag>();
+    auto view = Registry::Get().view<DestroyTag>();
     
     // Store the entities in a temporary vector
     // This is necessary because we'll be modifying the registry during iteration
@@ -82,8 +82,6 @@ void Entity::ProcessDestructionQueue()
 
 // Private Fields
 
-entt::registry Entity::registry;
-
 // Private Methods
 
 void Entity::Destroy(bool removeParent) const
@@ -105,7 +103,7 @@ void Entity::Destroy(bool removeParent) const
     if (removeParent) transform.TrySetParent(Entity::INVALID);
 
     std::cout << "Destroying '" << GetName() << "'!" << std::endl;
-    registry.destroy(_handle);
+    GetRegistry().destroy(_handle);
 }
 
 } // namespace velecs::ecs

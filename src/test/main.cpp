@@ -19,7 +19,7 @@ class MoveSystem : public System
 public:
     virtual void Update(float deltaTime) override
     {
-        auto& registry = Entity::GetRegistry();
+        auto& registry = Registry::Get();
         auto view = registry.view<Transform, Velocity>();
         view.each([deltaTime](auto entity, auto& transform, auto& velocity){
             std::cout << "Updating position" << std::endl;
@@ -70,7 +70,7 @@ int main()
         std::cout << "Successfully removed 'MoveSystem': " << std::boolalpha << System::TryRemoveSystem<MoveSystem>() << std::endl;
         std::cout << "Successfully added 'MoveSystem': " << std::boolalpha << System::TryAddSystem<MoveSystem>() << std::endl;
 
-        auto& registry = Entity::GetRegistry();
+        auto& registry = Registry::Get();
         auto view = registry.view<SystemStorage>();
         std::cout << "Systems registered: " << std::distance(view.begin(), view.end()) << std::endl;
         view.each([](auto entity, auto& storage){

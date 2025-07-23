@@ -28,6 +28,8 @@ add_subdirectory(libs/entt)
 # Source files for the library
 set(LIB_SOURCES
     src/test/main.cpp
+
+    src/Registry.cpp
     
     # Entities
     src/Entity.cpp
@@ -51,6 +53,7 @@ set(LIB_SOURCES
 set(LIB_HEADERS
     include/velecs/ecs/Common.hpp
     include/velecs/ecs/TypeConstraints.hpp
+    include/velecs/ecs/Registry.hpp
 
     # Entities
     include/velecs/ecs/Entity.hpp

@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "velecs/ecs/Registry.hpp"
 #include "velecs/ecs/TypeConstraints.hpp"
 #include "velecs/ecs/Component.hpp"
 
@@ -45,16 +46,16 @@ public:
     /// @brief Default deconstructor.
     ~Entity() = default;
 
-    // Public Methods
-
     /// @brief Copy constructor
     /// @param other The entity to copy from
     inline Entity(const Entity& other)
         : _handle(other._handle) {}
-    
+
     /// @brief Creates a new entity in the registry.
     /// @return A newly created entity with a valid handle.
     static EntityBuilder Create();
+
+    // Public Methods
 
     /// @brief Copy assignment operator.
     /// @param other The entity to copy from.
@@ -76,34 +77,24 @@ public:
     /// @brief Equality comparison operator.
     /// @param other The entity to compare with.
     /// @return True if the entities have the same handle, false otherwise.
-    inline bool operator==(const Entity& other) const
-    {
-        return _handle == other._handle;
-    }
+    inline bool operator==(const Entity& other) const { return _handle == other._handle; }
 
     /// @brief Inequality comparison operator.
     /// @param other The entity to compare with.
     /// @return True if the entities have different handles, false otherwise.
-    inline bool operator!=(const Entity& other) const
-    {
-        return _handle != other._handle;
-    }
+    inline bool operator!=(const Entity& other) const { return _handle != other._handle; }
 
     /// @brief Boolean conversion operator.
     /// @details Allows the entity to be used in conditional expressions.
     ///          An entity evaluates to true if it is valid, false otherwise.
     /// @return True if the entity is valid, false otherwise.
-    inline explicit operator bool() const
-    {
-        return IsValid();
-    }
+    inline explicit operator bool() const { return IsValid(); }
 
     /// @brief Checks if the entity is valid.
     /// @return True if the entity handle is valid in the registry, false otherwise.
-    inline bool IsValid() const
-    {
-        return _handle != entt::null && registry.valid(_handle);
-    }
+    inline bool IsValid() const { return _handle != entt::null && GetRegistry().valid(_handle); }
+
+    inline static entt::registry& GetRegistry() { return Registry::Get(); }
 
     /// @brief Gets the name of this entity.
     /// @details Retrieves the name stored in the Name component of this entity.
@@ -122,8 +113,9 @@ public:
     Transform& GetTransform() const;
 
     template<typename T, typename = IsTag<T>>
-    inline void AddTag()
+    void AddTag()
     {
+        auto& registry = Registry::Get();
         registry.emplace<T>(_handle);
     }
 
@@ -131,8 +123,9 @@ public:
     /// @tparam T The type of component to add.
     /// @return A reference to the newly added component.
     template<typename T, typename = IsComponent<T>>
-    inline T& AddComponent()
+    T& AddComponent()
     {
+        auto& registry = Registry::Get();
         T& comp = registry.emplace<T>(_handle);
         comp._ownerPtr = this;
         return comp;
@@ -144,8 +137,9 @@ public:
     /// @param args The constructor arguments.
     /// @return A reference to the newly added component.
     template<typename T, typename = IsComponent<T>, typename... Args>
-    inline T& AddComponent(Args &&...args)
+    T& AddComponent(Args &&...args)
     {
+        auto& registry = Registry::Get();
         T& comp = registry.emplace<T>(_handle, std::forward<Args>(args)...);
         comp._ownerPtr = this;
         return comp;
@@ -154,8 +148,9 @@ public:
     /// @brief Removes a component of type T from the entity.
     /// @tparam T The type of component to remove.
     template<typename T, typename = IsComponent<T>>
-    inline void RemoveComponent()
+    void RemoveComponent()
     {
+        auto& registry = Registry::Get();
         registry.remove<T>(_handle);
     }
 
@@ -164,8 +159,9 @@ public:
     /// @param outComponent A pointer that will be set to the component if found.
     /// @return True if the component was found, false otherwise.
     template<typename T, typename = IsComponent<T>>
-    inline bool TryGetComponent(T*& outComponent)
+    bool TryGetComponent(T*& outComponent)
     {
+        auto& registry = Registry::Get();
         outComponent = registry.try_get<T>(_handle);
         return (outComponent != nullptr);
     }
@@ -175,16 +171,14 @@ public:
     /// @param outComponent A const pointer that will be set to the component if found.
     /// @return True if the component was found, false otherwise.
     template<typename T, typename = IsComponent<T>>
-    inline bool TryGetComponent(const T*& outComponent)
+    bool TryGetComponent(const T*& outComponent)
     {
+        auto& registry = Registry::Get();
         outComponent = registry.try_get<T>(_handle);
         return (outComponent != nullptr);
     }
 
-    size_t GetHashCode() const
-    {
-        return std::hash<entt::entity>{}(_handle);
-    }
+    inline size_t GetHashCode() const { return std::hash<entt::entity>{}(_handle); }
 
     /// @brief Requests an entity to be destroyed.
     /// @details This adds the entity to a queue for destruction rather than destroying it immediately.
@@ -194,11 +188,6 @@ public:
     /// @brief Processes all pending entity destruction requests.
     /// @details Iterates through the destruction queue and destroys each entity.
     static void ProcessDestructionQueue();
-
-    inline static entt::registry& GetRegistry()
-    {
-        return registry;
-    }
 
 protected:
     // Protected Fields
@@ -213,14 +202,13 @@ protected:
     template<typename T, typename = IsComponent<T>>
     inline T& GetComponent() const
     {
+        auto& registry = Registry::Get();
         return *registry.try_get<T>(_handle);
     }
 
 private:
     // Private Fields
 
-    static entt::registry registry;
-    
     const entt::entity _handle;
 
     // Private Methods

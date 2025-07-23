@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "velecs/ecs/Registry.hpp"
 #include "velecs/ecs/TypeConstraints.hpp"
 #include "velecs/ecs/SystemStorage.hpp"
 
@@ -36,6 +37,8 @@ public:
     virtual ~System() = 0;
 
     // Public Methods
+
+    inline static entt::registry& GetRegistry() { return Registry::Get(); }
 
     /// @brief Called once when the system is first created.
     /// @details Override this method to perform one-time setup such as caching queries,
@@ -108,13 +111,6 @@ protected:
     // Protected Fields
 
     // Protected Methods
-
-    /// @brief Gets a reference to the global entity registry.
-    /// @return Reference to the singleton EnTT registry containing all entities and components.
-    /// @details This provides access to the registry for creating views, querying entities,
-    ///          and accessing components. The registry is managed as a singleton through
-    ///          the Entity class.
-    static entt::registry& GetRegistry();
 
 private:
     // Private Fields

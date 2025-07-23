@@ -67,7 +67,7 @@ public:
 
     /// @brief Gets the local rotation as Euler angles in radians.
     /// @return Local rotation as Euler angles (pitch, yaw, roll) in radians.
-    Vec3 GetEulerAngles() const;
+    Vec3 GetEulerAnglesRad() const;
 
     /// @brief Gets the local rotation as Euler angles in degrees.
     /// @return Local rotation as Euler angles (pitch, yaw, roll) in degrees.
@@ -76,7 +76,7 @@ public:
     /// @brief Sets the local rotation using Euler angles in radians.
     /// @param newAngles New rotation as Euler angles (pitch, yaw, roll) in radians.
     /// @details Marks transform matrices as dirty and updates all children.
-    void SetEulerAngles(const Vec3& newAngles);
+    void SetEulerAnglesRad(const Vec3& newAngles);
 
     /// @brief Sets the local rotation using Euler angles in degrees.
     /// @param newAnglesDeg New rotation as Euler angles (pitch, yaw, roll) in degrees.

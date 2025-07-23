@@ -97,7 +97,7 @@ public:
     /// @return Reference to this builder for method chaining.
     inline EntityBuilder& WithEulerAngles(const math::Vec3 eulerAngles)
     {
-        transform.SetEulerAngles(eulerAngles);
+        transform.SetEulerAnglesRad(eulerAngles);
         return *this;
     }
 

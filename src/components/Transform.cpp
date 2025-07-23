@@ -44,9 +44,9 @@ void Transform::SetScale(const Vec3& newScale)
     SetDirty();
 }
 
-Vec3 Transform::GetEulerAngles() const
+Vec3 Transform::GetEulerAnglesRad() const
 {
-    return rot.ToEulerAngles();
+    return rot.ToEulerAnglesRad();
 }
 
 Vec3 Transform::GetEulerAnglesDeg() const
@@ -54,9 +54,9 @@ Vec3 Transform::GetEulerAnglesDeg() const
     return rot.ToEulerAnglesDeg();
 }
 
-void Transform::SetEulerAngles(const Vec3& newAngles)
+void Transform::SetEulerAnglesRad(const Vec3& newAnglesRad)
 {
-    rot = Quat::FromEulerAngles(newAngles);
+    rot = Quat::FromEulerAnglesRad(newAnglesRad);
     SetDirty();
 }
 

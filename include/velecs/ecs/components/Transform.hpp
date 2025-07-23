@@ -40,7 +40,7 @@ public:
     // Constructors and Destructors
 
     /// @brief Default constructor.
-    Transform();
+    Transform() = default;
 
     /// @brief Default deconstructor.
     ~Transform() = default;
@@ -107,16 +107,20 @@ public:
 
     // ========== Parent Management ==========
 
+    inline bool HasParent(const Entity parent) const { return _parent == parent; }
+
     /// @brief Gets the parent entity of this transform.
     /// @return Parent entity, or Entity::INVALID if this is a root transform.
     inline Entity GetParent() const { return _parent; }
 
-    /// @brief Sets the parent of this transform.
+    /// @brief Attempts to set the parent of this transform.
     /// @param newParent New parent entity, or Entity::INVALID to make this a root transform.
+    /// @return True if parent was successfully changed, false if operation failed or no change was needed.
     /// @details Automatically handles bidirectional relationship updates. Removes this
     ///          transform from old parent's children list and adds to new parent's list.
     ///          Marks world matrix as dirty for this transform and all children.
-    void SetParent(const Entity newParent);
+    ///          Fails if it would create a cycle in the hierarchy.
+    bool TrySetParent(const Entity newParent);
 
     // ========== Child Management ==========
 
@@ -166,18 +170,24 @@ public:
     /// @details Index represents order in parent's children list.
     size_t GetSiblingIndex() const;
 
-    /// @brief Sets this transform's index among its siblings.
+    /// @brief Attempts to set this transform's index among its siblings.
     /// @param index New zero-based index position.
-    /// @details Clamps index to valid range. Does nothing if this transform has no parent.
-    void SetSiblingIndex(const size_t index);
+    /// @return True if sibling index was successfully changed, false if this transform has no parent.
+    /// @details Clamps index to valid range. Throws std::runtime_error if hierarchy corruption is detected.
+    /// @throws std::runtime_error If entity claims to have a parent but isn't in parent's children list.
+    bool TrySetSiblingIndex(const size_t index);
 
-    /// @brief Moves this transform to be the first child of its parent.
-    /// @details Equivalent to SetSiblingIndex(0). Does nothing if no parent.
-    void SetAsFirstSibling();
+    /// @brief Attempts to move this transform to be the first child of its parent.
+    /// @return True if successfully moved to first position, false if this transform has no parent.
+    /// @details Equivalent to TrySetSiblingIndex(0).
+    /// @throws std::runtime_error If hierarchy corruption is detected during the operation.
+    bool TrySetAsFirstSibling();
 
-    /// @brief Moves this transform to be the last child of its parent.
-    /// @details Moves to end of parent's children list. Does nothing if no parent.
-    void SetAsLastSibling();
+    /// @brief Attempts to move this transform to be the last child of its parent.
+    /// @return True if successfully moved to last position, false if this transform has no parent.
+    /// @details Moves to end of parent's children list.
+    /// @throws std::runtime_error If hierarchy corruption is detected during the operation.
+    bool TrySetAsLastSibling();
 
     // ========== Relationship Queries ==========
 

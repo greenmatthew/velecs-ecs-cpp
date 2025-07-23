@@ -12,19 +12,13 @@
 
 using namespace velecs::math;
 
+#include <sstream>
+
 namespace velecs::ecs {
 
 // Public Fields
 
 // Constructors and Destructors
-
-Transform::Transform()
-    :
-        pos(Vec3::ZERO),
-        scale(Vec3::ONE),
-        rot(Quat::IDENTITY),
-        cachedModelMat(Mat4::IDENTITY),
-        cachedWorldMat(Mat4::IDENTITY) {}
 
 // Public Methods
 
@@ -103,9 +97,9 @@ Mat4 Transform::GetWorldMatrix() const
     return cachedWorldMat;
 }
 
-void Transform::SetParent(const Entity newParent)
+bool Transform::TrySetParent(const Entity newParent)
 {
-    if (_parent == newParent) return;  // No change needed
+    if (HasParent(newParent)) return false;  // No change needed
     
     const Entity owner = GetOwner();
     
@@ -134,6 +128,7 @@ void Transform::SetParent(const Entity newParent)
     }
     
     SetWorldDirty();
+    return true;
 }
 
 bool Transform::HasChild(const Entity child) const
@@ -152,7 +147,7 @@ bool Transform::TryAddChild(const Entity child)
     if (!child.IsValid() || child == GetOwner()) return false;
     
     // SetParent handles all the bidirectional relationship logic
-    child.GetTransform().SetParent(GetOwner());
+    child.GetTransform().TrySetParent(GetOwner());
     return true;
 }
 
@@ -164,7 +159,7 @@ bool Transform::TryRemoveChild(const Entity child)
     // SetParent(INVALID) will handle removing from our children list
     if (child.IsValid())
     {
-        child.GetTransform().SetParent(Entity::INVALID);
+        child.GetTransform().TrySetParent(Entity::INVALID);
     }
     
     return true;
@@ -178,7 +173,7 @@ bool Transform::TryRemoveChild(const size_t index)
     
     if (child.IsValid())
     {
-        child.GetTransform().SetParent(Entity::INVALID);
+        child.GetTransform().TrySetParent(Entity::INVALID);
     }
 
     return true;
@@ -194,16 +189,24 @@ size_t Transform::GetSiblingIndex() const
     return (it != siblings.end()) ? std::distance(siblings.begin(), it) : 0;
 }
 
-void Transform::SetSiblingIndex(const size_t index)
+bool Transform::TrySetSiblingIndex(const size_t index)
 {
-    if (!_parent.IsValid()) return;
+    if (!_parent.IsValid()) return false;
     
     auto& parentTransform = _parent.GetTransform();
     auto& siblings = parentTransform._children;
     
     // Find our current position
     auto it = std::find(siblings.begin(), siblings.end(), GetOwner());
-    if (it == siblings.end()) return;  // We're not actually a child?
+
+    // CRITICAL INVARIANT VIOLATION: We claim to have a parent but aren't in their children list
+    if (it == siblings.end())
+    {
+        std::ostringstream oss;
+        oss << "Transform hierarchy corruption detected: Entity claims parent but isn't in parent's children list. "
+            << "This indicates a serious bug in the ECS hierarchy system.";
+        throw std::runtime_error(oss.str());
+    }  
     
     // Remove from current position
     Entity self = *it;
@@ -212,17 +215,18 @@ void Transform::SetSiblingIndex(const size_t index)
     // Insert at new position (clamped to valid range)
     size_t clampedIndex = std::min(index, siblings.size());
     siblings.insert(siblings.begin() + clampedIndex, self);
+    return true;
 }
 
-void Transform::SetAsFirstSibling()
+bool Transform::TrySetAsFirstSibling()
 {
-    SetSiblingIndex(0);
+    return TrySetSiblingIndex(0);
 }
 
-void Transform::SetAsLastSibling()
+bool Transform::TrySetAsLastSibling()
 {
-    if (!_parent.IsValid()) return;
-    SetSiblingIndex(_parent.GetTransform().GetChildCount());
+    if (!_parent.IsValid()) return false;
+    return TrySetSiblingIndex(_parent.GetTransform().GetChildCount());
 }
 
 bool Transform::IsChildOf(const Entity parent) const

@@ -61,7 +61,7 @@ public:
     /// @return Reference to this builder for method chaining.
     inline EntityBuilder& WithParent(const Entity parent)
     {
-        transform.SetParent(parent);
+        transform.TrySetParent(parent);
         return *this;
     }
 

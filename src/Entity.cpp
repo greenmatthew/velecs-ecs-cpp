@@ -102,7 +102,7 @@ void Entity::Destroy(bool removeParent) const
         }
     }
 
-    if (removeParent) transform.SetParent(Entity::INVALID);
+    if (removeParent) transform.TrySetParent(Entity::INVALID);
 
     std::cout << "Destroying '" << GetName() << "'!" << std::endl;
     registry.destroy(_handle);

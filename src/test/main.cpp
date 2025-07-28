@@ -98,7 +98,8 @@ int main()
 
         std::cout << "Parent pos: " << parentTransform.GetPos() << std::endl;
 
-        // Entity::RequestDestroy(parent);
+        Entity::RequestDestroy(parent);
+        mainScene->ProcessCleanup();
         // Entity::ProcessDestructionQueue();
 
         if (child) std::cout << child.GetName() << " is still alive!" << std::endl;

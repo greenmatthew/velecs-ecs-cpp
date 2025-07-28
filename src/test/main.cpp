@@ -8,21 +8,6 @@ using namespace velecs::math;
 
 #include <stdexcept>
 
-class MainScene : public Scene
-{
-public:
-    MainScene::MainScene(const std::string& name)
-        : Scene(name) {}
-
-    MainScene::MainScene(const std::string& name, Scene::ConstructorKey key)
-        : Scene(name, key) {}
-
-    void OnEnter()
-    {
-        std::cout << "Calling OnEnter() on Scene." << std::endl;
-    }
-};
-
 class Velocity : public Component
 {
 public:
@@ -45,14 +30,18 @@ public:
 //     }
 // };
 
-int main()
+class MainScene : public Scene
 {
-    try
-    {
-        const auto mainSceneUPtr = std::make_unique<MainScene>("Main Scene");
-        const auto mainScene = mainSceneUPtr.get();
+public:
+    MainScene::MainScene(const std::string& name)
+        : Scene(name) {}
 
-        Entity parent = Entity::Create(mainScene)
+    MainScene::MainScene(const std::string& name, Scene::ConstructorKey key)
+        : Scene(name, key) {}
+
+    void OnEnter()
+    {
+        Entity parent = CreateEntity()
             .WithName("Parent Entity")
             .WithPos(Vec3::ZERO)
             ;
@@ -64,7 +53,7 @@ int main()
         std::cout << "\tModel Matrix:\n" << parentTransform.GetModelMatrix() << std::endl;
         std::cout << "\tWorld Matrix:\n" << parentTransform.GetWorldMatrix() << std::endl;
 
-        Entity child = Entity::Create(mainScene)
+        Entity child = CreateEntity()
             .WithName("Child Entity")
             .WithParent(parent)
             .WithPos(Vec3::BACKWARD * 10)
@@ -99,22 +88,34 @@ int main()
         std::cout << "Parent pos: " << parentTransform.GetPos() << std::endl;
 
         Entity::RequestDestroy(parent);
-        mainScene->ProcessCleanup();
+        ProcessCleanup();
         // Entity::ProcessDestructionQueue();
 
         if (child) std::cout << child.GetName() << " is still alive!" << std::endl;
         else std::cout << "Entity is no longer alive." << std::endl;
+    }
+};
 
-        return EXIT_SUCCESS;
+int main()
+{
+    try
+    {
+        const auto mainSceneUPtr = std::make_unique<MainScene>("Main Scene");
+        const auto mainScene = mainSceneUPtr.get();
+        mainScene->OnEnter();
+        mainScene->OnExit();
     }
     catch (std::exception ex)
     {
         std::cerr << "Exception: " << ex.what() << std::endl;
+        return EXIT_FAILURE;
+
     }
     catch (...)
     {
         std::cerr << "Unknown exception thrown!" << std::endl;
+        return EXIT_FAILURE;
     }
-    
-    return EXIT_FAILURE;
+
+    return EXIT_SUCCESS;
 }

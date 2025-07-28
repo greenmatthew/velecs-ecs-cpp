@@ -26,7 +26,7 @@ Component::~Component() = default;
 
 Entity Component::GetOwner() const
 {
-    return Entity(_handle);
+    return Entity(_scene, _handle);
 }
 
 // Protected Fields

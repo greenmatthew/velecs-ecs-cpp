@@ -9,7 +9,6 @@
 /// Proprietary and confidential
 
 #include "velecs/ecs/EntityBuilder.hpp"
-#include "velecs/ecs/Registry.hpp"
 
 namespace velecs::ecs {
 
@@ -17,8 +16,8 @@ namespace velecs::ecs {
 
 // Constructors and Destructors
 
-EntityBuilder::EntityBuilder()
-    : entity(Entity(Registry::CreateEntity())),
+EntityBuilder::EntityBuilder(Scene* const scene, const entt::entity handle)
+    : entity(Entity(scene, handle)),
         name(entity.AddComponent<Name>("Entity")),
         transform(entity.AddComponent<Transform>()) {}
 

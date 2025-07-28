@@ -17,6 +17,8 @@
 
 namespace velecs::ecs {
 
+class Scene;
+
 /// @class EntityBuilder
 /// @brief A builder class for creating entities with a fluent interface.
 ///
@@ -33,8 +35,10 @@ public:
 
     // Constructors and Destructors
 
-    /// @brief Constructor that creates a new entity with default components.
-    EntityBuilder();
+    EntityBuilder(Scene* const scene, const entt::entity handle);
+
+    /// @brief Default constructor
+    EntityBuilder() = delete;
 
     /// @brief Conversion operator to get the built entity.
     /// @return The fully configured entity.

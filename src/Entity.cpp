@@ -10,6 +10,7 @@
 
 #include "velecs/ecs/Entity.hpp"
 #include "velecs/ecs/EntityBuilder.hpp"
+#include "velecs/ecs/Scene.hpp"
 
 #include "velecs/ecs/tags/DestroyTag.hpp"
 
@@ -28,52 +29,49 @@ const Entity Entity::INVALID;
 
 // Constructors and Destructors
 
-EntityBuilder Entity::Create()
+Entity::Entity(Scene* const scene, const entt::entity handle)
+    : _scene(scene), _handle(handle) {}
+
+EntityBuilder Entity::Create(Scene* const scene)
 {
-    return EntityBuilder();
+    return scene->CreateEntity();
 }
 
 // Public Methods
 
+bool Entity::IsValid() const
+{
+    return _scene != nullptr
+        && _scene->IsEntityValid(*this);
+}
+
 const std::string& Entity::GetName() const
 {
-    return GetComponent<Name>().GetName();
+    const Name* name{nullptr}; // Use const pointer since this is a const method
+    TryGetComponent<Name>(name);
+    assert(name != nullptr && "Entity missing required Name component. All entities must have Name and Transform components.");
+    return name->GetName();
 }
 
 void Entity::SetName(const std::string& newName)
 {
-    GetComponent<Name>().SetName(newName);
+    Name* name{nullptr};
+    TryGetComponent<Name>(name);
+    assert(name != nullptr && "Entity missing required Name component. All entities must have Name and Transform components.");
+    name->SetName(newName);
 }
 
 Transform& Entity::GetTransform() const
 {
-    return GetComponent<Transform>();
+    const Transform* transform{nullptr}; // Use const pointer since this is a const method
+    TryGetComponent<Transform>(transform);
+    assert(transform != nullptr && "Entity missing required Transform component. All entities must have Name and Transform components.");
+    return const_cast<Transform&>(*transform); // Safe cast since Transform is mutable conceptually
 }
 
 void Entity::RequestDestroy(Entity entity)
 {
-    if (entity) entity.AddTag<DestroyTag>();
-}
-
-void Entity::ProcessDestructionQueue()
-{
-    // Create a view of all entities with the DestroyTag
-    auto view = Registry::Get().view<DestroyTag>();
-    
-    // Store the entities in a temporary vector
-    // This is necessary because we'll be modifying the registry during iteration
-    std::vector<Entity> toDestroy;
-    for (auto handle : view)
-    {
-        toDestroy.push_back(Entity(handle));
-    }
-    
-    // Now process each entity for destruction
-    for (auto entity : toDestroy)
-    {
-        // Ensure entity is still valid before destroying it
-        if (entity) entity.Destroy(true);
-    }
+    if (entity.IsValid()) entity.AddTag<DestroyTag>();
 }
 
 // Protected Fields
@@ -83,27 +81,5 @@ void Entity::ProcessDestructionQueue()
 // Private Fields
 
 // Private Methods
-
-void Entity::Destroy(bool removeParent) const
-{
-    auto& transform = GetTransform();
-    const size_t childCount = transform.GetChildCount();
-    if (childCount > 0)
-    {
-        const auto childCountStr = std::to_string(childCount) + (childCount == 1 ? " child" : " children");
-        std::cout << "Destroying the " << childCountStr << " of '" << GetName() << "':" << std::endl;
-        for (auto it = transform.rbegin(); it != transform.rend(); ++it)
-        {
-            const Entity& child = *it;
-            if (child) child.Destroy(false);
-            else std::cout << "ERROR: child entity is not valid!" << std::endl;
-        }
-    }
-
-    if (removeParent) transform.TrySetParent(Entity::INVALID);
-
-    std::cout << "Destroying '" << GetName() << "'!" << std::endl;
-    GetRegistry().destroy(_handle);
-}
 
 } // namespace velecs::ecs

@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "velecs/ecs/Registry.hpp"
-
 #include "velecs/ecs/TypeConstraints.hpp"
+
+#include "velecs/ecs/Scene.hpp"
 
 #include "velecs/ecs/Entity.hpp"
 #include "velecs/ecs/EntityBuilder.hpp"

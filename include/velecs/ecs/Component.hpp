@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include "velecs/ecs/Registry.hpp"
 #include "velecs/ecs/TypeConstraints.hpp"
 
 #include <memory>
@@ -19,7 +18,7 @@
 
 namespace velecs::ecs {
 
-class Entity;
+class Scene;
 
 /// @class Component
 /// @brief Abstract base class for all component types in the ECS system.
@@ -30,6 +29,7 @@ class Entity;
 /// (e.g., Transform for position/rotation, MeshRenderer for visual representation).
 class Component {
     friend class Entity;
+    friend class Scene;
 
 public:
     // Enums
@@ -48,9 +48,10 @@ public:
 
     // Public Methods
 
-    inline static entt::registry& GetRegistry() { return Registry::Get(); }
-
     Entity GetOwner() const;
+
+    static void CallInit();
+    static void CallUpdate();
 
 protected:
     // Protected Fields
@@ -60,6 +61,7 @@ protected:
 private:
     // Private Fields
 
+    Scene* _scene{nullptr};
     entt::entity _handle{entt::null};
 
     // Private Methods

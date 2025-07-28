@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include "velecs/ecs/Registry.hpp"
 #include "velecs/ecs/TypeConstraints.hpp"
 #include "velecs/ecs/SystemStorage.hpp"
 
@@ -37,8 +36,6 @@ public:
     virtual ~System() = 0;
 
     // Public Methods
-
-    inline static entt::registry& GetRegistry() { return Registry::Get(); }
 
     /// @brief Called once when the system is first created.
     /// @details Override this method to perform one-time setup such as caching queries,

@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include "velecs/ecs/Registry.hpp"
 #include "velecs/ecs/TypeConstraints.hpp"
+#include "velecs/ecs/Scene.hpp"
 #include "velecs/ecs/Component.hpp"
 
 #include <iostream>
@@ -21,6 +21,7 @@
 
 namespace velecs::ecs {
 
+class Scene;
 class EntityBuilder;
 
 class Name;
@@ -31,6 +32,7 @@ class Transform;
 ///
 /// Rest of description.
 class Entity {
+    friend class Scene;
     friend class EntityBuilder;
     friend class Component;
 
@@ -44,9 +46,9 @@ public:
     // Constructors and Destructors
 
     /// @brief Constructor with handle.
+    /// @param scene The scene that the entity will be apart of.
     /// @param handle The entity handle to use.
-    inline explicit Entity(entt::entity handle)
-        : _handle(handle) {}
+    explicit Entity(Scene* const scene, const entt::entity handle);
 
     /// @brief Default deconstructor.
     ~Entity() = default;
@@ -54,11 +56,11 @@ public:
     /// @brief Copy constructor
     /// @param other The entity to copy from
     inline Entity(const Entity& other)
-        : _handle(other._handle) {}
+        : _scene(other._scene), _handle(other._handle) {}
 
     /// @brief Creates a new entity in the registry.
     /// @return A newly created entity with a valid handle.
-    static EntityBuilder Create();
+    static EntityBuilder Create(Scene* const scene);
 
     // Public Methods
 
@@ -96,10 +98,8 @@ public:
     inline explicit operator bool() const { return IsValid(); }
 
     /// @brief Checks if the entity is valid.
-    /// @return True if the entity handle is valid in the registry, false otherwise.
-    inline bool IsValid() const { return _handle != entt::null && GetRegistry().valid(_handle); }
-
-    inline static entt::registry& GetRegistry() { return Registry::Get(); }
+    /// @return True if the entity's scene pointer is not null and it's handle is valid in the registry, false otherwise.
+    bool IsValid() const;
 
     /// @brief Gets the name of this entity.
     /// @details Retrieves the name stored in the Name component of this entity.
@@ -117,70 +117,61 @@ public:
     /// @return A reference to the entity's Transform component.
     Transform& GetTransform() const;
 
-    template<typename T, typename = IsTag<T>>
+    /// @brief 
+    /// @tparam ComponentType
+    /// @tparam  
+    template<typename TagType, typename = IsTag<TagType>>
     void AddTag()
     {
-        auto& registry = Registry::Get();
-        registry.emplace<T>(_handle);
+        _scene->AddTag<TagType>(*this);
     }
 
-    /// @brief Adds a component of type T to the entity.
-    /// @tparam T The type of component to add.
+    /// @brief Adds a component of type ComponentType to the entity.
+    /// @tparam ComponentType The type of component to add.
     /// @return A reference to the newly added component.
-    template<typename T, typename = IsComponent<T>>
-    T& AddComponent()
+    template<typename ComponentType, typename = IsComponent<ComponentType>>
+    ComponentType& AddComponent()
     {
-        auto& registry = Registry::Get();
-        T& comp = registry.emplace<T>(_handle);
-        comp._handle = _handle;
-        return comp;
+        return _scene->AddComponent<ComponentType>(*this);
     }
 
-    /// @brief Adds a component of type T to the entity with constructor arguments.
-    /// @tparam T The type of component to add.
+    /// @brief Adds a component of type ComponentType to the entity with constructor arguments.
+    /// @tparam ComponentType The type of component to add.
     /// @tparam Args The types of the constructor arguments.
     /// @param args The constructor arguments.
     /// @return A reference to the newly added component.
-    template<typename T, typename = IsComponent<T>, typename... Args>
-    T& AddComponent(Args &&...args)
+    template<typename ComponentType, typename = IsComponent<ComponentType>, typename... Args>
+    ComponentType& AddComponent(Args &&...args)
     {
-        auto& registry = Registry::Get();
-        T& comp = registry.emplace<T>(_handle, std::forward<Args>(args)...);
-        comp._handle = _handle;
-        return comp;
+        return _scene->AddComponent<ComponentType>(*this, std::forward<Args>(args)...);
     }
 
     /// @brief Removes a component of type T from the entity.
-    /// @tparam T The type of component to remove.
-    template<typename T, typename = IsComponent<T>>
+    /// @tparam ComponentType The type of component to remove.
+    template<typename ComponentType, typename = IsComponent<ComponentType>>
     void RemoveComponent()
     {
-        auto& registry = Registry::Get();
-        registry.remove<T>(_handle);
+        return _scene->RemoveComponent(*this);
     }
 
     /// @brief Tries to get a component of type T from the entity.
-    /// @tparam T The type of component to get.
+    /// @tparam ComponentType The type of component to get.
     /// @param outComponent A pointer that will be set to the component if found.
     /// @return True if the component was found, false otherwise.
-    template<typename T, typename = IsComponent<T>>
-    bool TryGetComponent(T*& outComponent)
+    template<typename ComponentType, typename = IsComponent<ComponentType>>
+    bool TryGetComponent(ComponentType*& outComponent)
     {
-        auto& registry = Registry::Get();
-        outComponent = registry.try_get<T>(_handle);
-        return (outComponent != nullptr);
+        return _scene->TryGetComponent(*this, outComponent);
     }
 
     /// @brief Tries to get a const component of type T from the entity.
-    /// @tparam T The type of component to get.
+    /// @tparam ComponentType The type of component to get.
     /// @param outComponent A const pointer that will be set to the component if found.
     /// @return True if the component was found, false otherwise.
-    template<typename T, typename = IsComponent<T>>
-    bool TryGetComponent(const T*& outComponent)
+    template<typename ComponentType, typename = IsComponent<ComponentType>>
+    bool TryGetComponent(const ComponentType*& outComponent) const
     {
-        auto& registry = Registry::Get();
-        outComponent = registry.try_get<T>(_handle);
-        return (outComponent != nullptr);
+        return _scene->TryGetComponent(*this, outComponent);
     }
 
     inline size_t GetHashCode() const { return std::hash<entt::entity>{}(_handle); }
@@ -199,21 +190,10 @@ protected:
 
     // Protected Methods
 
-    /// @brief Retrieves a component reference when the component is known to exist.
-    /// @details This is an internal method that should only be used when you're certain the component exists.
-    ///          It avoids the overhead of TryGetComponent for components that are guaranteed to be present.
-    /// @tparam T The component type to retrieve.
-    /// @return A reference to the component.
-    template<typename T, typename = IsComponent<T>>
-    inline T& GetComponent() const
-    {
-        auto& registry = Registry::Get();
-        return *registry.try_get<T>(_handle);
-    }
-
 private:
     // Private Fields
 
+    Scene* const _scene;
     const entt::entity _handle;
 
     // Private Methods
@@ -221,11 +201,7 @@ private:
     /// @brief Default constructor.
     /// @details Creates an entity with an invalid handle.
     inline explicit Entity()
-        : _handle(entt::null) {}
-
-    /// @brief Destroys this entity.
-    /// @details Removes the entity from the registry.
-    void Destroy(bool removeParent) const;
+        : _scene(nullptr), _handle(entt::null) {}
 };
 
 } // namespace velecs::ecs

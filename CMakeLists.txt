@@ -29,8 +29,10 @@ add_subdirectory(libs/entt)
 set(LIB_SOURCES
     src/test/main.cpp
 
-    src/Registry.cpp
+    # Scenes
+    src/Scene.cpp
     
+
     # Entities
     src/Entity.cpp
     src/EntityBuilder.cpp
@@ -53,7 +55,9 @@ set(LIB_SOURCES
 set(LIB_HEADERS
     include/velecs/ecs/Common.hpp
     include/velecs/ecs/TypeConstraints.hpp
-    include/velecs/ecs/Registry.hpp
+    
+    # Scenes
+    include/velecs/ecs/Scene.hpp
 
     # Entities
     include/velecs/ecs/Entity.hpp

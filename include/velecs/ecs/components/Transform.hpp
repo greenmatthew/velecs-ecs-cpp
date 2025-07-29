@@ -372,39 +372,12 @@ private:
     Entity _current{Entity::INVALID};
     bool _isEnd{true};
     std::stack<Entity> _stack;
+    std::unordered_set<Entity> _visitedParents; // For post-order traversal
 
     void Initialize(Entity root);
     void Advance();
+    void AdvanceToNextPostOrderNode();
 };
-
-// Template specialization for PreOrder
-template<>
-inline void TraversalIterator<TraversalOrder::PreOrder>::Initialize(Entity root)
-{
-    _stack.push(root);
-    Advance(); // Position at first element
-}
-
-template<>
-inline void TraversalIterator<TraversalOrder::PreOrder>::Advance()
-{
-    if (_stack.empty()) {
-        _isEnd = true;
-        return;
-    }
-    
-    // Pop next entity to visit
-    _current = _stack.top();
-    _stack.pop();
-    
-    // Push children in reverse order so left-most child is processed first
-    const auto& children = _current.GetTransform().GetChildren();
-    for (auto it = children.rbegin(); it != children.rend(); ++it) {
-        if (it->IsValid()) {
-            _stack.push(*it);
-        }
-    }
-}
 
 /// @class TraversalRange
 /// @brief Range wrapper for transform hierarchy traversal
@@ -419,5 +392,103 @@ public:
 private:
     Entity _root;
 };
+
+// Template specialization for PreOrder
+template<>
+inline void TraversalIterator<TraversalOrder::PreOrder>::Initialize(Entity root)
+{
+    _stack.push(root);
+    Advance(); // Position at first element
+}
+
+template<>
+inline void TraversalIterator<TraversalOrder::PreOrder>::Advance()
+{
+    if (_stack.empty())
+    {
+        _isEnd = true;
+        return;
+    }
+    
+    // Pop next entity to visit
+    _current = _stack.top();
+    _stack.pop();
+    
+    // Push children in reverse order so left-most child is processed first
+    const auto& children = _current.GetTransform().GetChildren();
+    for (auto it = children.rbegin(); it != children.rend(); ++it)
+    {
+        if (it->IsValid())
+        {
+            _stack.push(*it);
+        }
+    }
+}
+
+// Template specialization for PostOrder
+template<>
+inline void TraversalIterator<TraversalOrder::PostOrder>::Initialize(Entity root)
+{
+    _visitedParents.clear();
+    _stack.push(root);
+    AdvanceToNextPostOrderNode();
+}
+
+template<>
+inline void TraversalIterator<TraversalOrder::PostOrder>::Advance()
+{
+    if (_stack.empty())
+    {
+        _isEnd = true;
+        return;
+    }
+    
+    // Remove the current node we just visited and advance
+    _stack.pop();
+    AdvanceToNextPostOrderNode();
+}
+
+// Helper method for post-order traversal - needs to be added to class
+template<>
+inline void TraversalIterator<TraversalOrder::PostOrder>::AdvanceToNextPostOrderNode()
+{
+    while (!_stack.empty())
+    {
+        Entity top = _stack.top();
+        
+        // Check if we've already processed this node's children
+        if (_visitedParents.find(top) != _visitedParents.end())
+        {
+            // All children have been processed, this node is ready to visit
+            _current = top;
+            return;
+        }
+        
+        // Mark this node as having its children processed
+        _visitedParents.insert(top);
+        
+        // Add children to stack (in reverse order so leftmost is processed first)
+        const auto& children = top.GetTransform().GetChildren();
+        bool hasValidChildren = false;
+        
+        for (auto it = children.rbegin(); it != children.rend(); ++it)
+        {
+            if (it->IsValid()) {
+                _stack.push(*it);
+                hasValidChildren = true;
+            }
+        }
+        
+        // If no valid children, this node is ready to visit immediately
+        if (!hasValidChildren)
+        {
+            _current = top;
+            return;
+        }
+    }
+    
+    // Stack is empty, traversal complete
+    _isEnd = true;
+}
 
 } // namespace velecs::ecs

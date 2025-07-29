@@ -108,45 +108,63 @@ public:
     void OnEnter()
     {
         // Create test hierarchy
-        Entity parent = CreateEntity()
-            .WithName("Parent")
-            .WithPos(Vec3::ZERO)
+        Entity root1 = CreateEntity()
+            .WithName("1")
             ;
-        std::cout << parent.GetName() << std::endl;
-        std::cout << parent.GetTransform().GetOwner().GetName() << std::endl;
-        
-        Entity child1 = CreateEntity()
-            .WithName("Child1")
-            .WithParent(parent)
-            .WithPos(Vec3::RIGHT)
-            ;
-        std::cout << child1.GetName() << "'s parent is " << child1.GetTransform().GetParent().GetName() << std::endl;
         
         Entity child2 = CreateEntity()
-            .WithName("Child2")
-            .WithParent(parent)
-            .WithPos(Vec3::LEFT)
+            .WithName("2")
+            .WithParent(root1)
             ;
         
-        Entity grandchild = CreateEntity()
-            .WithName("Grandchild")
-            .WithParent(child1)
-            .WithPos(Vec3::UP)
+        Entity child3 = CreateEntity()
+            .WithName("3")
+            .WithParent(root1)
             ;
         
-        Transform& parentTransform = parent.GetTransform();
+        Entity grandchild4 = CreateEntity()
+            .WithName("4")
+            .WithParent(child2)
+            ;
+        
+        Entity grandchild5 = CreateEntity()
+            .WithName("5")
+            .WithParent(child2)
+            ;
 
-        std::cout << "Children " << "(count: " << parentTransform.GetChildCount() << "):" << std::endl;
-        for (auto entity : parentTransform.GetChildren())
-        {
-            std::cout << "  " << entity.GetName() << std::endl;
-        }
+        Entity grandchild6 = CreateEntity()
+            .WithName("6")
+            .WithParent(child3)
+            ;
         
-        // std::cout << "Pre-order:" << std::endl;
-        // for (auto [entity, transform] : parentTransform.Traverse<TraversalOrder::PreOrder>())
-        // {
-        //     std::cout << "  " << entity.GetName() << std::endl;
-        // }
+        Entity grandchild7 = CreateEntity()
+            .WithName("7")
+            .WithParent(child3)
+            ;
+        
+        Transform& rootTransform = root1.GetTransform();
+
+        std::cout << "Children " << "(count: " << rootTransform.GetChildCount() << "):" << std::endl;
+        for (auto entity : rootTransform.GetChildren())
+        {
+            std::cout << "  " << entity.GetName();
+        }
+        std::cout << std::endl;
+        
+        std::cout << "Pre-order:" << std::endl;
+        for (auto [entity, transform] : rootTransform.Traverse<TraversalOrder::PreOrder>())
+        {
+            std::cout << "  " << entity.GetName();
+        }
+
+        std::cout << std::endl;
+
+        std::cout << "Post-order:" << std::endl;
+        for (auto [entity, transform] : rootTransform.Traverse<TraversalOrder::PostOrder>())
+        {
+            std::cout << "  " << entity.GetName();
+        }
+        std::cout << std::endl;
     }
 };
 

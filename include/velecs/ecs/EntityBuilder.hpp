@@ -65,7 +65,7 @@ public:
     /// @return Reference to this builder for method chaining.
     inline EntityBuilder& WithParent(const Entity parent)
     {
-        std::cout << "TrySetParent(\"" << parent.GetName() << "\"): " << std::boolalpha << transform.TrySetParent(parent) << std::endl;
+        transform.TrySetParent(parent);
         return *this;
     }
 

@@ -25,7 +25,7 @@ namespace velecs::ecs {
 
 // Public Fields
 
-const Entity Entity::INVALID;
+const Entity Entity::INVALID{nullptr, entt::null};
 
 // Constructors and Destructors
 
@@ -42,7 +42,7 @@ EntityBuilder Entity::Create(Scene* const scene)
 bool Entity::IsValid() const
 {
     return _scene != nullptr
-        && _scene->IsEntityValid(*this);
+        && _scene->IsEntityHandleValid(*this);
 }
 
 const std::string& Entity::GetName() const
@@ -69,9 +69,9 @@ Transform& Entity::GetTransform() const
     return const_cast<Transform&>(*transform); // Safe cast since Transform is mutable conceptually
 }
 
-void Entity::RequestDestroy(Entity entity)
+void Entity::MarkForDestruction()
 {
-    if (entity.IsValid()) entity.AddTag<DestroyTag>();
+    if (IsValid()) AddTag<DestroyTag>();
 }
 
 // Protected Fields

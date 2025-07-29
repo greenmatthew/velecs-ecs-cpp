@@ -99,11 +99,18 @@ Mat4 Transform::GetWorldMatrix() const
 
 bool Transform::TrySetParent(const Entity newParent)
 {
+    // Only use a valid entity as a parent.
+    if (!newParent.IsValid()) return false;
+
+    const Entity owner = GetOwner();
+
+    // The new parent must be apart of the same scene.
+    if (owner.GetScene() != newParent.GetScene()) return false;
+
     assert(GetOwner().GetScene() == newParent.GetScene() && "Must use the same scene");
 
-    if (HasParent(newParent)) return false;  // No change needed
-    
-    const Entity owner = GetOwner();
+    // If its already the parent then no change needed.
+    if (HasParent(newParent)) return true;
     
     // Remove from current parent's children list
     if (_parent.IsValid())

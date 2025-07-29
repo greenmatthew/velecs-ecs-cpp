@@ -87,7 +87,7 @@ public:
 
         std::cout << "Parent pos: " << parentTransform.GetPos() << std::endl;
 
-        Entity::RequestDestroy(parent);
+        parent.MarkForDestruction();
         ProcessCleanup();
         // Entity::ProcessDestructionQueue();
 
@@ -159,12 +159,35 @@ public:
 
         std::cout << std::endl;
 
+        // std::cout << "In-order:" << std::endl;
+        // for (auto [entity, transform] : rootTransform.Traverse<TraversalOrder::InOrder>())
+        // {
+        //     std::cout << "  " << entity.GetName();
+        // }
+        // std::cout << std::endl;
+
         std::cout << "Post-order:" << std::endl;
         for (auto [entity, transform] : rootTransform.Traverse<TraversalOrder::PostOrder>())
         {
             std::cout << "  " << entity.GetName();
         }
         std::cout << std::endl;
+
+        // std::cout << "Level-order:" << std::endl;
+        // for (auto [entity, transform] : rootTransform.Traverse<TraversalOrder::LevelOrder>())
+        // {
+        //     std::cout << "  " << entity.GetName();
+        // }
+        // std::cout << std::endl;
+
+        // std::cout << "Reverse Level-order:" << std::endl;
+        // for (auto [entity, transform] : rootTransform.Traverse<TraversalOrder::ReverseLevelOrder>())
+        // {
+        //     std::cout << "  " << entity.GetName();
+        // }
+        // std::cout << std::endl;
+
+        root1.MarkForDestruction();
     }
 };
 
@@ -175,6 +198,7 @@ int main()
         const auto currentSceneStorage = std::make_unique<TestScene>("Main Scene");
         const auto currentScene = currentSceneStorage.get();
         currentScene->OnEnter();
+        currentScene->ProcessCleanup();
         currentScene->OnExit();
     }
     catch (std::exception ex)

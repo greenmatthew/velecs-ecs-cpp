@@ -85,10 +85,10 @@ public:
     ///          data. Default implementation does nothing.
     virtual void OnExit() {}
 
-    /// @brief Checks if an entity is valid within this scene's registry.
+    /// @brief Checks if an entity's handle is valid within this scene's registry.
     /// @param entity The entity to validate.
-    /// @return True if the entity exists and is valid in this scene's registry, false otherwise.
-    bool IsEntityValid(const Entity entity);
+    /// @return True if the entity's handle is not null and exists in this scene's registry, false otherwise.
+    bool IsEntityHandleValid(const Entity entity);
 
     /// @brief Creates a new entity within this scene.
     /// @return An EntityBuilder for configuring the newly created entity.
@@ -207,15 +207,12 @@ protected:
 private:
     // Private Fields
     
-    /// @brief Type alias for EnTT view of entities marked for destruction.
-    /// @details Complex type definition for querying entities with DestroyTag.
-    using MarkedView = entt::basic_view<entt::get_t<entt::constness_as_t<entt::storage_type_t<velecs::ecs::DestroyTag, entt::entity, std::allocator<velecs::ecs::DestroyTag>>, velecs::ecs::DestroyTag>>, entt::exclude_t<>, void>;
-
     std::string _name;              ///< @brief The name identifier for this scene.
     entt::registry _registry;       ///< @brief The EnTT registry managing entities and components for this scene.
-    MarkedView* _markedView;        ///< @brief Cached view for entities marked for destruction.
 
     // Private Methods
+
+    void DestroyEntity(Entity entity);
 };
 
 } // namespace velecs::ecs

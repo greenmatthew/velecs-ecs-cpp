@@ -300,9 +300,11 @@ private:
 /// @enum TraversalOrder
 /// @brief Specifies the order for tree traversal operations
 enum class TraversalOrder {
-    PreOrder,    ///< @brief Visit root first, then children (depth-first)
-    PostOrder,   ///< @brief Visit children first, then root (depth-first)
-    LevelOrder   ///< @brief Visit nodes level by level (breadth-first)
+    PreOrder,          ///< @brief Visit root first, then children (depth-first)
+    InOrder,           ///< @brief Visit left subtree, root, then right subtree (depth-first)
+    PostOrder,         ///< @brief Visit children first, then root (depth-first)
+    LevelOrder,        ///< @brief Visit nodes level by level, top to bottom (breadth-first)
+    ReverseLevelOrder, ///< @brief Visit nodes level by level, bottom to top (depth-first)
 };
 
 /// @class TraversalIterator
@@ -377,6 +379,7 @@ private:
     void Initialize(Entity root);
     void Advance();
     void AdvanceToNextPostOrderNode();
+    void AdvanceToNextInOrderNode();
 };
 
 /// @class TraversalRange

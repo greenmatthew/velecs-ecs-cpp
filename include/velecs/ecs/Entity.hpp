@@ -95,12 +95,12 @@ public:
     /// @brief Equality comparison operator.
     /// @param other The entity to compare with.
     /// @return True if the entities have the same handle, false otherwise.
-    inline bool operator==(const Entity& other) const { return _handle == other._handle; }
+    inline bool operator==(const Entity& other) const { return _scene == other._scene && _handle == other._handle; }
 
     /// @brief Inequality comparison operator.
     /// @param other The entity to compare with.
     /// @return True if the entities have different handles, false otherwise.
-    inline bool operator!=(const Entity& other) const { return _handle != other._handle; }
+    inline bool operator!=(const Entity& other) const { return _scene != other._scene && _handle != other._handle; }
 
     /// @brief Boolean conversion operator.
     /// @details Allows the entity to be used in conditional expressions.
@@ -196,11 +196,9 @@ public:
     /// @details Used for storing entities in hash-based containers.
     inline size_t GetHashCode() const { return std::hash<entt::entity>{}(_handle); }
 
-    /// @brief Requests an entity to be destroyed.
-    /// @details This adds the entity to a queue for destruction rather than destroying it immediately.
-    ///          The entity will be destroyed during the next call to ProcessDestructionQueue().
-    /// @param entity The entity to be queued for destruction.
-    static void RequestDestroy(Entity entity);
+    /// @brief Marks an entity to be destroyed.
+    /// @details This marks the entity for destruction rather than destroying it immediately.
+    void MarkForDestruction();
 
 protected:
     // Protected Fields

@@ -27,7 +27,7 @@ Scene::~Scene() = default;
 
 // Public Methods
 
-bool Scene::IsEntityValid(const Entity entity)
+bool Scene::IsEntityHandleValid(const Entity entity)
 {
     return entity._handle != entt::null
         && _registry.valid(entity._handle);
@@ -40,31 +40,28 @@ EntityBuilder Scene::CreateEntity()
 
 void Scene::ProcessCleanup()
 {
-    // if (_markedView == nullptr)
-    // {
-    //     *_markedView = _registry.view<DestroyTag>();
-    // }
+    // deque? queue? vector? idk
+    std::vector<Entity> destructionQueue;
+    _registry.view<DestroyTag>().each([&](auto e, auto& tag){
+        Entity entity{this, e};
+        auto& transform = entity.GetTransform();
+        destructionQueue.push_back(entity);
+    });
 
-    // // deque? queue? vector? idk
-    // std::deque<Entity> destructionQueue;
-    // _markedView->each([&](auto e){
-    //     Entity entity{this, e}; // Pass in Scene ptr and entt::entity handle
-    //     auto& transform = entity.GetTransform();
-    //     // Traverse transform to children then up... whatever that traversal is call
-    //     // then add child to destruction queue
-    //     destructionQueue.push_front(entity);
-    // });
+    
+    for (Entity entityToDelete : destructionQueue)
+    {
+        // May already have been deleted
+        if (!entityToDelete.IsValid()) continue;
 
-    // for (Entity entity : destructionQueue)
-    // {
+        for (auto [entity, transform] : entityToDelete.GetTransform().Traverse<TraversalOrder::PostOrder>())
+        {
+            // Do not forget to remove the root entity from its parent's children vector
+            if (entity == entityToDelete) transform.TrySetParent(Entity::INVALID);
 
-    //     // Only need to update parent of root entity.... not sure how to handle that... maybe we do it in the view.each instead...
-    //     // Remove the root entities from there parent there...
-    //     // Then safely destroy everything here without a notifyParent flag....
-    //     if (entity == destructionQueue.end()) entity.DestroyImmediate(notifyParent: true);
-    //     else entity.DestroyImmediate(notifyParent: false);
-    //     _registry.destroy(entity._handle);
-    // }
+            DestroyEntity(entity);
+        }
+    }
 }
 
 // Protected Fields
@@ -74,5 +71,11 @@ void Scene::ProcessCleanup()
 // Private Fields
 
 // Private Methods
+
+void Scene::DestroyEntity(Entity entity)
+{
+    std::cout << "Destroying " << entity.GetName() << std::endl;
+    _registry.destroy(entity._handle);
+}
 
 } // namespace velecs::ecs

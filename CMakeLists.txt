@@ -19,6 +19,10 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # Option to control whether to build the test executable
 option(VELECS_ECS_BUILD_TESTS "Build test executable for velecs-ecs" OFF)
 
+if(NOT TARGET velecs-common)
+    add_subdirectory(../velecs-common ${CMAKE_BINARY_DIR}/velecs-common)
+endif()
+
 if(NOT TARGET velecs-math)
     add_subdirectory(../velecs-math ${CMAKE_BINARY_DIR}/velecs-math)
 endif()
@@ -86,6 +90,7 @@ target_include_directories(velecs-ecs
 )
 
 target_link_libraries(velecs-ecs
+    PUBLIC velecs-common
     PUBLIC velecs-math
     PUBLIC EnTT::EnTT
 )

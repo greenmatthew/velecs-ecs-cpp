@@ -11,16 +11,25 @@
 #pragma once
 
 #include "velecs/ecs/Component.hpp"
-
-#include "velecs/math/Vec3.hpp"
-#include "velecs/math/Quat.hpp"
-#include "velecs/math/Mat4.hpp"
-
 #include "velecs/ecs/Entity.hpp"
 
+#include <velecs/common/Exceptions.hpp>
+
+#include <velecs/math/Vec3.hpp>
+#include <velecs/math/Quat.hpp>
+#include <velecs/math/Mat4.hpp>
+
+#include <stack>
+#include <queue>
+#include <iterator>
 #include <vector>
 
 namespace velecs::ecs {
+
+enum class TraversalOrder;
+
+template<TraversalOrder Order>
+class TraversalRange;
 
 /// @class Transform
 /// @brief Component representing spatial transformation and hierarchical relationships.
@@ -238,6 +247,15 @@ public:
     /// @return Reverse iterator representing reverse iteration end.
     reverse_iterator rend() const { return _children.rend(); }
 
+    /// @brief Creates a traversal range for iterating through the transform hierarchy
+    /// @tparam Order The traversal order to use
+    /// @return A range object that can be used in range-based for loops
+    template<TraversalOrder Order>
+    TraversalRange<Order> Traverse() const
+    {
+        return TraversalRange<Order>(GetOwner());
+    }
+
 protected:
     // Protected Fields
 
@@ -277,6 +295,129 @@ private:
     /// @brief Marks both model and world matrices as dirty.
     /// @details Called when this transform's local properties change.
     void SetDirty();
+};
+
+/// @enum TraversalOrder
+/// @brief Specifies the order for tree traversal operations
+enum class TraversalOrder {
+    PreOrder,    ///< @brief Visit root first, then children (depth-first)
+    PostOrder,   ///< @brief Visit children first, then root (depth-first)
+    LevelOrder   ///< @brief Visit nodes level by level (breadth-first)
+};
+
+/// @class TraversalIterator
+/// @brief Lazy iterator for transform hierarchy traversal using template specialization
+/// @tparam Order The traversal order to use
+template<TraversalOrder Order>
+class TraversalIterator {
+public:
+    // STL iterator traits
+    using iterator_category = std::forward_iterator_tag;
+    using value_type = std::pair<Entity, Transform&>;
+    using difference_type = std::ptrdiff_t;
+    using pointer = value_type*;
+    using reference = value_type&;
+
+    /// @brief Default constructor.
+    inline TraversalIterator() : _isEnd(true) {}
+
+    explicit TraversalIterator(Entity root)
+        : _isEnd(false)
+    {
+        if (!root.IsValid())
+        {
+            _isEnd = true;
+            return;
+        }
+        Initialize(root);
+    }
+
+    /// @brief Default deconstructor.
+    ~TraversalIterator() = default;
+
+    value_type operator*() const
+    {
+        return std::make_pair(_current, std::ref(_current.GetTransform()));
+    }
+
+    value_type operator->() const
+    {
+        return *this;
+    }
+
+    TraversalIterator& operator++()
+    {
+        Advance();
+        return *this;
+    }
+
+    TraversalIterator& operator++(int)
+    {
+        TraversalIterator& tmp = *this;
+        ++(*this);
+        return tmp;
+    }
+    
+    bool operator==(const TraversalIterator& other) const
+    {
+        return _isEnd == other._isEnd && (_isEnd || _current == other._current);
+    }
+
+    bool operator!=(const TraversalIterator& other) const {
+        return !(*this == other);
+    }
+
+private:
+
+    Entity _current{Entity::INVALID};
+    bool _isEnd{true};
+    std::stack<Entity> _stack;
+
+    void Initialize(Entity root);
+    void Advance();
+};
+
+// Template specialization for PreOrder
+template<>
+inline void TraversalIterator<TraversalOrder::PreOrder>::Initialize(Entity root)
+{
+    _stack.push(root);
+    Advance(); // Position at first element
+}
+
+template<>
+inline void TraversalIterator<TraversalOrder::PreOrder>::Advance()
+{
+    if (_stack.empty()) {
+        _isEnd = true;
+        return;
+    }
+    
+    // Pop next entity to visit
+    _current = _stack.top();
+    _stack.pop();
+    
+    // Push children in reverse order so left-most child is processed first
+    const auto& children = _current.GetTransform().GetChildren();
+    for (auto it = children.rbegin(); it != children.rend(); ++it) {
+        if (it->IsValid()) {
+            _stack.push(*it);
+        }
+    }
+}
+
+/// @class TraversalRange
+/// @brief Range wrapper for transform hierarchy traversal
+/// @tparam Order The traversal order to use
+template<TraversalOrder Order>
+class TraversalRange {
+public:
+    TraversalRange(Entity root) : _root(root) {}
+    TraversalIterator<Order> begin() const { return TraversalIterator<Order>(_root); }
+    TraversalIterator<Order> end() const { return TraversalIterator<Order>(); }
+
+private:
+    Entity _root;
 };
 
 } // namespace velecs::ecs

@@ -33,10 +33,10 @@ public:
 class MainScene : public Scene
 {
 public:
-    MainScene::MainScene(const std::string& name)
+    MainScene(const std::string& name)
         : Scene(name) {}
 
-    MainScene::MainScene(const std::string& name, Scene::ConstructorKey key)
+    MainScene(const std::string& name, Scene::ConstructorKey key)
         : Scene(name, key) {}
 
     void OnEnter()
@@ -96,14 +96,65 @@ public:
     }
 };
 
+class TestScene : public Scene
+{
+public:
+    TestScene(const std::string& name)
+        : Scene(name) {}
+
+    TestScene(const std::string& name, Scene::ConstructorKey key)
+        : Scene(name, key) {}
+
+    void OnEnter()
+    {
+        // Create test hierarchy
+        Entity parent = CreateEntity()
+            .WithName("Parent")
+            .WithPos(Vec3::ZERO)
+            ;
+        
+        Entity child1 = CreateEntity()
+            .WithName("Child1")
+            .WithParent(parent)
+            .WithPos(Vec3::RIGHT)
+            ;
+        
+        Entity child2 = CreateEntity()
+            .WithName("Child2")
+            .WithParent(parent)
+            .WithPos(Vec3::LEFT)
+            ;
+        
+        Entity grandchild = CreateEntity()
+            .WithName("Grandchild")
+            .WithParent(child1)
+            .WithPos(Vec3::UP)
+            ;
+        
+        Transform& parentTransform = parent.GetTransform();
+
+        std::cout << "Children " << "(count: " << parentTransform.GetChildCount() << "):" << std::endl;
+        for (auto entity : parentTransform.GetChildren())
+        {
+            std::cout << "  " << entity.GetName() << std::endl;
+        }
+        
+        // std::cout << "Pre-order:" << std::endl;
+        // for (auto [entity, transform] : parentTransform.Traverse<TraversalOrder::PreOrder>())
+        // {
+        //     std::cout << "  " << entity.GetName() << std::endl;
+        // }
+    }
+};
+
 int main()
 {
     try
     {
-        const auto mainSceneUPtr = std::make_unique<MainScene>("Main Scene");
-        const auto mainScene = mainSceneUPtr.get();
-        mainScene->OnEnter();
-        mainScene->OnExit();
+        const auto currentSceneStorage = std::make_unique<TestScene>("Main Scene");
+        const auto currentScene = currentSceneStorage.get();
+        currentScene->OnEnter();
+        currentScene->OnExit();
     }
     catch (std::exception ex)
     {

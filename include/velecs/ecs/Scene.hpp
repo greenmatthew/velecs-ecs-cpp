@@ -17,6 +17,7 @@
 #include <string>
 #include <deque>
 #include <iostream>
+#include <optional>
 
 namespace velecs::ecs {
 
@@ -100,7 +101,7 @@ public:
     template<typename TagType, typename = IsTag<TagType>>
     void AddTag(const Entity entity)
     {
-        _registry.emplace<TagType>(entity._handle);
+        GetRegistry().emplace<TagType>(entity._handle);
     }
 
     /// @brief Adds a component of the specified type to an entity.
@@ -112,8 +113,8 @@ public:
     ComponentType& AddComponent(const Entity entity)
     {
         assert(this != nullptr && "Scene must be valid");
-        assert(entity._handle != entt::null || _registry.valid(entity._handle) && "Scene must be valid");
-        ComponentType& comp = _registry.emplace<ComponentType>(entity._handle);
+        assert(entity._handle != entt::null || GetRegistry().valid(entity._handle) && "Scene must be valid");
+        ComponentType& comp = GetRegistry().emplace<ComponentType>(entity._handle);
         comp._scene = this;
         comp._handle = entity._handle;
         return comp;
@@ -130,8 +131,8 @@ public:
     ComponentType& AddComponent(const Entity entity, Args &&...args)
     {
         assert(this != nullptr && "Scene must be valid");
-        assert(entity._handle != entt::null || _registry.valid(entity._handle) && "Scene must be valid");
-        ComponentType& comp = _registry.emplace<ComponentType>(entity._handle, std::forward<Args>(args)...);
+        assert(entity._handle != entt::null || GetRegistry().valid(entity._handle) && "Scene must be valid");
+        ComponentType& comp = GetRegistry().emplace<ComponentType>(entity._handle, std::forward<Args>(args)...);
         comp._scene = this;
         comp._handle = entity._handle;
         return comp;
@@ -144,7 +145,7 @@ public:
     template<typename ComponentType, typename = IsComponent<ComponentType>>
     void RemoveComponent(const Entity entity)
     {
-        _registry.remove<ComponentType>(entity._handle);
+        GetRegistry().remove<ComponentType>(entity._handle);
     }
 
     /// @brief Tries to get a mutable component from an entity.
@@ -156,7 +157,7 @@ public:
     template<typename ComponentType, typename = IsComponent<ComponentType>>
     bool TryGetComponent(const Entity entity, ComponentType*& outComponent)
     {
-        outComponent = _registry.try_get<ComponentType>(entity._handle);
+        outComponent = GetRegistry().try_get<ComponentType>(entity._handle);
         return (outComponent != nullptr);
     }
 
@@ -169,7 +170,7 @@ public:
     template<typename ComponentType, typename = IsComponent<ComponentType>>
     bool TryGetComponent(const Entity entity, const ComponentType*& outComponent) const
     {
-        outComponent = _registry.try_get<ComponentType>(entity._handle);
+        outComponent = GetRegistry().try_get<ComponentType>(entity._handle);
         return (outComponent != nullptr);
     }
 
@@ -186,10 +187,16 @@ protected:
 private:
     // Private Fields
     
-    std::string _name;              ///< @brief The name identifier for this scene.
-    entt::registry _registry;       ///< @brief The EnTT registry managing entities and components for this scene.
+    std::string _name;                       ///< @brief The name identifier for this scene.
+    std::optional<entt::registry> _registry; ///< @brief The EnTT registry managing entities and components for this scene.
 
     // Private Methods
+
+    entt::registry& GetRegistry();
+
+    void Init();
+
+    void Cleanup();
 
     void DestroyEntity(Entity entity);
 

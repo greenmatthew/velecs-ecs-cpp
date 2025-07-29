@@ -30,12 +30,12 @@ Scene::~Scene() = default;
 bool Scene::IsEntityHandleValid(const Entity entity)
 {
     return entity._handle != entt::null
-        && _registry.valid(entity._handle);
+        && GetRegistry().valid(entity._handle);
 }
 
 EntityBuilder Scene::CreateEntity()
 {
-    return EntityBuilder(this, _registry.create());
+    return EntityBuilder(this, GetRegistry().create());
 }
 
 // Protected Fields
@@ -46,16 +46,38 @@ EntityBuilder Scene::CreateEntity()
 
 // Private Methods
 
+entt::registry& Scene::GetRegistry()
+{
+    if (_registry.has_value()) return *_registry;
+    throw std::runtime_error("Scene does not have a valid registry initialized");
+}
+
+void Scene::Init()
+{
+    _registry.emplace();
+    OnEnter();
+}
+
+void Scene::Cleanup()
+{
+    if (_registry.has_value())
+    {
+        OnExit();
+        _registry->clear();
+        _registry.reset();
+    }
+}
+
 void Scene::DestroyEntity(Entity entity)
 {
-    _registry.destroy(entity._handle);
+    GetRegistry().destroy(entity._handle);
 }
 
 void Scene::ProcessCleanup()
 {
     // deque? queue? vector? idk
     std::vector<Entity> destructionQueue;
-    _registry.view<DestroyTag>().each([&](auto e, auto& tag){
+    GetRegistry().view<DestroyTag>().each([&](auto e, auto& tag){
         Entity entity{this, e};
         auto& transform = entity.GetTransform();
         destructionQueue.push_back(entity);

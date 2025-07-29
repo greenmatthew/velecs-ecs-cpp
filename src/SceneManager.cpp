@@ -73,11 +73,11 @@ bool SceneManager::TryTransitionScene(Scene* const scene)
 
     if (_currentScene != nullptr)
     {
-        _currentScene->OnExit();
+        _currentScene->Cleanup();
     }
 
     _currentScene = scene;
-    _currentScene->OnEnter();
+    _currentScene->Init();
 
     return true;
 }

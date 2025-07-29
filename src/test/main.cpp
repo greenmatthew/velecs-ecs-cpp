@@ -89,7 +89,6 @@ public:
 
         parent.MarkForDestruction();
         ProcessCleanup();
-        // Entity::ProcessDestructionQueue();
 
         if (child) std::cout << child.GetName() << " is still alive!" << std::endl;
         else std::cout << "Entity is no longer alive." << std::endl;
@@ -195,7 +194,7 @@ int main()
 {
     try
     {
-        const auto currentSceneStorage = std::make_unique<TestScene>("Main Scene");
+        const auto currentSceneStorage = std::make_unique<MainScene>("Main Scene");
         const auto currentScene = currentSceneStorage.get();
         currentScene->OnEnter();
         currentScene->ProcessCleanup();

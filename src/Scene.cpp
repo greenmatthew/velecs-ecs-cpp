@@ -74,7 +74,6 @@ void Scene::ProcessCleanup()
 
 void Scene::DestroyEntity(Entity entity)
 {
-    std::cout << "Destroying " << entity.GetName() << std::endl;
     _registry.destroy(entity._handle);
 }
 

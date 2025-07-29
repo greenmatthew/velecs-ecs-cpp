@@ -38,6 +38,19 @@ EntityBuilder Scene::CreateEntity()
     return EntityBuilder(this, _registry.create());
 }
 
+// Protected Fields
+
+// Protected Methods
+
+// Private Fields
+
+// Private Methods
+
+void Scene::DestroyEntity(Entity entity)
+{
+    _registry.destroy(entity._handle);
+}
+
 void Scene::ProcessCleanup()
 {
     // deque? queue? vector? idk
@@ -62,19 +75,6 @@ void Scene::ProcessCleanup()
             DestroyEntity(entity);
         }
     }
-}
-
-// Protected Fields
-
-// Protected Methods
-
-// Private Fields
-
-// Private Methods
-
-void Scene::DestroyEntity(Entity entity)
-{
-    _registry.destroy(entity._handle);
 }
 
 } // namespace velecs::ecs

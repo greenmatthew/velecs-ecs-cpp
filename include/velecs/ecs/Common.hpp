@@ -12,6 +12,7 @@
 
 #include "velecs/ecs/TypeConstraints.hpp"
 
+#include "velecs/ecs/SceneManager.hpp"
 #include "velecs/ecs/Scene.hpp"
 
 #include "velecs/ecs/Entity.hpp"

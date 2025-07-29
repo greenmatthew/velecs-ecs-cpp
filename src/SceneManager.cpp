@@ -12,6 +12,8 @@
 
 #include "velecs/ecs/Scene.hpp"
 
+#include <velecs/common/Exceptions.hpp>
+
 namespace velecs::ecs {
 
 // Public Fields
@@ -41,10 +43,12 @@ bool SceneManager::TryReloadCurrentScene()
 
 bool SceneManager::TryUpdateCurrentScene(const float deltaTime)
 {
-    if (_currentScene == nullptr) return false;
+    throw velecs::common::NotImplementedException();
 
-    _currentScene->ProcessUpdate(deltaTime);
-    return true;
+    // if (_currentScene == nullptr) return false;
+
+    // _currentScene->ProcessUpdate(deltaTime);
+    // return true;
 }
 
 bool SceneManager::TryCleanupCurrentScene()

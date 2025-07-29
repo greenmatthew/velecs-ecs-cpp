@@ -20,6 +20,8 @@
 
 namespace velecs::ecs {
 
+class SceneManager;
+
 class Entity;
 class EntityBuilder;
 
@@ -33,6 +35,7 @@ class EntityBuilder;
 /// management, and system processing. This design enables easy scene transitions and
 /// modular game architecture.
 class Scene {
+    friend class SceneManager;
 public:
     // Enums
 
@@ -43,19 +46,12 @@ public:
     /// @brief Constructor access key to enforce controlled scene creation.
     /// @details This prevents direct instantiation and ensures scenes are created
     ///          through proper management systems (like SceneManager).
-    struct ConstructorKey {
-        // friend class SceneManager;
+    class ConstructorKey {
+        friend class SceneManager;
         ConstructorKey() = default;
+    public:
+        virtual ~ConstructorKey() = default;
     };
-
-    /// @brief Temporary constructor for development purposes.
-    /// @param name The name identifier for this scene.
-    /// @warning This constructor will be removed once SceneManager is implemented.
-    inline Scene(const std::string& name)
-        : _name(name)
-    {
-        std::cerr << "Remove this once SceneManager is working." << std::endl;
-    }
 
     /// @brief Primary constructor for scene creation.
     /// @param name The name identifier for this scene.
@@ -182,6 +178,21 @@ public:
     /// @todo Implement system registration functionality.
     void RegisterSystem();
 
+protected:
+    // Protected Fields
+
+    // Protected Methods
+
+private:
+    // Private Fields
+    
+    std::string _name;              ///< @brief The name identifier for this scene.
+    entt::registry _registry;       ///< @brief The EnTT registry managing entities and components for this scene.
+
+    // Private Methods
+
+    void DestroyEntity(Entity entity);
+
     /// @brief Initializes all systems in this scene.
     /// @details Called once when the scene becomes active to set up system state.
     /// @todo Implement system initialization processing.
@@ -198,21 +209,6 @@ public:
     ///          Should be called at the end of each frame.
     /// @todo Complete entity destruction queue implementation.
     void ProcessCleanup();
-
-protected:
-    // Protected Fields
-
-    // Protected Methods
-
-private:
-    // Private Fields
-    
-    std::string _name;              ///< @brief The name identifier for this scene.
-    entt::registry _registry;       ///< @brief The EnTT registry managing entities and components for this scene.
-
-    // Private Methods
-
-    void DestroyEntity(Entity entity);
 };
 
 } // namespace velecs::ecs

@@ -33,10 +33,7 @@ public:
 class MainScene : public Scene
 {
 public:
-    MainScene(const std::string& name)
-        : Scene(name) {}
-
-    MainScene(const std::string& name, Scene::ConstructorKey key)
+    MainScene(const std::string& name, ConstructorKey key)
         : Scene(name, key) {}
 
     void OnEnter()
@@ -85,23 +82,14 @@ public:
         //     storage.system->Update(1.0f);
         // });
 
-        std::cout << "Parent pos: " << parentTransform.GetPos() << std::endl;
-
         parent.MarkForDestruction();
-        ProcessCleanup();
-
-        if (child) std::cout << child.GetName() << " is still alive!" << std::endl;
-        else std::cout << "Entity is no longer alive." << std::endl;
     }
 };
 
 class TestScene : public Scene
 {
 public:
-    TestScene(const std::string& name)
-        : Scene(name) {}
-
-    TestScene(const std::string& name, Scene::ConstructorKey key)
+    TestScene(const std::string& name, ConstructorKey key)
         : Scene(name, key) {}
 
     void OnEnter()
@@ -194,11 +182,13 @@ int main()
 {
     try
     {
-        const auto currentSceneStorage = std::make_unique<MainScene>("Main Scene");
-        const auto currentScene = currentSceneStorage.get();
-        currentScene->OnEnter();
-        currentScene->ProcessCleanup();
-        currentScene->OnExit();
+        const auto sceneManager = std::make_unique<SceneManager>();
+        sceneManager->RegisterScene<MainScene>("Main Scene");
+        sceneManager->RegisterScene<TestScene>("Test Scene");
+        sceneManager->TryTransitionScene("Main Scene");
+        sceneManager->TryCleanupCurrentScene();
+        sceneManager->TryTransitionScene("Test Scene");
+        sceneManager->TryCleanupCurrentScene();
     }
     catch (std::exception ex)
     {

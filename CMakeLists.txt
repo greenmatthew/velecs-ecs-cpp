@@ -34,6 +34,7 @@ set(LIB_SOURCES
     src/test/main.cpp
 
     # Scenes
+    src/SceneManager.cpp
     src/Scene.cpp
     
 
@@ -61,6 +62,7 @@ set(LIB_HEADERS
     include/velecs/ecs/TypeConstraints.hpp
     
     # Scenes
+    include/velecs/ecs/SceneManager.hpp
     include/velecs/ecs/Scene.hpp
 
     # Entities

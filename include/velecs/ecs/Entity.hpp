@@ -81,7 +81,8 @@ public:
             // Since handle is const to prevent accidental modification,
             // we need to use const_cast here to enable the desired
             // reassignment behavior
-            const_cast<entt::entity&>(_handle) = other._handle; // Copy handle
+            *const_cast<entt::entity*>(&_handle) = other._handle;
+            *const_cast<Scene**>(&_scene) = other._scene;
         }
         return *this;
     }
@@ -110,6 +111,8 @@ public:
     /// @brief Checks if the entity is valid.
     /// @return True if the entity's scene pointer is not null and its handle is valid in the registry, false otherwise.
     bool IsValid() const;
+
+    Scene* const GetScene() const { return _scene; }
 
     /// @brief Gets the name of this entity.
     /// @details Retrieves the name stored in the Name component of this entity.

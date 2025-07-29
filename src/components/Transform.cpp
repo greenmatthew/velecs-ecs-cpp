@@ -99,12 +99,15 @@ Mat4 Transform::GetWorldMatrix() const
 
 bool Transform::TrySetParent(const Entity newParent)
 {
+    assert(GetOwner().GetScene() == newParent.GetScene() && "Must use the same scene");
+
     if (HasParent(newParent)) return false;  // No change needed
     
     const Entity owner = GetOwner();
     
     // Remove from current parent's children list
-    if (_parent.IsValid()) {
+    if (_parent.IsValid())
+    {
         auto& oldParentTransform = _parent.GetTransform();
         oldParentTransform._children.erase(
             std::remove(oldParentTransform._children.begin(), 
@@ -117,7 +120,8 @@ bool Transform::TrySetParent(const Entity newParent)
     _parent = newParent;
     
     // Add to new parent's children list
-    if (_parent.IsValid()) {
+    if (_parent.IsValid())
+    {
         auto& newParentTransform = _parent.GetTransform();
         // Check if we're already in the list (shouldn't happen, but safety first)
         if (std::find(newParentTransform._children.begin(), 
@@ -144,6 +148,8 @@ Entity Transform::TryGetChild(const size_t index) const
 
 bool Transform::TryAddChild(const Entity child)
 {
+    assert(GetOwner().GetScene() == child.GetScene() && "Must use the same scene");
+
     if (!child.IsValid() || child == GetOwner()) return false;
     
     // SetParent handles all the bidirectional relationship logic
@@ -153,6 +159,8 @@ bool Transform::TryAddChild(const Entity child)
 
 bool Transform::TryRemoveChild(const Entity child)
 {
+    assert(GetOwner().GetScene() == child.GetScene() && "Must use the same scene");
+
     auto it = std::find(_children.begin(), _children.end(), child);
     if (it == _children.end()) return false;
     
@@ -170,6 +178,8 @@ bool Transform::TryRemoveChild(const size_t index)
     if (index >= _children.size()) return false;
     
     Entity child = _children[index];
+
+    assert(GetOwner().GetScene() == child.GetScene() && "Must use the same scene");
     
     if (child.IsValid())
     {
@@ -236,6 +246,8 @@ bool Transform::IsChildOf(const Entity parent) const
 
 bool Transform::IsDescendantOf(const Entity ancestor) const
 {
+    assert(GetOwner().GetScene() == ancestor.GetScene() && "Must use the same scene");
+
     if (!ancestor) return false;
     
     Entity current = _parent;
@@ -249,6 +261,8 @@ bool Transform::IsDescendantOf(const Entity ancestor) const
 
 bool Transform::IsAncestorOf(const Entity descendant) const
 {
+    assert(GetOwner().GetScene() == descendant.GetScene() && "Must use the same scene");
+
     return descendant.IsValid() && descendant.GetTransform().IsDescendantOf(GetOwner());
 }
 

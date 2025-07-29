@@ -115,6 +115,8 @@ public:
     template<typename ComponentType, typename = IsComponent<ComponentType>>
     ComponentType& AddComponent(const Entity entity)
     {
+        assert(this != nullptr && "Scene must be valid");
+        assert(entity._handle != entt::null || _registry.valid(entity._handle) && "Scene must be valid");
         ComponentType& comp = _registry.emplace<ComponentType>(entity._handle);
         comp._scene = this;
         comp._handle = entity._handle;
@@ -131,6 +133,8 @@ public:
     template<typename ComponentType, typename = IsComponent<ComponentType>, typename... Args>
     ComponentType& AddComponent(const Entity entity, Args &&...args)
     {
+        assert(this != nullptr && "Scene must be valid");
+        assert(entity._handle != entt::null || _registry.valid(entity._handle) && "Scene must be valid");
         ComponentType& comp = _registry.emplace<ComponentType>(entity._handle, std::forward<Args>(args)...);
         comp._scene = this;
         comp._handle = entity._handle;

@@ -112,12 +112,15 @@ public:
             .WithName("Parent")
             .WithPos(Vec3::ZERO)
             ;
+        std::cout << parent.GetName() << std::endl;
+        std::cout << parent.GetTransform().GetOwner().GetName() << std::endl;
         
         Entity child1 = CreateEntity()
             .WithName("Child1")
             .WithParent(parent)
             .WithPos(Vec3::RIGHT)
             ;
+        std::cout << child1.GetName() << "'s parent is " << child1.GetTransform().GetParent().GetName() << std::endl;
         
         Entity child2 = CreateEntity()
             .WithName("Child2")

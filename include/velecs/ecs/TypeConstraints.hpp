@@ -20,6 +20,12 @@ class Tag;
 class Component;
 class System;
 
+
+
+// ========== Scene Type Validation ==========
+
+
+
 /// @brief Validates scene types with custom error messages
 template<typename T>
 constexpr void validate_scene() {
@@ -37,8 +43,20 @@ constexpr void validate_scene() {
 template <typename T>
 using IsScene = std::enable_if_t<(validate_scene<T>(), std::is_base_of_v<Scene, T>)>;
 
+
+
+// ========== Entity Type Validation ==========
+
+
+
 template <typename T>
 using IsEntity = std::enable_if_t<std::is_base_of_v<Entity, T>>;
+
+
+
+// ========== Tag Type Validation ==========
+
+
 
 /// @brief Validates tag types with custom error messages
 template<typename T>
@@ -57,6 +75,12 @@ constexpr void validate_tag() {
 /// @brief Tag constraint that ensures tags are empty AND inherit from Tag
 template <typename T>
 using IsTag = std::enable_if_t<(validate_tag<T>(), std::is_base_of_v<Tag, T>)>;
+
+
+
+// ========== Component Type Validation ==========
+
+
 
 /// @brief Validates component types with custom error messages
 template<typename T>
@@ -80,6 +104,37 @@ constexpr void validate_component() {
 /// @brief Component constraint that ensures components have data AND inherit from Component
 template <typename T>
 using IsComponent = std::enable_if_t<(validate_component<T>(), std::is_base_of_v<Component, T>)>;
+
+
+
+// ========== Tag OR Component Type Validation ==========
+
+
+
+
+/// @brief Validates tag or component types with custom error messages
+template<typename T>
+constexpr void validate_tag_or_component() {
+    if constexpr (std::is_base_of_v<Tag, T>) {
+        validate_tag<T>();
+    } else if constexpr (std::is_base_of_v<Component, T>) {
+        validate_component<T>();
+    } else {
+        static_assert(std::is_base_of_v<Tag, T> || std::is_base_of_v<Component, T>, 
+            "Type must inherit from either Tag or Component for use in ECS queries.");
+    }
+}
+
+/// @brief Tag or Component constraint that validates the type appropriately
+template <typename T>
+using IsTagOrComponent = std::enable_if_t<(validate_tag_or_component<T>(), 
+    std::is_base_of_v<Tag, T> || std::is_base_of_v<Component, T>)>;
+
+
+
+// ========== System Type Validation ==========
+
+
 
 /// @brief Validates system types with custom error messages
 template<typename T>

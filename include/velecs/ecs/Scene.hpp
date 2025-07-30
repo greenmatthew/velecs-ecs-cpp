@@ -431,7 +431,7 @@ public:
     void Query(Func&& callback)
     {
         auto& registry = GetRegistry();
-        auto view = registry.view<Component>().each([](auto entity, auto& component){
+        registry.view<Component>().each([this, &callback](entt::entity entity, Component& component) {
             Entity wrappedEntity{this, entity};
             callback(wrappedEntity, component);
         });

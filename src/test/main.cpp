@@ -8,8 +8,9 @@ using namespace velecs::math;
 
 #include <stdexcept>
 
-class Velocity : public Component
-{
+class ExampleTag : public Tag {};
+
+class Velocity : public Component {
 public:
     Vec3 vel{Vec3::ZERO};
 };
@@ -30,8 +31,7 @@ public:
 //     }
 // };
 
-class MainScene : public Scene
-{
+class MainScene : public Scene {
 public:
     MainScene(const std::string& name, ConstructorKey key)
         : Scene(name, key) {}
@@ -82,12 +82,17 @@ public:
         //     storage.system->Update(1.0f);
         // });
 
+        parent.AddTag<ExampleTag>();
+        parent.AddTag<ExampleTag>();
+        parent.AddTag<ExampleTag>();
+        std::cout << "Trying to remove tag: " << std::boolalpha << parent.TryRemoveTag<ExampleTag>() << std::endl;
+        std::cout << "Trying to remove tag: " << std::boolalpha << parent.TryRemoveTag<ExampleTag>() << std::endl;
+
         parent.MarkForDestruction();
     }
 };
 
-class TestScene : public Scene
-{
+class TestScene : public Scene {
 public:
     TestScene(const std::string& name, ConstructorKey key)
         : Scene(name, key) {}

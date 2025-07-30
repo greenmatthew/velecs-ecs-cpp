@@ -134,6 +134,17 @@ public:
         GetRegistry().emplace<TagType>(entity._handle);
     }
 
+    /// @brief Attempts to remove a tag of the specified type from an entity.
+    /// @tparam TagType The type of tag to remove. Must inherit from Tag.
+    /// @param entity The entity to remove the tag from.
+    /// @return True if the tag was successfully removed, false if the entity didn't have the tag.
+    /// @details Safe to call even if the entity doesn't have the specified tag.
+    template<typename TagType, typename = IsTag<TagType>>
+    bool TryRemoveTag(const Entity entity)
+    {
+        return GetRegistry().remove<TagType>(entity._handle) > 0;
+    }
+
     /// @brief Adds a component of the specified type to an entity.
     /// @tparam ComponentType The type of component to add. Must inherit from Component.
     /// @param entity The entity to add the component to.

@@ -53,33 +53,9 @@ public:
 
     // Main phases
 
-    /// @brief Called every frame to update the system's main logic.
-    /// @param deltaTime Time elapsed since the last frame in seconds.
-    /// @details Override this method to implement the core system behavior that operates
-    ///          on entities and their components. This is where most game logic happens,
-    ///          including AI updates, animation, gameplay mechanics, and state management.
-    ///          This phase runs before physics simulation to allow logic to influence
-    ///          physical properties for the current frame.
-    ///          Default implementation does nothing.
-    virtual void Process(float deltaTime) {}
-
-    /// @brief Called during the physics simulation phase.
-    /// @details Override this method to implement physics-related logic such as applying forces,
-    ///          handling collision responses, updating rigid body properties, or performing
-    ///          physics queries. This phase runs after main logic processing but before
-    ///          rendering to ensure visual representation reflects the current physics state.
-    ///          Systems that don't interact with physics can leave this unimplemented.
-    ///          Default implementation does nothing.
-    virtual void ProcessPhysics() {}
-
-    /// @brief Called during the GUI rendering and interaction phase.
-    /// @details Override this method to implement user interface logic such as updating
-    ///          UI element states, handling menu interactions, processing GUI input,
-    ///          or managing HUD displays. This phase typically runs last to ensure
-    ///          UI reflects the current game state after all logic and physics updates.
-    ///          Systems without UI components can leave this unimplemented.
-    ///          Default implementation does nothing.
-    virtual void ProcessGUI() {}
+    virtual void Process(void* context) {}
+    virtual void ProcessPhysics(void* context) {}
+    virtual void ProcessGUI(void* context) {}
 
     // System control
 

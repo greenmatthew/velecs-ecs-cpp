@@ -81,6 +81,36 @@ void Scene::DestroyEntity(Entity entity)
     GetRegistry().destroy(entity._handle);
 }
 
+void Scene::Process(void* context)
+{
+    for (auto id : _systemsIterator)
+    {
+        System* system = _systems[id].get();
+        if (!system->IsEnabled()) continue;
+        system->Process(context);
+    }
+}
+
+void Scene::ProcessPhysics(void* context)
+{
+    for (auto id : _systemsIterator)
+    {
+        System* system = _systems[id].get();
+        if (!system->IsEnabled()) continue;
+        system->ProcessPhysics(context);
+    }
+}
+
+void Scene::ProcessGUI(void* context)
+{
+    for (auto id : _systemsIterator)
+    {
+        System* system = _systems[id].get();
+        if (!system->IsEnabled()) continue;
+        system->ProcessGUI(context);
+    }
+}
+
 void Scene::ProcessEntityCleanup()
 {
     // deque? queue? vector? idk

@@ -204,6 +204,11 @@ public:
         return (outComponent != nullptr);
     }
 
+    /// @brief Gets the system ID for a given system type.
+    /// @tparam SystemType The type of system to get the ID for. Must inherit from System.
+    /// @return The type_index used as the system identifier.
+    /// @details This provides a consistent way to identify system types across the ECS.
+    ///          The ID is used internally for system storage and lookup operations.
     template<typename SystemType, typename = IsSystem<SystemType>>
     SystemId GetSystemId()
     {
@@ -214,21 +219,27 @@ public:
     /// @tparam SystemType The type of system to add. Must inherit from System.
     /// @return true if the system was successfully added, false if a system of this type already exists.
     /// @details Creates a new system instance using default constructor, calls Init() on it,
-    ///          and stores it in the scene's system registry. Only one system of each type
-    ///          is allowed per scene.
+    ///          and stores it in the scene's system registry in execution order. Only one system 
+    ///          of each type is allowed per scene. Systems are automatically sorted by their
+    ///          GetExecutionOrder() value during insertion.
     template<typename SystemType, typename = IsSystem<SystemType>>
     bool TryAddSystem()
     {
         SystemId id = GetSystemId<SystemType>();
-        
         if (_systems.contains(id)) return false;
         
         auto system = std::make_unique<SystemType>();
+        int executionOrder = system->GetExecutionOrder();
         
         auto [it, inserted] = _systems.emplace(id, std::move(system));
         assert(inserted && "System emplace failed after contains() check - this should never happen");
 
-        _systemsIterator.push_back(id);
+        // Sorted insertion using execution order
+        auto insertPos = std::lower_bound(_systemsIterator.begin(), _systemsIterator.end(), id,
+            [this](const SystemId& a, const SystemId& b) {
+                return _systems.at(a)->GetExecutionOrder() < _systems.at(b)->GetExecutionOrder();
+            });
+        _systemsIterator.insert(insertPos, id);
 
         it->second->Init();
         return inserted;
@@ -240,8 +251,9 @@ public:
     /// @param args The constructor arguments to forward to the system constructor.
     /// @return true if the system was successfully added, false if a system of this type already exists.
     /// @details Creates a new system instance with the provided constructor arguments,
-    ///          calls Init() on it, and stores it in the scene's system registry.
-    ///          Only one system of each type is allowed per scene.
+    ///          calls Init() on it, and stores it in the scene's system registry in execution order.
+    ///          Only one system of each type is allowed per scene. Systems are automatically
+    ///          sorted by their GetExecutionOrder() value during insertion.
     template<typename SystemType, typename = IsSystem<SystemType>, typename... Args>
     bool TryAddSystem(Args&&... args)
     {
@@ -254,12 +266,23 @@ public:
         auto [it, inserted] = _systems.emplace(id, std::move(system));
         assert(inserted && "System emplace failed after contains() check");
 
-        _systemsIterator.push_back(id);
+        // Sorted insertion using execution order
+        auto insertPos = std::lower_bound(_systemsIterator.begin(), _systemsIterator.end(), id,
+            [this](const SystemId& a, const SystemId& b) {
+                return _systems.at(a)->GetExecutionOrder() < _systems.at(b)->GetExecutionOrder();
+            });
+        _systemsIterator.insert(insertPos, id);
 
         it->second->Init();
         return inserted;
     }
 
+    /// @brief Attempts to remove a system of the specified type from the scene.
+    /// @tparam SystemType The type of system to remove. Must inherit from System.
+    /// @return true if the system was successfully removed, false if no system of this type exists.
+    /// @details Calls Cleanup() on the system before removing it from both the system registry
+    ///          and the execution order list. This ensures proper resource cleanup and maintains
+    ///          data structure consistency.
     template<typename SystemType, typename = IsSystem<SystemType>>
     bool TryRemoveSystem()
     {
@@ -270,13 +293,15 @@ public:
         
         // Call cleanup before removal
         it->second->Cleanup();
-        
-        // Remove from systems map
+
+        // Remove from map
         _systems.erase(it);
         
-        // Remove from iteration order vector
+        // Find and remove from iterator vector (simple linear search)
         auto iteratorIt = std::find(_systemsIterator.begin(), _systemsIterator.end(), id);
-        assert(iteratorIt != _systemsIterator.end() && "System found in _systems map but not in _systemsIterator - data structure consistency violated");
+        assert(iteratorIt != _systemsIterator.end() && *iteratorIt == id && 
+               "System found in _systems map but not in _systemsIterator - data structure consistency violated");
+        
         if (iteratorIt != _systemsIterator.end()) _systemsIterator.erase(iteratorIt);
         
         return true;
@@ -323,10 +348,26 @@ private:
     ///          This is used internally by the cleanup system for deferred entity destruction.
     void DestroyEntity(Entity entity);
 
-    /// @brief Updates all systems in this scene.
-    /// @param deltaTime Time elapsed since the last frame in seconds.
-    /// @details Called every frame to update system logic and process entities.
-    void ProcessUpdate(float deltaTime);
+    /// @brief Processes all enabled systems in the main logic phase.
+    /// @param context Execution context data passed to each system (currently void* placeholder).
+    /// @details Iterates through all registered systems in execution order and calls their
+    ///          Process() method if they are enabled. This is the primary system update phase
+    ///          where most game logic occurs. Disabled systems are skipped automatically.
+    void Process(void* context);
+
+    /// @brief Processes all enabled systems in the physics simulation phase.
+    /// @param context Execution context data passed to each system (currently void* placeholder).
+    /// @details Iterates through all registered systems in execution order and calls their
+    ///          ProcessPhysics() method if they are enabled. This phase typically runs after
+    ///          the main logic phase to handle physics-related updates and calculations.
+    void ProcessPhysics(void* context);
+
+    /// @brief Processes all enabled systems in the GUI rendering phase.
+    /// @param context Execution context data passed to each system (currently void* placeholder).
+    /// @details Iterates through all registered systems in execution order and calls their
+    ///          ProcessGUI() method if they are enabled. This phase typically runs last to
+    ///          ensure UI reflects the current game state after all logic and physics updates.
+    void ProcessGUI(void* context);
 
     /// @brief Processes cleanup and entity destruction for this scene.
     /// @details Handles deferred entity destruction and system cleanup.

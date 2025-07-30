@@ -123,6 +123,22 @@ public:
     ///          components and configuring the entity before use.
     EntityBuilder CreateEntity();
 
+
+
+    // ========== Tag Management ==========
+
+
+
+    /// @brief Checks if an entity has a tag of the specified type.
+    /// @tparam TagType The type of tag to check for. Must inherit from Tag.
+    /// @param entity The entity to check.
+    /// @return True if the entity has the specified tag, false otherwise.
+    template<typename TagType, typename = IsTag<TagType>>
+    bool HasTag(const Entity entity) const
+    {
+        return GetRegistry().all_of<TagType>(entity._handle);
+    }
+
     /// @brief Attempts to add a tag of the specified type to an entity.
     /// @tparam TagType The type of tag to add. Must inherit from Tag.
     /// @param entity The entity to add the tag to.
@@ -136,16 +152,6 @@ public:
         return true;
     }
 
-    /// @brief Checks if an entity has a tag of the specified type.
-    /// @tparam TagType The type of tag to check for. Must inherit from Tag.
-    /// @param entity The entity to check.
-    /// @return True if the entity has the specified tag, false otherwise.
-    template<typename TagType, typename = IsTag<TagType>>
-    bool HasTag(const Entity entity) const
-    {
-        return GetRegistry().all_of<TagType>(entity._handle);
-    }
-
     /// @brief Attempts to remove a tag of the specified type from an entity.
     /// @tparam TagType The type of tag to remove. Must inherit from Tag.
     /// @param entity The entity to remove the tag from.
@@ -157,7 +163,49 @@ public:
         return GetRegistry().remove<TagType>(entity._handle) > 0;
     }
 
-    /// @brief Adds a component of the specified type to an entity.
+
+
+    // ========== Component Management ==========
+
+
+
+    /// @brief Checks if an entity has a component of the specified type.
+    /// @tparam ComponentType The type of component to check for. Must inherit from Component.
+    /// @param entity The entity to check.
+    /// @return True if the entity has the specified component, false otherwise.
+    template<typename ComponentType, typename = IsComponent<ComponentType>>
+    bool HasComponent(const Entity entity) const
+    {
+        return GetRegistry().all_of<ComponentType>(entity._handle);
+    }
+
+    /// @brief Tries to get a mutable component from an entity.
+    /// @tparam ComponentType The type of component to get. Must inherit from Component.
+    /// @param entity The entity to get the component from.
+    /// @param outComponent A pointer that will be set to the component if found, or nullptr if not found.
+    /// @return True if the component was found, false otherwise.
+    /// @details This non-const overload allows modification of the retrieved component.
+    template<typename ComponentType, typename = IsComponent<ComponentType>>
+    bool TryGetComponent(const Entity entity, ComponentType*& outComponent)
+    {
+        outComponent = GetRegistry().try_get<ComponentType>(entity._handle);
+        return (outComponent != nullptr);
+    }
+
+    /// @brief Tries to get a const component from an entity.
+    /// @tparam ComponentType The type of component to get. Must inherit from Component.
+    /// @param entity The entity to get the component from.
+    /// @param outComponent A const pointer that will be set to the component if found, or nullptr if not found.
+    /// @return True if the component was found, false otherwise.
+    /// @details This const overload provides read-only access to the retrieved component.
+    template<typename ComponentType, typename = IsComponent<ComponentType>>
+    bool TryGetComponent(const Entity entity, const ComponentType*& outComponent) const
+    {
+        outComponent = GetRegistry().try_get<ComponentType>(entity._handle);
+        return (outComponent != nullptr);
+    }
+
+        /// @brief Adds a component of the specified type to an entity.
     /// @tparam ComponentType The type of component to add. Must inherit from Component.
     /// @param entity The entity to add the component to.
     /// @return A reference to the newly added component.
@@ -200,43 +248,12 @@ public:
     {
         GetRegistry().remove<ComponentType>(entity._handle);
     }
+    
 
-    /// @brief Tries to get a mutable component from an entity.
-    /// @tparam ComponentType The type of component to get. Must inherit from Component.
-    /// @param entity The entity to get the component from.
-    /// @param outComponent A pointer that will be set to the component if found, or nullptr if not found.
-    /// @return True if the component was found, false otherwise.
-    /// @details This non-const overload allows modification of the retrieved component.
-    template<typename ComponentType, typename = IsComponent<ComponentType>>
-    bool TryGetComponent(const Entity entity, ComponentType*& outComponent)
-    {
-        outComponent = GetRegistry().try_get<ComponentType>(entity._handle);
-        return (outComponent != nullptr);
-    }
 
-    /// @brief Tries to get a const component from an entity.
-    /// @tparam ComponentType The type of component to get. Must inherit from Component.
-    /// @param entity The entity to get the component from.
-    /// @param outComponent A const pointer that will be set to the component if found, or nullptr if not found.
-    /// @return True if the component was found, false otherwise.
-    /// @details This const overload provides read-only access to the retrieved component.
-    template<typename ComponentType, typename = IsComponent<ComponentType>>
-    bool TryGetComponent(const Entity entity, const ComponentType*& outComponent) const
-    {
-        outComponent = GetRegistry().try_get<ComponentType>(entity._handle);
-        return (outComponent != nullptr);
-    }
+    // ========== System Management ==========
 
-    /// @brief Gets the system ID for a given system type.
-    /// @tparam SystemType The type of system to get the ID for. Must inherit from System.
-    /// @return The type_index used as the system identifier.
-    /// @details This provides a consistent way to identify system types across the ECS.
-    ///          The ID is used internally for system storage and lookup operations.
-    template<typename SystemType, typename = IsSystem<SystemType>>
-    SystemId GetSystemId()
-    {
-        return typeid(SystemType);
-    }
+
 
     /// @brief Attempts to register a system of the specified type with default construction.
     /// @tparam SystemType The type of system to add. Must inherit from System.
@@ -294,6 +311,17 @@ public:
         if (iteratorIt != _systemsIterator.end()) _systemsIterator.erase(iteratorIt);
         
         return true;
+    }
+
+    /// @brief Gets the system ID for a given system type.
+    /// @tparam SystemType The type of system to get the ID for. Must inherit from System.
+    /// @return The type_index used as the system identifier.
+    /// @details This provides a consistent way to identify system types across the ECS.
+    ///          The ID is used internally for system storage and lookup operations.
+    template<typename SystemType, typename = IsSystem<SystemType>>
+    SystemId GetSystemId()
+    {
+        return typeid(SystemType);
     }
 
 protected:

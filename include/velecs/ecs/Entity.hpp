@@ -87,11 +87,6 @@ public:
         return *this;
     }
 
-    /// @brief Assignment operator from EntityBuilder.
-    /// @param other The EntityBuilder to assign from.
-    /// @return A reference to this entity after assignment.
-    Entity& operator=(const EntityBuilder& other);
-
     /// @brief Equality comparison operator.
     /// @param other The entity to compare with.
     /// @return True if the entities have the same handle, false otherwise.
@@ -108,9 +103,18 @@ public:
     /// @return True if the entity is valid, false otherwise.
     inline explicit operator bool() const { return IsValid(); }
 
+    /// @brief Gets the hash code for this entity.
+    /// @return A hash value based on the entity's handle.
+    /// @details Used for storing entities in hash-based containers.
+    inline size_t GetHashCode() const { return std::hash<entt::entity>{}(_handle); }
+
     /// @brief Checks if the entity is valid.
     /// @return True if the entity's scene pointer is not null and its handle is valid in the registry, false otherwise.
     bool IsValid() const;
+
+    /// @brief Marks an entity to be destroyed.
+    /// @details This marks the entity for destruction rather than destroying it immediately.
+    void MarkForDestruction();
 
     Scene* const GetScene() const { return _scene; }
 
@@ -133,15 +137,11 @@ public:
     /// @pre Entity must have a Transform component.
     Transform& GetTransform() const;
 
-    /// @brief Attempts to add a tag of the specified type to an entity.
-    /// @tparam TagType The type of tag to add. Must inherit from Tag.
-    /// @return True if the tag was successfully added, false if the entity already had the tag.
-    /// @details Safe to call even if the entity already has the specified tag.
-    template<typename TagType, typename = IsTag<TagType>>
-    bool TryAddTag()
-    {
-        return _scene->TryAddTag<TagType>(*this);
-    }
+
+
+    // ========== Tag Management ==========
+
+
 
     /// @brief Checks if an entity has a tag of the specified type.
     /// @tparam TagType The type of tag to check for. Must inherit from Tag.
@@ -152,6 +152,16 @@ public:
         return _scene->HasTag<TagType>(*this);
     }
 
+    /// @brief Attempts to add a tag of the specified type to an entity.
+    /// @tparam TagType The type of tag to add. Must inherit from Tag.
+    /// @return True if the tag was successfully added, false if the entity already had the tag.
+    /// @details Safe to call even if the entity already has the specified tag.
+    template<typename TagType, typename = IsTag<TagType>>
+    bool TryAddTag()
+    {
+        return _scene->TryAddTag<TagType>(*this);
+    }
+
     /// @brief Attempts to remove a tag of the specified type from an entity.
     /// @tparam TagType The type of tag to remove. Must inherit from Tag.
     /// @return True if the tag was successfully removed, false if the entity didn't have the tag.
@@ -160,6 +170,41 @@ public:
     bool TryRemoveTag()
     {
         return _scene->TryRemoveTag<TagType>(*this);
+    }
+
+
+
+    // ========== Component Management ==========
+
+
+
+    /// @brief Checks if an entity has a component of the specified type.
+    /// @tparam ComponentType The type of component to check for. Must inherit from Component.
+    /// @return True if the entity has the specified component, false otherwise.
+    template<typename ComponentType, typename = IsComponent<ComponentType>>
+    bool HasComponent() const
+    {
+        return _scene->HasComponent<ComponentType>(*this);
+    }
+
+    /// @brief Tries to get a mutable component of the specified type from the entity.
+    /// @tparam ComponentType The type of component to get. Must inherit from Component.
+    /// @param outComponent A pointer that will be set to the component if found, or nullptr if not found.
+    /// @return True if the component was found, false otherwise.
+    template<typename ComponentType, typename = IsComponent<ComponentType>>
+    bool TryGetComponent(ComponentType*& outComponent)
+    {
+        return _scene->TryGetComponent(*this, outComponent);
+    }
+
+    /// @brief Tries to get a const component of the specified type from the entity.
+    /// @tparam ComponentType The type of component to get. Must inherit from Component.
+    /// @param outComponent A const pointer that will be set to the component if found, or nullptr if not found.
+    /// @return True if the component was found, false otherwise.
+    template<typename ComponentType, typename = IsComponent<ComponentType>>
+    bool TryGetComponent(const ComponentType*& outComponent) const
+    {
+        return _scene->TryGetComponent(*this, outComponent);
     }
 
     /// @brief Adds a component of the specified type to the entity.
@@ -190,35 +235,6 @@ public:
     {
         return _scene->RemoveComponent<ComponentType>(*this);
     }
-
-    /// @brief Tries to get a mutable component of the specified type from the entity.
-    /// @tparam ComponentType The type of component to get. Must inherit from Component.
-    /// @param outComponent A pointer that will be set to the component if found, or nullptr if not found.
-    /// @return True if the component was found, false otherwise.
-    template<typename ComponentType, typename = IsComponent<ComponentType>>
-    bool TryGetComponent(ComponentType*& outComponent)
-    {
-        return _scene->TryGetComponent(*this, outComponent);
-    }
-
-    /// @brief Tries to get a const component of the specified type from the entity.
-    /// @tparam ComponentType The type of component to get. Must inherit from Component.
-    /// @param outComponent A const pointer that will be set to the component if found, or nullptr if not found.
-    /// @return True if the component was found, false otherwise.
-    template<typename ComponentType, typename = IsComponent<ComponentType>>
-    bool TryGetComponent(const ComponentType*& outComponent) const
-    {
-        return _scene->TryGetComponent(*this, outComponent);
-    }
-
-    /// @brief Gets the hash code for this entity.
-    /// @return A hash value based on the entity's handle.
-    /// @details Used for storing entities in hash-based containers.
-    inline size_t GetHashCode() const { return std::hash<entt::entity>{}(_handle); }
-
-    /// @brief Marks an entity to be destroyed.
-    /// @details This marks the entity for destruction rather than destroying it immediately.
-    void MarkForDestruction();
 
 protected:
     // Protected Fields

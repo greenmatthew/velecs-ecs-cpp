@@ -45,6 +45,11 @@ bool Entity::IsValid() const
         && _scene->IsEntityHandleValid(*this);
 }
 
+void Entity::MarkForDestruction()
+{
+    if (IsValid()) TryAddTag<DestroyTag>();
+}
+
 const std::string& Entity::GetName() const
 {
     const Name* name{nullptr}; // Use const pointer since this is a const method
@@ -67,11 +72,6 @@ Transform& Entity::GetTransform() const
     TryGetComponent<Transform>(transform);
     assert(transform != nullptr && "Entity missing required Transform component. All entities must have Name and Transform components.");
     return const_cast<Transform&>(*transform); // Safe cast since Transform is mutable conceptually
-}
-
-void Entity::MarkForDestruction()
-{
-    if (IsValid()) TryAddTag<DestroyTag>();
 }
 
 // Protected Fields

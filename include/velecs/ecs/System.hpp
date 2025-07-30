@@ -69,6 +69,30 @@ protected:
 
     // Protected Methods
 
+    /// @brief Safely casts a void* context to a specific context type.
+    /// @tparam ContextType The target context type to cast to.
+    /// @param context The void* context pointer passed from the scene processing methods.
+    /// @return A pointer to the context cast to the specified type.
+    /// @details This helper method provides type-safe access to engine-specific context data
+    ///          within system processing methods. The context type is determined by the engine
+    ///          and can vary between different processing phases (e.g., PhysicsContext for
+    ///          ProcessPhysics, RenderContext for ProcessGUI).
+    /// @note It is the caller's responsibility to ensure the void* context actually points
+    ///       to an object of ContextType. Incorrect casting will result in undefined behavior.
+    /// 
+    /// @code
+    /// void ProcessPhysics(void* context) override {
+    ///     auto* physicsCtx = Context<PhysicsContext>(context);
+    ///     float deltaTime = physicsCtx->GetDeltaTime();
+    ///     // ... use physics-specific context data
+    /// }
+    /// @endcode
+    template<typename ContextType>
+    ContextType* Context(void* context) const
+    {
+        return static_cast<ContextType*>(context);
+    }
+
     // Lifecycle
 
     /// @brief Called once when the system is first registered with a scene.

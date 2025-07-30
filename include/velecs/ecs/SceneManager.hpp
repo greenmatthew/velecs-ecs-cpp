@@ -122,21 +122,10 @@ public:
     /// @note The scene instance itself is not recreated - only the lifecycle methods are called.
     bool TryReloadCurrentScene();
 
-    /// @brief Attempts to update the currently active scene.
-    /// @param deltaTime Time elapsed since the last frame, in seconds.
-    /// @return true if there was an active scene to update, false if no scene is currently active.
-    /// @details Calls ProcessUpdate(deltaTime) on the current scene if one is active.
-    ///          This should typically be called once per frame in the main game loop.
-    ///          The ProcessUpdate method handles both scene-specific logic and ECS system updates.
-    bool TryUpdateCurrentScene(const float deltaTime);
-
-    /// @brief Attempts to clean up the currently active scene by processing entity destruction queue.
-    /// @return true if there was an active scene to clean up, false if no scene is currently active.
-    /// @details Processes all entities marked for destruction in the current scene's ECS registry.
-    ///          This should typically be called after TryUpdateCurrentScene() each frame to ensure
-    ///          proper cleanup of destroyed entities before the next frame begins.
-    /// @note This method is essential for proper ECS lifecycle management.
-    bool TryCleanupCurrentScene();
+    bool TryProcess(void* context);
+    bool TryProcessPhysics(void* context);
+    bool TryProcessGUI(void* context);
+    bool TryProcessEntityCleanup();
 
     /// @brief Gets the currently active scene.
     /// @return Pointer to the active scene, or nullptr if no scene is currently active.

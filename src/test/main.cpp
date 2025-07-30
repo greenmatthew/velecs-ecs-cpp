@@ -21,11 +21,24 @@ public:
     Vec3 vel{Vec3::ZERO};
 };
 
+struct SystemContext {
+    Scene* scene;
+    float deltaTime;
+};
+
 class Move : public System {
 public:
     void ProcessPhysics(void* context) override
     {
+        auto* ctx = Context<SystemContext>(context);
+        std::cout << "Scene name: " << ctx->scene->GetName() << std::endl;
         
+        ctx->scene->Query<Transform, Velocity>([&ctx](auto entity, auto& transform, auto& velocity){
+            Vec3 pos = transform.GetPos();
+            transform.SetPos(pos + (ctx->deltaTime * velocity.vel));
+            Vec3 newPos = transform.GetPos();
+            std::cout << entity.GetName() << "'s position: " << pos << " -> " << transform.GetPos() << std::endl;
+        });
     }
 };
 
@@ -106,31 +119,13 @@ public:
         assert(!TryRemoveSystem<ExampleSystem>() && "Cannot remove a system that has already been removed");
         assert(!TryRemoveSystem<ExampleSystem>() && "Scene should not have the system after removing it");
 
-        std::cout << "Parent pos: " << parentTransform.GetPos() << std::endl;
-
         Velocity* vel{nullptr};
         if (parent.TryAddComponent<Velocity>(vel))
         {
-            vel->vel = Vec3::RIGHT;
+            vel->vel = 10.0f * Vec3::RIGHT;
         }
-        
-        
-        
-        // std::cout << "Successfully added 'MoveSystem': " << std::boolalpha << System::TryAddSystem<MoveSystem>() << std::endl;
-        // std::cout << "Successfully added 'MoveSystem': " << std::boolalpha << System::TryAddSystem<MoveSystem>() << std::endl;
-        // std::cout << "Successfully removed 'MoveSystem': " << std::boolalpha << System::TryRemoveSystem<MoveSystem>() << std::endl;
-        // std::cout << "Successfully removed 'MoveSystem': " << std::boolalpha << System::TryRemoveSystem<MoveSystem>() << std::endl;
-        // std::cout << "Successfully added 'MoveSystem': " << std::boolalpha << System::TryAddSystem<MoveSystem>() << std::endl;
 
-        // auto& registry = Registry::Get();
-        // auto view = registry.view<SystemStorage>();
-        // std::cout << "Systems registered: " << std::distance(view.begin(), view.end()) << std::endl;
-        // view.each([](auto entity, auto& storage){
-        //     std::cout << "Calling Update()" << std::endl;
-        //     storage.system->Update(1.0f);
-        // });
-
-        parent.MarkForDestruction();
+        assert(TryAddSystem<Move>() && "Unable to add Move system.");
     }
 };
 
@@ -232,10 +227,28 @@ int main()
         const auto sceneManager = std::make_unique<SceneManager>();
         sceneManager->RegisterScene<MainScene>("Main Scene");
         sceneManager->RegisterScene<TestScene>("Test Scene");
+
+        SystemContext systemContext{};
+        void* context = static_cast<void*>(&systemContext);
+        
         sceneManager->TryTransitionScene("Main Scene");
-        sceneManager->TryCleanupCurrentScene();
+        systemContext.deltaTime = 1.0f;
+        systemContext.scene = sceneManager->GetCurrentScene();
+        for (size_t i{0}; i < 5; ++i)
+        {
+            sceneManager->TryProcess(context);
+            sceneManager->TryProcessPhysics(context);
+            sceneManager->TryProcessGUI(context);
+            sceneManager->TryProcessEntityCleanup();
+        }
         sceneManager->TryTransitionScene("Test Scene");
-        sceneManager->TryCleanupCurrentScene();
+        for (size_t i{0}; i < 5; ++i)
+        {
+            sceneManager->TryProcess(context);
+            sceneManager->TryProcessPhysics(context);
+            sceneManager->TryProcessGUI(context);
+            sceneManager->TryProcessEntityCleanup();
+        }
     }
     catch (std::exception ex)
     {

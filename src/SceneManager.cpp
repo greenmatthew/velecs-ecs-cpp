@@ -41,21 +41,39 @@ bool SceneManager::TryReloadCurrentScene()
     return TryTransitionScene(_currentScene);
 }
 
-bool SceneManager::TryUpdateCurrentScene(const float deltaTime)
+bool SceneManager::TryProcess(void* context)
 {
-    throw velecs::common::NotImplementedException();
+    auto scene = GetCurrentScene();
+    if (scene == nullptr) return false;
 
-    // if (_currentScene == nullptr) return false;
-
-    // _currentScene->ProcessUpdate(deltaTime);
-    // return true;
+    scene->Process(context);
+    return true;
 }
 
-bool SceneManager::TryCleanupCurrentScene()
+bool SceneManager::TryProcessPhysics(void* context)
 {
-    if (_currentScene == nullptr) return false;
+    auto scene = GetCurrentScene();
+    if (scene == nullptr) return false;
 
-    _currentScene->ProcessEntityCleanup();
+    scene->ProcessPhysics(context);
+    return true;
+}
+
+bool SceneManager::TryProcessGUI(void* context)
+{
+    auto scene = GetCurrentScene();
+    if (scene == nullptr) return false;
+
+    scene->ProcessGUI(context);
+    return true;
+}
+
+bool SceneManager::TryProcessEntityCleanup()
+{
+    auto scene = GetCurrentScene();
+    if (scene == nullptr) return false;
+
+    scene->ProcessEntityCleanup();
     return true;
 }
 

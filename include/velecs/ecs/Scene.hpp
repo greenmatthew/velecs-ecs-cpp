@@ -100,6 +100,8 @@ public:
 
     // Public Methods
 
+    inline std::string GetName() const { return _name; }
+
     /// @brief Called when the scene becomes active.
     /// @details Override this method in derived classes to perform scene-specific
     ///          initialization such as loading assets, setting up UI, or spawning
@@ -111,6 +113,12 @@ public:
     ///          cleanup such as saving state, unloading assets, or clearing temporary
     ///          data. Default implementation does nothing.
     virtual void OnExit() {}
+
+
+
+    // ========== Entity Management ==========
+
+
 
     /// @brief Checks if an entity's handle is valid within this scene's registry.
     /// @param entity The entity to validate.
@@ -416,6 +424,53 @@ public:
     SystemId GetSystemId()
     {
         return typeid(SystemType);
+    }
+
+    // Single component with perfect forwarding
+    template<typename Component, typename Func>
+    void Query(Func&& callback)
+    {
+        auto& registry = GetRegistry();
+        auto view = registry.view<Component>().each([](auto entity, auto& component){
+            Entity wrappedEntity{this, entity};
+            callback(wrappedEntity, component);
+        });
+    }
+
+    // Multi-component with perfect forwarding  
+    template<typename... Components, typename Func>
+    void Query(Func&& callback)
+    {
+        static_assert(sizeof...(Components) > 1, "Use single component Query overload for single component queries");
+        
+        GetRegistry().view<Components...>().each([this, callback = std::forward<Func>(callback)](entt::entity e, Components&... components) {
+            Entity entity{this, e};
+            callback(entity, components...);
+        });
+    }
+
+    template<typename Component>
+    void Query(std::function<void(Entity, Component&)> callback)
+    {
+        auto& registry = GetRegistry();
+        auto view = registry.view<Component>();
+        
+        for (auto entity : view) {
+            Entity wrappedEntity{this, entity};
+            Component& component = registry.get<Component>(entity);
+            callback(wrappedEntity, component);
+        }
+    }
+
+    template<typename... Components>
+    void Query(std::function<void(Entity, Components&...)> callback)
+    {
+        static_assert(sizeof...(Components) > 1, "Use single component Query overload for single component queries");
+        
+        GetRegistry().view<Components...>().each([this, &callback](entt::entity e, Components&... components) {
+            Entity entity{this, e};
+            callback(entity, components...);
+        });
     }
 
 protected:

@@ -14,10 +14,28 @@
 
 namespace velecs::ecs {
 
+class Scene;
 class Entity;
 class Tag;
 class Component;
 class System;
+
+/// @brief Validates scene types with custom error messages
+template<typename T>
+constexpr void validate_scene() {
+    static_assert(std::is_base_of_v<Scene, T>, 
+        "Type must inherit from Scene.");
+    
+    static_assert(!std::is_same_v<T, Scene>, 
+        "Cannot use Scene base class directly. Create a specific scene type.");
+    
+    static_assert(!std::is_abstract_v<T>, 
+        "Cannot use abstract scene types. Scene must implement required methods.");
+}
+
+/// @brief Scene constraint that ensures scenes are concrete subclasses of Scene
+template <typename T>
+using IsScene = std::enable_if_t<(validate_scene<T>(), std::is_base_of_v<Scene, T>)>;
 
 template <typename T>
 using IsEntity = std::enable_if_t<std::is_base_of_v<Entity, T>>;

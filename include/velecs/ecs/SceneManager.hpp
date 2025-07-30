@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include "velecs/ecs/TypeConstraints.hpp"
+
 #include <velecs/common/Uuid.hpp>
 using velecs::common::Uuid;
 #include <velecs/common/NameUuidRegistry.hpp>
@@ -87,7 +89,7 @@ public:
     /// @code
     /// auto uuid = sceneManager.RegisterScene<GameplayScene>("Level1");
     /// @endcode
-    template<typename SceneType>
+    template<typename SceneType, typename = IsScene<SceneType>>
     Uuid RegisterScene(const std::string& name)
     {
         auto [sceneRef, uuid] = _scenes.EmplaceAs<SceneType>(name, name, Scene::ConstructorKey{});

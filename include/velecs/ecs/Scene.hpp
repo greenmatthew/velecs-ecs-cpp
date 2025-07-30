@@ -225,24 +225,7 @@ public:
     template<typename SystemType, typename = IsSystem<SystemType>>
     bool TryAddSystem()
     {
-        SystemId id = GetSystemId<SystemType>();
-        if (_systems.contains(id)) return false;
-        
-        auto system = std::make_unique<SystemType>();
-        int executionOrder = system->GetExecutionOrder();
-        
-        auto [it, inserted] = _systems.emplace(id, std::move(system));
-        assert(inserted && "System emplace failed after contains() check - this should never happen");
-
-        // Sorted insertion using execution order
-        auto insertPos = std::lower_bound(_systemsIterator.begin(), _systemsIterator.end(), id,
-            [this](const SystemId& a, const SystemId& b) {
-                return _systems.at(a)->GetExecutionOrder() < _systems.at(b)->GetExecutionOrder();
-            });
-        _systemsIterator.insert(insertPos, id);
-
-        it->second->Init();
-        return inserted;
+        return TryAddSystem(std::make_unique<SystemType>());
     }
 
     /// @brief Attempts to register a system of the specified type with constructor arguments.
@@ -257,24 +240,7 @@ public:
     template<typename SystemType, typename = IsSystem<SystemType>, typename... Args>
     bool TryAddSystem(Args&&... args)
     {
-        SystemId id = GetSystemId<SystemType>();
-        
-        if (_systems.contains(id)) return false;
-        
-        auto system = std::make_unique<SystemType>(std::forward<Args>(args)...);
-        
-        auto [it, inserted] = _systems.emplace(id, std::move(system));
-        assert(inserted && "System emplace failed after contains() check");
-
-        // Sorted insertion using execution order
-        auto insertPos = std::lower_bound(_systemsIterator.begin(), _systemsIterator.end(), id,
-            [this](const SystemId& a, const SystemId& b) {
-                return _systems.at(a)->GetExecutionOrder() < _systems.at(b)->GetExecutionOrder();
-            });
-        _systemsIterator.insert(insertPos, id);
-
-        it->second->Init();
-        return inserted;
+        return TryAddSystem(std::make_unique<SystemType>(std::forward<Args>(args)...));
     }
 
     /// @brief Attempts to remove a system of the specified type from the scene.
@@ -341,6 +307,27 @@ private:
     /// @details Triggers the OnExit() lifecycle method, clears all entities from the registry,
     ///          and resets the registry. Called automatically by SceneManager during scene transitions.
     void Cleanup();
+
+    template<typename SystemType, typename = IsSystem<SystemType>>
+    inline bool TryAddSystem(std::unique_ptr<SystemType> system)
+    {
+        SystemId id = GetSystemId<SystemType>();
+        
+        if (_systems.contains(id)) return false;
+        
+        auto [it, inserted] = _systems.emplace(id, std::move(system));
+        assert(inserted && "System emplace failed after contains() check");
+
+        // Sorted insertion using execution order
+        auto insertPos = std::lower_bound(_systemsIterator.begin(), _systemsIterator.end(), id,
+            [this](const SystemId& a, const SystemId& b) {
+                return _systems.at(a)->GetExecutionOrder() < _systems.at(b)->GetExecutionOrder();
+            });
+        _systemsIterator.insert(insertPos, id);
+
+        it->second->Init();
+        return inserted;
+    }
 
     /// @brief Destroys a specific entity from this scene's registry.
     /// @param entity The entity to destroy.

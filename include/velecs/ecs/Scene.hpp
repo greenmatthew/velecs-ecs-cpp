@@ -227,6 +227,9 @@ public:
         
         auto [it, inserted] = _systems.emplace(id, std::move(system));
         assert(inserted && "System emplace failed after contains() check - this should never happen");
+
+        _systemsIterator.push_back(id);
+
         it->second->Init();
         return inserted;
     }
@@ -250,8 +253,33 @@ public:
         
         auto [it, inserted] = _systems.emplace(id, std::move(system));
         assert(inserted && "System emplace failed after contains() check");
+
+        _systemsIterator.push_back(id);
+
         it->second->Init();
         return inserted;
+    }
+
+    template<typename SystemType, typename = IsSystem<SystemType>>
+    bool TryRemoveSystem()
+    {
+        SystemId id = GetSystemId<SystemType>();
+    
+        auto it = _systems.find(id);
+        if (it == _systems.end()) return false;
+        
+        // Call cleanup before removal
+        it->second->Cleanup();
+        
+        // Remove from systems map
+        _systems.erase(it);
+        
+        // Remove from iteration order vector
+        auto iteratorIt = std::find(_systemsIterator.begin(), _systemsIterator.end(), id);
+        assert(iteratorIt != _systemsIterator.end() && "System found in _systems map but not in _systemsIterator - data structure consistency violated");
+        if (iteratorIt != _systemsIterator.end()) _systemsIterator.erase(iteratorIt);
+        
+        return true;
     }
 
 protected:

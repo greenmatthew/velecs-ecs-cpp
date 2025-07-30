@@ -60,6 +60,12 @@ entt::registry& Scene::GetRegistry()
     throw std::runtime_error("Scene does not have a valid registry initialized");
 }
 
+const entt::registry& Scene::GetRegistry() const
+{
+    if (_registry.has_value()) return *_registry;
+    throw std::runtime_error("Scene does not have a valid registry initialized");
+}
+
 void Scene::Init()
 {
     _registry.emplace();

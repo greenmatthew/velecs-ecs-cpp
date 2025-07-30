@@ -71,7 +71,7 @@ Transform& Entity::GetTransform() const
 
 void Entity::MarkForDestruction()
 {
-    if (IsValid()) AddTag<DestroyTag>();
+    if (IsValid()) TryAddTag<DestroyTag>();
 }
 
 // Protected Fields

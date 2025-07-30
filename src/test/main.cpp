@@ -82,9 +82,9 @@ public:
         //     storage.system->Update(1.0f);
         // });
 
-        parent.AddTag<ExampleTag>();
-        parent.AddTag<ExampleTag>();
-        parent.AddTag<ExampleTag>();
+        parent.TryAddTag<ExampleTag>();
+        parent.TryAddTag<ExampleTag>();
+        parent.TryAddTag<ExampleTag>();
         std::cout << "Trying to remove tag: " << std::boolalpha << parent.TryRemoveTag<ExampleTag>() << std::endl;
         std::cout << "Trying to remove tag: " << std::boolalpha << parent.TryRemoveTag<ExampleTag>() << std::endl;
 

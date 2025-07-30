@@ -133,14 +133,23 @@ public:
     /// @pre Entity must have a Transform component.
     Transform& GetTransform() const;
 
-    /// @brief Adds a tag of the specified type to an entity.
+    /// @brief Attempts to add a tag of the specified type to an entity.
     /// @tparam TagType The type of tag to add. Must inherit from Tag.
-    /// @details Tags are empty components used for categorization and filtering.
-    ///          They provide no data but can be used in queries and systems.
+    /// @return True if the tag was successfully added, false if the entity already had the tag.
+    /// @details Safe to call even if the entity already has the specified tag.
     template<typename TagType, typename = IsTag<TagType>>
-    void AddTag()
+    bool TryAddTag()
     {
-        _scene->AddTag<TagType>(*this);
+        return _scene->TryAddTag<TagType>(*this);
+    }
+
+    /// @brief Checks if an entity has a tag of the specified type.
+    /// @tparam TagType The type of tag to check for. Must inherit from Tag.
+    /// @return True if the entity has the specified tag, false otherwise.
+    template<typename TagType, typename = IsTag<TagType>>
+    bool HasTag() const
+    {
+        return _scene->HasTag<TagType>(*this);
     }
 
     /// @brief Attempts to remove a tag of the specified type from an entity.

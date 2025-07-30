@@ -123,15 +123,27 @@ public:
     ///          components and configuring the entity before use.
     EntityBuilder CreateEntity();
 
-    /// @brief Adds a tag of the specified type to an entity.
+    /// @brief Attempts to add a tag of the specified type to an entity.
     /// @tparam TagType The type of tag to add. Must inherit from Tag.
     /// @param entity The entity to add the tag to.
-    /// @details Tags are empty components used for categorization and filtering.
-    ///          They provide no data but can be used in queries and systems.
+    /// @return True if the tag was successfully added, false if the entity already had the tag.
+    /// @details Safe to call even if the entity already has the specified tag.
     template<typename TagType, typename = IsTag<TagType>>
-    void AddTag(const Entity entity)
+    bool TryAddTag(const Entity entity)
     {
+        if (HasTag<TagType>(entity)) return false;
         GetRegistry().emplace<TagType>(entity._handle);
+        return true;
+    }
+
+    /// @brief Checks if an entity has a tag of the specified type.
+    /// @tparam TagType The type of tag to check for. Must inherit from Tag.
+    /// @param entity The entity to check.
+    /// @return True if the entity has the specified tag, false otherwise.
+    template<typename TagType, typename = IsTag<TagType>>
+    bool HasTag(const Entity entity) const
+    {
+        return GetRegistry().all_of<TagType>(entity._handle);
     }
 
     /// @brief Attempts to remove a tag of the specified type from an entity.
@@ -308,6 +320,12 @@ private:
     /// @details Provides access to the scene's entity registry for internal operations.
     ///          The registry is only valid between Init() and Cleanup() calls.
     entt::registry& GetRegistry();
+
+    /// @brief Gets a const reference to the scene's entity registry.
+    /// @return Const reference to the active EnTT registry.
+    /// @throws std::runtime_error if the registry has not been initialized.
+    /// @details Provides read-only access to the scene's entity registry.
+    const entt::registry& GetRegistry() const;
 
     /// @brief Initializes the scene's entity registry and calls OnEnter().
     /// @details Creates the EnTT registry for this scene and triggers the OnEnter()

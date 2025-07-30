@@ -10,9 +10,23 @@ using namespace velecs::math;
 
 class ExampleTag : public Tag {};
 
+class ExampleComponent : public Component {
+    void* _{nullptr}; // All components must store data, otherwise EnTT will treat it like a Tag
+};
+
+class ExampleSystem : public System {};
+
 class Velocity : public Component {
 public:
     Vec3 vel{Vec3::ZERO};
+};
+
+class Move : public System {
+public:
+    void ProcessPhysics(void* context) override
+    {
+        
+    }
 };
 
 // class MoveSystem : public System
@@ -64,31 +78,42 @@ public:
         std::cout << "\tModel Matrix:\n" << childTransform.GetModelMatrix() << std::endl;
         std::cout << "\tWorld Matrix:\n" << childTransform.GetWorldMatrix() << std::endl;
 
-        if (parent.TryAddTag<ExampleTag>())
-        {
-            assert(!parent.TryAddTag<ExampleTag>() && "Cannot add a Tag more than once");
-            assert(!parent.TryAddTag<ExampleTag>() && "Cannot add a Tag more than once");
-        }
-        assert(parent.TryRemoveTag<ExampleTag>() && "Should be able to remove a Tag once it has been added");
-        assert(!parent.TryRemoveTag<ExampleTag>() && "Should not be able to remove a Tag once it has already been removed");
+        // Tag system tests
+        assert( parent.TryAddTag<ExampleTag>()    && "Should be able to add a tag if entity doesn't already have it");
+        assert(!parent.TryAddTag<ExampleTag>()    && "Cannot add the same tag more than once");
+        assert(!parent.TryAddTag<ExampleTag>()    && "Cannot add the same tag more than once (second attempt)");
+        assert( parent.HasTag<ExampleTag>()       && "Entity should have the tag after adding it");
+        assert( parent.TryRemoveTag<ExampleTag>() && "Should be able to remove a tag that exists");
+        assert(!parent.TryRemoveTag<ExampleTag>() && "Cannot remove a tag that has already been removed");
+        assert(!parent.HasTag<ExampleTag>()       && "Entity should not have the tag after removing it");
+
+        // Component system tests
+        const ExampleComponent* _{nullptr};
+        assert( parent.TryAddComponent<ExampleComponent>(_)    && "Should be able to add a component if entity doesn't already have it");
+        assert(!parent.TryAddComponent<ExampleComponent>(_)    && "Cannot add the same component more than once");
+        assert(!parent.TryAddComponent<ExampleComponent>(_)    && "Cannot add the same component more than once (second attempt)");
+        assert( parent.HasComponent<ExampleComponent>()        && "Entity should have the component after adding it");
+        assert( parent.TryRemoveComponent<ExampleComponent>()  && "Should be able to remove a component that exists");
+        assert(!parent.TryRemoveComponent<ExampleComponent>()  && "Cannot remove a component that has already been removed");
+        assert(!parent.HasComponent<ExampleComponent>()        && "Entity should not have the component after removing it");
+
+        // System systems tests
+        assert( TryAddSystem<ExampleSystem>()    && "Should be able to add a system if scene doesn't already have it");
+        assert(!TryAddSystem<ExampleSystem>()    && "Cannot add the same system more than once");
+        assert(!TryAddSystem<ExampleSystem>()    && "Cannot add the same system more than once (second attempt)");
+        assert( HasSystem<ExampleSystem>()       && "Scene should have the system after adding it");
+        assert( TryRemoveSystem<ExampleSystem>() && "Should be able to remove a system that exists");
+        assert(!TryRemoveSystem<ExampleSystem>() && "Cannot remove a system that has already been removed");
+        assert(!TryRemoveSystem<ExampleSystem>() && "Scene should not have the system after removing it");
 
         std::cout << "Parent pos: " << parentTransform.GetPos() << std::endl;
 
         Velocity* vel{nullptr};
         if (parent.TryAddComponent<Velocity>(vel))
         {
-            const Velocity* _{nullptr};
-            assert(!parent.TryAddComponent<Velocity>(_) && "Cannot add a Component more than once");
-            assert(!parent.TryAddComponent<Velocity>(_) && "Cannot add a Component more than once");
-            
             vel->vel = Vec3::RIGHT;
         }
-        assert(parent.TryRemoveComponent<Velocity>() && "Should be able to remove a Component once it has been added");
-        assert(!parent.TryRemoveComponent<Velocity>() && "Should not be able to remove a Component once it has already been removed");
-        assert(!parent.TryRemoveComponent<Velocity>() && "Should not be able to remove a Component once it has already been removed");
         
-        // vel = parent.TryAddComponent<Velocity>();
-        // vel = parent.TryAddComponent<Velocity>();
         
         
         // std::cout << "Successfully added 'MoveSystem': " << std::boolalpha << System::TryAddSystem<MoveSystem>() << std::endl;

@@ -261,13 +261,14 @@ public:
         return _scene->TryAddComponent<ComponentType>(*this, outComponent, std::forward<Args>(args)...);
     }
 
-    /// @brief Removes a component of the specified type from the entity.
+    /// @brief Attempts to remove a component of the specified type from this entity.
     /// @tparam ComponentType The type of component to remove. Must inherit from Component.
-    /// @note Does nothing if the entity doesn't have the specified component.
+    /// @return True if the component was successfully removed, false if this entity didn't have the component.
+    /// @details Safe to call even if this entity doesn't have the specified component type.
     template<typename ComponentType, typename = IsComponent<ComponentType>>
-    void RemoveComponent()
+    bool TryRemoveComponent()
     {
-        return _scene->RemoveComponent<ComponentType>(*this);
+        return _scene->TryRemoveComponent<ComponentType>(*this);
     }
 
 protected:

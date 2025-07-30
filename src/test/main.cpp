@@ -64,6 +64,14 @@ public:
         std::cout << "\tModel Matrix:\n" << childTransform.GetModelMatrix() << std::endl;
         std::cout << "\tWorld Matrix:\n" << childTransform.GetWorldMatrix() << std::endl;
 
+        if (parent.TryAddTag<ExampleTag>())
+        {
+            assert(!parent.TryAddTag<ExampleTag>() && "Cannot add a Tag more than once");
+            assert(!parent.TryAddTag<ExampleTag>() && "Cannot add a Tag more than once");
+        }
+        assert(parent.TryRemoveTag<ExampleTag>() && "Should be able to remove a Tag once it has been added");
+        assert(!parent.TryRemoveTag<ExampleTag>() && "Should not be able to remove a Tag once it has already been removed");
+
         std::cout << "Parent pos: " << parentTransform.GetPos() << std::endl;
 
         Velocity* vel{nullptr};
@@ -75,6 +83,9 @@ public:
             
             vel->vel = Vec3::RIGHT;
         }
+        assert(parent.TryRemoveComponent<Velocity>() && "Should be able to remove a Component once it has been added");
+        assert(!parent.TryRemoveComponent<Velocity>() && "Should not be able to remove a Component once it has already been removed");
+        assert(!parent.TryRemoveComponent<Velocity>() && "Should not be able to remove a Component once it has already been removed");
         
         // vel = parent.TryAddComponent<Velocity>();
         // vel = parent.TryAddComponent<Velocity>();
@@ -93,14 +104,6 @@ public:
         //     std::cout << "Calling Update()" << std::endl;
         //     storage.system->Update(1.0f);
         // });
-
-        if (parent.TryAddTag<ExampleTag>())
-        {
-            assert(!parent.TryAddTag<ExampleTag>() && "Cannot add a Tag more than once");
-            assert(!parent.TryAddTag<ExampleTag>() && "Cannot add a Tag more than once");
-        }
-        assert(parent.TryRemoveTag<ExampleTag>() && "Should be able to remove a Tag once it has been added");
-        assert(!parent.TryRemoveTag<ExampleTag>() && "Should not be able to remove a Tag once it has already been removed");
 
         parent.MarkForDestruction();
     }

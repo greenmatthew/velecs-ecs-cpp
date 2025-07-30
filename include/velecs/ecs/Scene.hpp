@@ -309,14 +309,17 @@ public:
         return true;
     }
 
-    /// @brief Removes a component of the specified type from an entity.
+    /// @brief Attempts to remove a component of the specified type from an entity.
     /// @tparam ComponentType The type of component to remove. Must inherit from Component.
     /// @param entity The entity to remove the component from.
-    /// @details Does nothing if the entity doesn't have the specified component.
+    /// @return True if the component was successfully removed, false if the entity didn't have the component.
+    /// @details Safe to call even if the entity doesn't have the specified component type.
     template<typename ComponentType, typename = IsComponent<ComponentType>>
-    void RemoveComponent(const Entity entity)
+    bool TryRemoveComponent(const Entity entity)
     {
+        if (!HasComponent<ComponentType>(entity)) return false;
         GetRegistry().remove<ComponentType>(entity._handle);
+        return true;
     }
     
 

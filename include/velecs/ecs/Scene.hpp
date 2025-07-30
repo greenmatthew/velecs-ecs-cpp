@@ -328,6 +328,27 @@ public:
 
 
 
+    /// @brief Checks if the scene has a system of the specified type.
+    /// @tparam SystemType The type of system to check for. Must inherit from System.
+    /// @return True if the scene has the specified system, false otherwise.
+    /// @details Performs consistency validation between internal system storage collections
+    ///          to ensure data structure integrity.
+    template<typename SystemType, typename = IsSystem<SystemType>>
+    bool HasSystem()
+    {
+        SystemId id = GetSystemId<SystemType>();
+        
+        bool inMap = _systems.contains(id);
+        auto iteratorIt = std::find(_systemsIterator.begin(), _systemsIterator.end(), id);
+        bool inIterator = (iteratorIt != _systemsIterator.end());
+        
+        // Ensure both collections are synchronized
+        assert(inMap == inIterator && 
+            "System storage collections out of sync - system found in one collection but not the other");
+        
+        return inMap;
+    }
+
     /// @brief Attempts to register a system of the specified type with default construction.
     /// @tparam SystemType The type of system to add. Must inherit from System.
     /// @return true if the system was successfully added, false if a system of this type already exists.
@@ -437,7 +458,16 @@ private:
     /// @details Triggers the OnExit() lifecycle method, clears all entities from the registry,
     ///          and resets the registry. Called automatically by SceneManager during scene transitions.
     void Cleanup();
-
+    
+    /// @brief Attempts to register a pre-constructed system instance with the scene.
+    /// @tparam SystemType The type of system to add. Must inherit from System.
+    /// @param system A unique_ptr to the system instance to register.
+    /// @return True if the system was successfully added, false if a system of this type already exists.
+    /// @details This is the core system registration method used by other TryAddSystem overloads.
+    ///          Takes ownership of the provided system instance, calls Init() on it, and stores it
+    ///          in the scene's system registry. Systems are automatically sorted by their
+    ///          GetExecutionOrder() value during insertion to maintain deterministic execution order.
+    ///          Only one system of each type is allowed per scene.
     template<typename SystemType, typename = IsSystem<SystemType>>
     inline bool TryAddSystem(std::unique_ptr<SystemType> system)
     {

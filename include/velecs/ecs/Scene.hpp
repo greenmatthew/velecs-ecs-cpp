@@ -338,7 +338,7 @@ public:
     {
         SystemId id = GetSystemId<SystemType>();
         
-        bool inMap = _systems.contains(id);
+        bool inMap = _systems.find(id) != _systems.end();
         auto iteratorIt = std::find(_systemsIterator.begin(), _systemsIterator.end(), id);
         bool inIterator = (iteratorIt != _systemsIterator.end());
         
@@ -473,10 +473,10 @@ private:
     {
         SystemId id = GetSystemId<SystemType>();
         
-        if (_systems.contains(id)) return false;
+        if (_systems.find(id) != _systems.end()) return false;
         
         auto [it, inserted] = _systems.emplace(id, std::move(system));
-        assert(inserted && "System emplace failed after contains() check");
+        assert(inserted && "System emplace failed after find() check");
 
         // Sorted insertion using execution order
         auto insertPos = std::lower_bound(_systemsIterator.begin(), _systemsIterator.end(), id,

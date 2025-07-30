@@ -74,9 +74,6 @@ constexpr void validate_system() {
     
     static_assert(!std::is_abstract_v<T>, 
         "Cannot use abstract system types. System must implement Update() method.");
-    
-    static_assert(std::is_default_constructible_v<T>, 
-        "System types must be default constructible.");
 }
 
 /// @brief System constraint that ensures systems are concrete subclasses of System

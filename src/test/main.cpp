@@ -194,7 +194,6 @@ int main()
     {
         std::cerr << "Exception: " << ex.what() << std::endl;
         return EXIT_FAILURE;
-
     }
     catch (...)
     {

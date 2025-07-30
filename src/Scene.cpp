@@ -13,6 +13,7 @@
 #include "velecs/ecs/Entity.hpp"
 #include "velecs/ecs/EntityBuilder.hpp"
 #include "velecs/ecs/Component.hpp"
+#include "velecs/ecs/System.hpp"
 
 namespace velecs::ecs {
 
@@ -20,8 +21,15 @@ namespace velecs::ecs {
 
 // Constructors and Destructors
 
-Scene::Scene(const std::string& name, ConstructorKey)
-    : _name(name) {}
+Scene::Scene(const std::string& name, size_t systemCapacity, ConstructorKey)
+    : _name(name)
+{
+    _systemsIterator.reserve(systemCapacity);
+    _systems.reserve(systemCapacity);
+}
+
+Scene::Scene(const std::string& name, ConstructorKey key)
+    : Scene(name, DEFAULT_SYSTEM_CAPACITY, key) {}
 
 Scene::~Scene() = default;
 
@@ -73,7 +81,7 @@ void Scene::DestroyEntity(Entity entity)
     GetRegistry().destroy(entity._handle);
 }
 
-void Scene::ProcessCleanup()
+void Scene::ProcessEntityCleanup()
 {
     // deque? queue? vector? idk
     std::vector<Entity> destructionQueue;

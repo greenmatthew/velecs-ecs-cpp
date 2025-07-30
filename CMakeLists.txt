@@ -53,7 +53,6 @@ set(LIB_SOURCES
 
     # Systems
     src/System.cpp
-    src/SystemStorage.cpp
 )
 
 # Header files for the library (for IDE organization)

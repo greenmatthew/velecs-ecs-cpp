@@ -12,12 +12,15 @@
 
 #include "velecs/ecs/Tags/DestroyTag.hpp"
 
+#include "velecs/ecs/TypeConstraints.hpp"
+
 #include <entt/entt.hpp>
 
 #include <string>
 #include <deque>
 #include <iostream>
 #include <optional>
+#include <typeindex>
 
 namespace velecs::ecs {
 
@@ -25,6 +28,8 @@ class SceneManager;
 
 class Entity;
 class EntityBuilder;
+class Component;
+class System;
 
 /// @class Scene
 /// @brief Represents a self-contained game scene with its own entity registry and lifecycle management.
@@ -37,10 +42,22 @@ class EntityBuilder;
 /// modular game architecture.
 class Scene {
     friend class SceneManager;
+
+private:
+    /// @brief ID for a System
+    using SystemId = std::type_index;
+    /// @brief Storage for a System
+    using SystemStorage = std::unique_ptr<System>;
+
 public:
     // Enums
 
     // Public Fields
+
+    /// @brief Default capacity for system storage allocation.
+    /// @details Scenes reserve this many system slots by default to avoid reallocations
+    ///          during typical system registration.
+    static const size_t DEFAULT_SYSTEM_CAPACITY = 128;
 
     // Constructors and Destructors
 
@@ -54,9 +71,22 @@ public:
         virtual ~ConstructorKey() = default;
     };
 
-    /// @brief Primary constructor for scene creation.
+    /// @brief Constructor for scene creation with custom system capacity.
+    /// @param name The name identifier for this scene.
+    /// @param systemCapacity Number of systems to reserve space for during initialization.
+    /// @param key Constructor access key to control instantiation.
+    /// @details Creates a scene with pre-allocated system storage to avoid reallocations
+    ///          during system registration. Use this constructor for scenes that will
+    ///          have a known large number of systems for optimal performance.
+    Scene(const std::string& name, size_t systemCapacity, ConstructorKey key);
+
+    /// @brief Primary constructor for scene creation with default system capacity.
     /// @param name The name identifier for this scene.
     /// @param key Constructor access key to control instantiation.
+    /// @details Creates a scene with default system storage capacity (DEFAULT_SYSTEM_CAPACITY).
+    ///          This constructor delegates to the capacity-based constructor and is suitable
+    ///          for most scenes. For scenes with many systems, consider using the capacity
+    ///          constructor for better performance.
     Scene(const std::string& name, ConstructorKey key);
 
     /// @brief Deleted default constructor.
@@ -174,10 +204,55 @@ public:
         return (outComponent != nullptr);
     }
 
-    /// @brief Registers a system with this scene.
-    /// @details Implementation pending. Will handle system registration and lifecycle management.
-    /// @todo Implement system registration functionality.
-    void RegisterSystem();
+    template<typename SystemType, typename = IsSystem<SystemType>>
+    SystemId GetSystemId()
+    {
+        return typeid(SystemType);
+    }
+
+    /// @brief Attempts to register a system of the specified type with default construction.
+    /// @tparam SystemType The type of system to add. Must inherit from System.
+    /// @return true if the system was successfully added, false if a system of this type already exists.
+    /// @details Creates a new system instance using default constructor, calls Init() on it,
+    ///          and stores it in the scene's system registry. Only one system of each type
+    ///          is allowed per scene.
+    template<typename SystemType, typename = IsSystem<SystemType>>
+    bool TryAddSystem()
+    {
+        SystemId id = GetSystemId<SystemType>();
+        
+        if (_systems.contains(id)) return false;
+        
+        auto system = std::make_unique<SystemType>();
+        
+        auto [it, inserted] = _systems.emplace(id, std::move(system));
+        assert(inserted && "System emplace failed after contains() check - this should never happen");
+        it->second->Init();
+        return inserted;
+    }
+
+    /// @brief Attempts to register a system of the specified type with constructor arguments.
+    /// @tparam SystemType The type of system to add. Must inherit from System.
+    /// @tparam Args The types of the constructor arguments.
+    /// @param args The constructor arguments to forward to the system constructor.
+    /// @return true if the system was successfully added, false if a system of this type already exists.
+    /// @details Creates a new system instance with the provided constructor arguments,
+    ///          calls Init() on it, and stores it in the scene's system registry.
+    ///          Only one system of each type is allowed per scene.
+    template<typename SystemType, typename = IsSystem<SystemType>, typename... Args>
+    bool TryAddSystem(Args&&... args)
+    {
+        SystemId id = GetSystemId<SystemType>();
+        
+        if (_systems.contains(id)) return false;
+        
+        auto system = std::make_unique<SystemType>(std::forward<Args>(args)...);
+        
+        auto [it, inserted] = _systems.emplace(id, std::move(system));
+        assert(inserted && "System emplace failed after contains() check");
+        it->second->Init();
+        return inserted;
+    }
 
 protected:
     // Protected Fields
@@ -187,35 +262,48 @@ protected:
 private:
     // Private Fields
     
-    std::string _name;                       ///< @brief The name identifier for this scene.
-    std::optional<entt::registry> _registry; ///< @brief The EnTT registry managing entities and components for this scene.
+    std::string _name;                                    ///< @brief The name identifier for this scene.
+    std::optional<entt::registry> _registry;              ///< @brief The EnTT registry managing entities and components for this scene.
+
+    /// @brief Ordered list of system type indices for deterministic iteration.
+    std::vector<SystemId> _systemsIterator;
+    /// @brief Map of system type indices to system instances for fast lookup and storage.
+    std::unordered_map<SystemId, SystemStorage> _systems;
 
     // Private Methods
 
+    /// @brief Gets a reference to the scene's entity registry.
+    /// @return Reference to the active EnTT registry.
+    /// @throws std::runtime_error if the registry has not been initialized.
+    /// @details Provides access to the scene's entity registry for internal operations.
+    ///          The registry is only valid between Init() and Cleanup() calls.
     entt::registry& GetRegistry();
 
+    /// @brief Initializes the scene's entity registry and calls OnEnter().
+    /// @details Creates the EnTT registry for this scene and triggers the OnEnter()
+    ///          lifecycle method. Called automatically by SceneManager during scene transitions.
     void Init();
 
+    /// @brief Cleans up the scene's entity registry and calls OnExit().
+    /// @details Triggers the OnExit() lifecycle method, clears all entities from the registry,
+    ///          and resets the registry. Called automatically by SceneManager during scene transitions.
     void Cleanup();
 
+    /// @brief Destroys a specific entity from this scene's registry.
+    /// @param entity The entity to destroy.
+    /// @details Immediately removes the entity and all its components from the registry.
+    ///          This is used internally by the cleanup system for deferred entity destruction.
     void DestroyEntity(Entity entity);
-
-    /// @brief Initializes all systems in this scene.
-    /// @details Called once when the scene becomes active to set up system state.
-    /// @todo Implement system initialization processing.
-    void ProcessInit();
 
     /// @brief Updates all systems in this scene.
     /// @param deltaTime Time elapsed since the last frame in seconds.
     /// @details Called every frame to update system logic and process entities.
-    /// @todo Implement system update processing.
     void ProcessUpdate(float deltaTime);
 
     /// @brief Processes cleanup and entity destruction for this scene.
     /// @details Handles deferred entity destruction and system cleanup.
     ///          Should be called at the end of each frame.
-    /// @todo Complete entity destruction queue implementation.
-    void ProcessCleanup();
+    void ProcessEntityCleanup();
 };
 
 } // namespace velecs::ecs

@@ -55,7 +55,7 @@ bool SceneManager::TryCleanupCurrentScene()
 {
     if (_currentScene == nullptr) return false;
 
-    _currentScene->ProcessCleanup();
+    _currentScene->ProcessEntityCleanup();
     return true;
 }
 

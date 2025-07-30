@@ -17,9 +17,11 @@ namespace velecs::ecs {
 // Constructors and Destructors
 
 EntityBuilder::EntityBuilder(Scene* const scene, const entt::entity handle)
-    : entity(Entity(scene, handle)),
-        name(entity.AddComponent<Name>("Entity")),
-        transform(entity.AddComponent<Transform>()) {}
+    : _entity(Entity(scene, handle))
+{
+    assert(_entity.TryAddComponent<Name>(_name) && "Failed to add required Name component to new entity - this should never happen during entity creation");
+    assert(_entity.TryAddComponent<Transform>(_transform) && "Failed to add required Transform component to new entity - this should never happen during entity creation");
+}
 
 // Public Methods
 

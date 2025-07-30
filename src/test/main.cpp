@@ -64,10 +64,22 @@ public:
         std::cout << "\tModel Matrix:\n" << childTransform.GetModelMatrix() << std::endl;
         std::cout << "\tWorld Matrix:\n" << childTransform.GetWorldMatrix() << std::endl;
 
-        
         std::cout << "Parent pos: " << parentTransform.GetPos() << std::endl;
-        auto& vel = parent.AddComponent<Velocity>();
-        vel.vel = Vec3::RIGHT;
+
+        Velocity* vel{nullptr};
+        if (parent.TryAddComponent<Velocity>(vel))
+        {
+            const Velocity* _{nullptr};
+            assert(!parent.TryAddComponent<Velocity>(_) && "Cannot add a Component more than once");
+            assert(!parent.TryAddComponent<Velocity>(_) && "Cannot add a Component more than once");
+            
+            vel->vel = Vec3::RIGHT;
+        }
+        
+        // vel = parent.TryAddComponent<Velocity>();
+        // vel = parent.TryAddComponent<Velocity>();
+        
+        
         // std::cout << "Successfully added 'MoveSystem': " << std::boolalpha << System::TryAddSystem<MoveSystem>() << std::endl;
         // std::cout << "Successfully added 'MoveSystem': " << std::boolalpha << System::TryAddSystem<MoveSystem>() << std::endl;
         // std::cout << "Successfully removed 'MoveSystem': " << std::boolalpha << System::TryRemoveSystem<MoveSystem>() << std::endl;
@@ -82,11 +94,13 @@ public:
         //     storage.system->Update(1.0f);
         // });
 
-        parent.TryAddTag<ExampleTag>();
-        parent.TryAddTag<ExampleTag>();
-        parent.TryAddTag<ExampleTag>();
-        std::cout << "Trying to remove tag: " << std::boolalpha << parent.TryRemoveTag<ExampleTag>() << std::endl;
-        std::cout << "Trying to remove tag: " << std::boolalpha << parent.TryRemoveTag<ExampleTag>() << std::endl;
+        if (parent.TryAddTag<ExampleTag>())
+        {
+            assert(!parent.TryAddTag<ExampleTag>() && "Cannot add a Tag more than once");
+            assert(!parent.TryAddTag<ExampleTag>() && "Cannot add a Tag more than once");
+        }
+        assert(parent.TryRemoveTag<ExampleTag>() && "Should be able to remove a Tag once it has been added");
+        assert(!parent.TryRemoveTag<ExampleTag>() && "Should not be able to remove a Tag once it has already been removed");
 
         parent.MarkForDestruction();
     }

@@ -207,24 +207,58 @@ public:
         return _scene->TryGetComponent(*this, outComponent);
     }
 
-    /// @brief Adds a component of the specified type to the entity.
+    /// @brief Attempts to add a component of the specified type to this entity.
     /// @tparam ComponentType The type of component to add. Must inherit from Component.
-    /// @return A reference to the newly added component.
+    /// @param outComponent A pointer that will be set to the component if successfully added, or nullptr if this entity already has the component.
+    /// @return True if the component was successfully added, false if this entity already has the component.
+    /// @details The component is default-constructed and its scene/handle are automatically set.
+    ///          Safe to call even if this entity already has the specified component type.
     template<typename ComponentType, typename = IsComponent<ComponentType>>
-    ComponentType& AddComponent()
+    bool TryAddComponent(ComponentType*& outComponent)
     {
-        return _scene->AddComponent<ComponentType>(*this);
+        return _scene->TryAddComponent<ComponentType>(*this, outComponent);
     }
 
-    /// @brief Adds a component of the specified type to the entity with constructor arguments.
+    /// @brief Attempts to add a const component of the specified type to this entity.
+    /// @tparam ComponentType The type of component to add. Must inherit from Component.
+    /// @param outComponent A const pointer that will be set to the component if successfully added, or nullptr if this entity already has the component.
+    /// @return True if the component was successfully added, false if this entity already has the component.
+    /// @details The component is default-constructed and its scene/handle are automatically set.
+    ///          This const overload provides read-only access to the newly added component.
+    ///          Safe to call even if this entity already has the specified component type.
+    template<typename ComponentType, typename = IsComponent<ComponentType>>
+    bool TryAddComponent(const ComponentType*& outComponent)
+    {
+        return _scene->TryAddComponent<ComponentType>(*this, outComponent);
+    }
+
+    /// @brief Attempts to add a component of the specified type to this entity with constructor arguments.
     /// @tparam ComponentType The type of component to add. Must inherit from Component.
     /// @tparam Args The types of the constructor arguments.
+    /// @param outComponent A pointer that will be set to the component if successfully added, or nullptr if this entity already has the component.
     /// @param args The constructor arguments to forward to the component constructor.
-    /// @return A reference to the newly added component.
+    /// @return True if the component was successfully added, false if this entity already has the component.
+    /// @details The component is constructed with the provided arguments and its scene/handle are automatically set.
+    ///          Safe to call even if this entity already has the specified component type.
     template<typename ComponentType, typename = IsComponent<ComponentType>, typename... Args>
-    ComponentType& AddComponent(Args &&...args)
+    bool TryAddComponent(ComponentType*& outComponent, Args &&...args)
     {
-        return _scene->AddComponent<ComponentType>(*this, std::forward<Args>(args)...);
+        return _scene->TryAddComponent<ComponentType>(*this, outComponent, std::forward<Args>(args)...);
+    }
+
+    /// @brief Attempts to add a const component of the specified type to this entity with constructor arguments.
+    /// @tparam ComponentType The type of component to add. Must inherit from Component.
+    /// @tparam Args The types of the constructor arguments.
+    /// @param outComponent A const pointer that will be set to the component if successfully added, or nullptr if this entity already has the component.
+    /// @param args The constructor arguments to forward to the component constructor.
+    /// @return True if the component was successfully added, false if this entity already has the component.
+    /// @details The component is constructed with the provided arguments and its scene/handle are automatically set.
+    ///          This const overload provides read-only access to the newly added component.
+    ///          Safe to call even if this entity already has the specified component type.
+    template<typename ComponentType, typename = IsComponent<ComponentType>, typename... Args>
+    bool TryAddComponent(const ComponentType*& outComponent, Args &&...args)
+    {
+        return _scene->TryAddComponent<ComponentType>(*this, outComponent, std::forward<Args>(args)...);
     }
 
     /// @brief Removes a component of the specified type from the entity.

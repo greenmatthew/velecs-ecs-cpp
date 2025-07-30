@@ -43,7 +43,7 @@ public:
     /// @brief Conversion operator to get the built entity.
     /// @return The fully configured entity.
     inline operator Entity() const {
-        return entity;
+        return _entity;
     }
 
     /// @brief Default deconstructor.
@@ -56,7 +56,7 @@ public:
     /// @return Reference to this builder for method chaining.
     inline EntityBuilder& WithName(const std::string& name)
     {
-        this->name.SetName(name);
+        _name->SetName(name);
         return *this;
     }
 
@@ -65,7 +65,7 @@ public:
     /// @return Reference to this builder for method chaining.
     inline EntityBuilder& WithParent(const Entity parent)
     {
-        transform.TrySetParent(parent);
+        _transform->TrySetParent(parent);
         return *this;
     }
 
@@ -74,7 +74,7 @@ public:
     /// @return Reference to this builder for method chaining.
     inline EntityBuilder& WithPos(const math::Vec3& pos)
     {
-        transform.SetPos(pos);
+        _transform->SetPos(pos);
         return *this;
     }
 
@@ -83,7 +83,7 @@ public:
     /// @return Reference to this builder for method chaining.
     inline EntityBuilder& WithScale(const math::Vec3 scale)
     {
-        transform.SetScale(scale);
+        _transform->SetScale(scale);
         return *this;
     }
 
@@ -92,7 +92,7 @@ public:
     /// @return Reference to this builder for method chaining.
     inline EntityBuilder& WithRot(const math::Quat rot)
     {
-        transform.SetRot(rot);
+        _transform->SetRot(rot);
         return *this;
     }
 
@@ -101,7 +101,7 @@ public:
     /// @return Reference to this builder for method chaining.
     inline EntityBuilder& WithEulerAngles(const math::Vec3 eulerAngles)
     {
-        transform.SetEulerAnglesRad(eulerAngles);
+        _transform->SetEulerAnglesRad(eulerAngles);
         return *this;
     }
 
@@ -110,29 +110,7 @@ public:
     /// @return Reference to this builder for method chaining.
     inline EntityBuilder& WithEulerAnglesDeg(const math::Vec3 eulerAnglesDeg)
     {
-        transform.SetEulerAnglesDeg(eulerAnglesDeg);
-        return *this;
-    }
-
-    /// @brief Adds a component of type T to the entity.
-    /// @tparam T The type of component to add.
-    /// @return Reference to this builder for method chaining.
-    template<typename T, typename = IsComponent<T>>
-    inline EntityBuilder& WithComponent()
-    {
-        entity.AddComponent<T>();
-        return *this;
-    }
-
-    /// @brief Adds a component of type T to the entity with constructor arguments.
-    /// @tparam T The type of component to add.
-    /// @tparam Args The types of the constructor arguments.
-    /// @param args The constructor arguments.
-    /// @return Reference to this builder for method chaining.
-    template<typename T, typename = IsComponent<T>, typename... Args>
-    inline EntityBuilder& WithComponent(Args &&...args)
-    {
-        entity.AddComponent<T>(std::forward<Args>(args)...);
+        _transform->SetEulerAnglesDeg(eulerAnglesDeg);
         return *this;
     }
 
@@ -145,13 +123,13 @@ private:
     // Private Fields
 
     /// @brief The entity being constructed.
-    Entity entity;
+    Entity _entity{Entity::INVALID};
 
-    /// @brief Reference to the entity's name component.
-    Name& name;
+    /// @brief Pointer to the entity's name component.
+    Name* _name{nullptr};
     
-    /// @brief Reference to the entity's transform component.
-    Transform& transform;
+    /// @brief Pointer to the entity's transform component.
+    Transform* _transform{nullptr};
 
     // Private Methods
 };

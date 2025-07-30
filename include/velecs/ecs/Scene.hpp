@@ -188,6 +188,7 @@ public:
     template<typename ComponentType, typename = IsComponent<ComponentType>>
     bool TryGetComponent(const Entity entity, ComponentType*& outComponent)
     {
+        assert(entity.IsValid() && "Entity must be valid");
         outComponent = GetRegistry().try_get<ComponentType>(entity._handle);
         return (outComponent != nullptr);
     }
@@ -201,42 +202,111 @@ public:
     template<typename ComponentType, typename = IsComponent<ComponentType>>
     bool TryGetComponent(const Entity entity, const ComponentType*& outComponent) const
     {
+        assert(entity.IsValid() && "Entity must be valid");
         outComponent = GetRegistry().try_get<ComponentType>(entity._handle);
         return (outComponent != nullptr);
     }
 
-        /// @brief Adds a component of the specified type to an entity.
+    /// @brief Attempts to add a component of the specified type to an entity.
     /// @tparam ComponentType The type of component to add. Must inherit from Component.
     /// @param entity The entity to add the component to.
-    /// @return A reference to the newly added component.
+    /// @param outComponent A pointer that will be set to the component if successfully added, or nullptr if the entity already has the component.
+    /// @return True if the component was successfully added, false if the entity already has the component.
     /// @details The component is default-constructed and its scene/handle are automatically set.
+    ///          Safe to call even if the entity already has the specified component type.
     template<typename ComponentType, typename = IsComponent<ComponentType>>
-    ComponentType& AddComponent(const Entity entity)
+    bool TryAddComponent(const Entity entity, ComponentType*& outComponent)
     {
-        assert(this != nullptr && "Scene must be valid");
-        assert(entity._handle != entt::null || GetRegistry().valid(entity._handle) && "Scene must be valid");
+        assert(entity.IsValid() && "Entity must be valid");
+        if (HasComponent<ComponentType>(entity))
+        {
+            outComponent = nullptr;
+            return false;
+        }
+
         ComponentType& comp = GetRegistry().emplace<ComponentType>(entity._handle);
         comp._scene = this;
         comp._handle = entity._handle;
-        return comp;
+        outComponent = &comp;
+        return true;
     }
 
-    /// @brief Adds a component of the specified type to an entity with constructor arguments.
+    /// @brief Attempts to add a const component of the specified type to an entity.
+    /// @tparam ComponentType The type of component to add. Must inherit from Component.
+    /// @param entity The entity to add the component to.
+    /// @param outComponent A const pointer that will be set to the component if successfully added, or nullptr if the entity already has the component.
+    /// @return True if the component was successfully added, false if the entity already has the component.
+    /// @details The component is default-constructed and its scene/handle are automatically set.
+    ///          This const overload provides read-only access to the newly added component.
+    ///          Safe to call even if the entity already has the specified component type.
+    template<typename ComponentType, typename = IsComponent<ComponentType>>
+    bool TryAddComponent(const Entity entity, const ComponentType*& outComponent)
+    {
+        assert(entity.IsValid() && "Entity must be valid");
+        if (HasComponent<ComponentType>(entity))
+        {
+            outComponent = nullptr;
+            return false;
+        }
+
+        ComponentType& comp = GetRegistry().emplace<ComponentType>(entity._handle);
+        comp._scene = this;
+        comp._handle = entity._handle;
+        outComponent = &comp;
+        return true;
+    }
+
+    /// @brief Attempts to add a component of the specified type to an entity with constructor arguments.
     /// @tparam ComponentType The type of component to add. Must inherit from Component.
     /// @tparam Args The types of the constructor arguments.
     /// @param entity The entity to add the component to.
+    /// @param outComponent A pointer that will be set to the component if successfully added, or nullptr if the entity already has the component.
     /// @param args The constructor arguments to forward to the component constructor.
-    /// @return A reference to the newly added component.
+    /// @return True if the component was successfully added, false if the entity already has the component.
     /// @details The component is constructed with the provided arguments and its scene/handle are automatically set.
+    ///          Safe to call even if the entity already has the specified component type.
     template<typename ComponentType, typename = IsComponent<ComponentType>, typename... Args>
-    ComponentType& AddComponent(const Entity entity, Args &&...args)
+    bool TryAddComponent(const Entity entity, ComponentType*& outComponent, Args &&...args)
     {
-        assert(this != nullptr && "Scene must be valid");
-        assert(entity._handle != entt::null || GetRegistry().valid(entity._handle) && "Scene must be valid");
+        assert(entity.IsValid() && "Entity must be valid");
+        if (HasComponent<ComponentType>(entity))
+        {
+            outComponent = nullptr;
+            return false;
+        }
+
         ComponentType& comp = GetRegistry().emplace<ComponentType>(entity._handle, std::forward<Args>(args)...);
         comp._scene = this;
         comp._handle = entity._handle;
-        return comp;
+        outComponent = &comp;
+        return true;
+    }
+
+    /// @brief Attempts to add a const component of the specified type to an entity with constructor arguments.
+    /// @tparam ComponentType The type of component to add. Must inherit from Component.
+    /// @tparam Args The types of the constructor arguments.
+    /// @param entity The entity to add the component to.
+    /// @param outComponent A const pointer that will be set to the component if successfully added, or nullptr if the entity already has the component.
+    /// @param args The constructor arguments to forward to the component constructor.
+    /// @return True if the component was successfully added, false if the entity already has the component.
+    /// @details The component is constructed with the provided arguments and its scene/handle are automatically set.
+    ///          This const overload provides read-only access to the newly added component.
+    ///          Safe to call even if the entity already has the specified component type.
+    template<typename ComponentType, typename = IsComponent<ComponentType>, typename... Args>
+    bool TryAddComponent(const Entity entity, const ComponentType*& outComponent, Args &&...args)
+    {
+        assert(entity.IsValid() && "Entity must be valid");
+        if (HasComponent<ComponentType>(entity))
+        {
+            outComponent = nullptr;
+            return false;
+        }
+
+        ComponentType& comp = GetRegistry().emplace<ComponentType>(entity._handle, std::forward<Args>(args)...);
+        comp._scene = this;
+        comp._handle = entity._handle;
+        outComponent = &comp;
+        return true;
     }
 
     /// @brief Removes a component of the specified type from an entity.

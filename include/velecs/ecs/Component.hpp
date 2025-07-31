@@ -50,9 +50,6 @@ public:
 
     Entity GetOwner() const;
 
-    static void CallInit();
-    static void CallUpdate();
-
 protected:
     // Protected Fields
 

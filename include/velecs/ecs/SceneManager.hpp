@@ -92,6 +92,10 @@ public:
     template<typename SceneType, typename = IsScene<SceneType>>
     Uuid RegisterScene(const std::string& name)
     {
+        if (name.empty() || std::all_of(name.begin(), name.end(), [](char c) { return std::isspace(c); }))
+        {
+            throw std::invalid_argument("Scene name cannot be empty or contain only whitespace");
+        }
         auto [sceneRef, uuid] = _scenes.EmplaceAs<SceneType>(name, name, Scene::ConstructorKey{});
         return uuid;
     }

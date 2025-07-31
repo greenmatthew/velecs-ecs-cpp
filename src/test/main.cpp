@@ -31,8 +31,6 @@ public:
     void ProcessPhysics(void* context) override
     {
         auto* ctx = Context<SystemContext>(context);
-        std::cout << "Scene name: " << ctx->scene->GetName() << std::endl;
-        
         ctx->scene->Query<Transform, Velocity>([&ctx](auto entity, auto& transform, auto& velocity){
             Vec3 pos = transform.GetPos();
             transform.SetPos(pos + (ctx->deltaTime * velocity.vel));
@@ -41,22 +39,6 @@ public:
         });
     }
 };
-
-// class MoveSystem : public System
-// {
-// public:
-//     virtual void Update(float deltaTime) override
-//     {
-//         auto& registry = Registry::Get();
-//         auto view = registry.view<Transform, Velocity>();
-//         view.each([deltaTime](auto entity, auto& transform, auto& velocity){
-//             std::cout << "Updating position" << std::endl;
-//             auto pos = transform.GetPos();
-//             pos += deltaTime * velocity.vel;
-//             transform.SetPos(pos);
-//         });
-//     }
-// };
 
 class MainScene : public Scene {
 public:
@@ -238,7 +220,6 @@ int main()
         {
             sceneManager->TryProcess(context);
             sceneManager->TryProcessPhysics(context);
-            sceneManager->TryProcessGUI(context);
             sceneManager->TryProcessEntityCleanup();
         }
         sceneManager->TryTransitionScene("Test Scene");
@@ -246,7 +227,6 @@ int main()
         {
             sceneManager->TryProcess(context);
             sceneManager->TryProcessPhysics(context);
-            sceneManager->TryProcessGUI(context);
             sceneManager->TryProcessEntityCleanup();
         }
     }

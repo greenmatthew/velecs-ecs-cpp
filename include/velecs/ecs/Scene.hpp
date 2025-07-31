@@ -427,49 +427,49 @@ public:
     }
 
     // Single component with perfect forwarding
-    template<typename Component, typename Func>
+    template<typename TagOrComponent, typename Func>
     void Query(Func&& callback)
     {
         auto& registry = GetRegistry();
-        registry.view<Component>().each([this, &callback](entt::entity entity, Component& component) {
+        registry.view<Component>().each([this, &callback](entt::entity entity, TagOrComponent& tagOrComp) {
             Entity wrappedEntity{this, entity};
-            callback(wrappedEntity, component);
+            callback(wrappedEntity, tagOrComp);
         });
     }
 
     // Multi-component with perfect forwarding  
-    template<typename... Components, typename Func>
+    template<typename... TagsOrComponents, typename Func>
     void Query(Func&& callback)
     {
-        static_assert(sizeof...(Components) > 1, "Use single component Query overload for single component queries");
+        static_assert(sizeof...(TagsOrComponents) > 1, "Use single component Query overload for single component queries");
         
-        GetRegistry().view<Components...>().each([this, callback = std::forward<Func>(callback)](entt::entity e, Components&... components) {
+        GetRegistry().view<TagsOrComponents...>().each([this, callback = std::forward<Func>(callback)](entt::entity e, TagsOrComponents&... tagsOrComps) {
             Entity entity{this, e};
-            callback(entity, components...);
+            callback(entity, tagsOrComps...);
         });
     }
 
-    template<typename Component>
-    void Query(std::function<void(Entity, Component&)> callback)
+    template<typename TagOrComponent>
+    void Query(std::function<void(Entity, TagOrComponent&)> callback)
     {
         auto& registry = GetRegistry();
-        auto view = registry.view<Component>();
+        auto view = registry.view<TagOrComponent>();
         
         for (auto entity : view) {
             Entity wrappedEntity{this, entity};
-            Component& component = registry.get<Component>(entity);
-            callback(wrappedEntity, component);
+            TagOrComponent& tagOrComp = registry.get<TagOrComponent>(entity);
+            callback(wrappedEntity, tagOrComp);
         }
     }
 
-    template<typename... Components>
-    void Query(std::function<void(Entity, Components&...)> callback)
+    template<typename... TagsOrComponents>
+    void Query(std::function<void(Entity, TagsOrComponents&...)> callback)
     {
-        static_assert(sizeof...(Components) > 1, "Use single component Query overload for single component queries");
+        static_assert(sizeof...(TagsOrComponents) > 1, "Use single component Query overload for single component queries");
         
-        GetRegistry().view<Components...>().each([this, &callback](entt::entity e, Components&... components) {
+        GetRegistry().view<TagsOrComponents...>().each([this, &callback](entt::entity e, TagsOrComponents&... tagsOrComps) {
             Entity entity{this, e};
-            callback(entity, components...);
+            callback(entity, tagsOrComps...);
         });
     }
 

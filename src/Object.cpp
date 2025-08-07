@@ -42,8 +42,14 @@ size_t Object::GetHashCode() const
 
 bool Object::IsValid() const
 {
-    return _handle != entt::null ||
-        (*_registry).valid(_handle);
+    return _handle != entt::null &&
+        _registry != nullptr &&
+        _registry->valid(_handle);
+}
+
+void Object::RequestDestroy()
+{
+    if (IsValid()) _registry->emplace_or_replace<RequestDestructionTag>(_handle);
 }
 
 const std::string& Object::GetName() const
@@ -64,17 +70,28 @@ Object::Object(entt::registry* registry, entt::entity handle, const std::string&
     : _registry(registry), _handle(handle), _name(name)
 {
     // Validate that the handle is actually valid in the registry
-    if (!registry || !registry->valid(handle))
+    if (!IsValid())
     {
         // Reset to invalid state if registry is null or handle is not valid
-        _registry = nullptr;
-        _handle = entt::null;
-        _name = "Invalid Object";
+        Reset();
     }
 }
 
 // Private Fields
 
 // Private Methods
+
+void Object::Destroy()
+{
+    if (IsValid()) _registry->destroy(_handle);
+    Reset();
+}
+
+void Object::Reset()
+{
+    _registry = nullptr;
+    _handle = entt::null;
+    _name = "Invalid Object";
+}
 
 } // namespace velecs::ecs

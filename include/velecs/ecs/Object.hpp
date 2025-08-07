@@ -14,6 +14,7 @@
 
 #include <string>
 #include <optional>
+#include <functional>
 
 namespace velecs::ecs {
 
@@ -83,6 +84,22 @@ public:
     ///          the handle is valid within that registry.
     bool IsValid() const;
 
+    
+    /// @brief Internal tag used to mark objects for deferred destruction.
+    /// @details This tag is applied to objects when RequestDestroy() is called.
+    ///          The destruction system processes all objects with this tag during
+    ///          cleanup phases, allowing for safe deferred destruction without
+    ///          immediate registry modifications during processing loops.
+    struct RequestDestructionTag {};
+    
+    /// @brief Marks this object for deferred destruction.
+    /// @details Adds a RequestDestructionTag to this object, scheduling it for
+    ///          destruction during the next cleanup phase. This allows safe
+    ///          destruction requests during system processing without immediately
+    ///          invalidating iterators or causing race conditions.
+    ///          Only valid objects can be marked for destruction.
+    void RequestDestroy();
+
     /// @brief Gets the name of this object.
     /// @return The current name of the object.
     const std::string& GetName() const;
@@ -114,6 +131,20 @@ private:
     std::string _name{"Invalid Object"};    ///< @brief Human-readable name for this object
 
     // Private Methods
+
+    /// @brief Immediately destroys this object and invalidates it.
+    /// @details Removes the object from the registry and resets this instance
+    ///          to an invalid state. Unlike RequestDestroy(), this performs
+    ///          immediate destruction and should be used carefully to avoid
+    ///          iterator invalidation during processing loops.
+    ///          Safe to call on invalid objects (no-op).
+    void Destroy();
+
+    /// @brief Resets this object to an invalid state.
+    /// @details Clears the registry pointer, sets handle to null, and resets
+    ///          the name to "Invalid Object". This is used internally during
+    ///          destruction and error handling to ensure consistent invalid state.
+    void Reset();
 };
 
 } // namespace velecs::ecs

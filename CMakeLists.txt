@@ -33,6 +33,9 @@ add_subdirectory(libs/entt)
 set(LIB_SOURCES
     src/test/main.cpp
 
+    # Objects
+    src/Object.cpp
+
     # Scenes
     src/SceneManager.cpp
     src/Scene.cpp
@@ -59,6 +62,9 @@ set(LIB_SOURCES
 set(LIB_HEADERS
     include/velecs/ecs/Common.hpp
     include/velecs/ecs/TypeConstraints.hpp
+
+    # Objects
+    include/velecs/ecs/Object.hpp
     
     # Scenes
     include/velecs/ecs/SceneManager.hpp

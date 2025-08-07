@@ -66,17 +66,19 @@ const entt::registry& Scene::GetRegistry() const
     throw std::runtime_error("Scene does not have a valid registry initialized");
 }
 
-void Scene::Init()
+void Scene::Init(void* context)
 {
+    // Instantiates the scene's EnTT registry
     _registry.emplace();
-    OnEnter();
+    OnEnter(context);
 }
 
-void Scene::Cleanup()
+void Scene::Cleanup(void* context)
 {
     if (_registry.has_value())
     {
-        OnExit();
+        OnExit(context);
+        // Released the scene's EnTT registry
         _registry->clear();
         _registry.reset();
     }

@@ -11,8 +11,10 @@
 #pragma once
 
 #include "velecs/ecs/Tags/DestroyTag.hpp"
-
 #include "velecs/ecs/TypeConstraints.hpp"
+
+#include <velecs/common/Context.hpp>
+using velecs::common::Context;
 
 #include <entt/entt.hpp>
 
@@ -106,13 +108,13 @@ public:
     /// @details Override this method in derived classes to perform scene-specific
     ///          initialization such as loading assets, setting up UI, or spawning
     ///          initial entities. Default implementation does nothing.
-    virtual void OnEnter() {}
+    virtual void OnEnter(void* context) {}
 
     /// @brief Called when the scene becomes inactive.
     /// @details Override this method in derived classes to perform scene-specific
     ///          cleanup such as saving state, unloading assets, or clearing temporary
     ///          data. Default implementation does nothing.
-    virtual void OnExit() {}
+    virtual void OnExit(void* context) {}
 
 
 
@@ -507,12 +509,12 @@ private:
     /// @brief Initializes the scene's entity registry and calls OnEnter().
     /// @details Creates the EnTT registry for this scene and triggers the OnEnter()
     ///          lifecycle method. Called automatically by SceneManager during scene transitions.
-    void Init();
+    void Init(void* context);
 
     /// @brief Cleans up the scene's entity registry and calls OnExit().
     /// @details Triggers the OnExit() lifecycle method, clears all entities from the registry,
     ///          and resets the registry. Called automatically by SceneManager during scene transitions.
-    void Cleanup();
+    void Cleanup(void* context);
     
     /// @brief Attempts to register a pre-constructed system instance with the scene.
     /// @tparam SystemType The type of system to add. Must inherit from System.

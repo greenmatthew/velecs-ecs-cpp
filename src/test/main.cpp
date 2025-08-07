@@ -45,7 +45,7 @@ public:
     MainScene(const std::string& name, ConstructorKey key)
         : Scene(name, key) {}
 
-    void OnEnter()
+    void OnEnter(void* context)
     {
         Entity parent = CreateEntity()
             .WithName("Parent Entity")
@@ -116,7 +116,7 @@ public:
     TestScene(const std::string& name, ConstructorKey key)
         : Scene(name, key) {}
 
-    void OnEnter()
+    void OnEnter(void* context)
     {
         // Create test hierarchy
         Entity root1 = CreateEntity()
@@ -213,21 +213,23 @@ int main()
         SystemContext systemContext{};
         void* context = static_cast<void*>(&systemContext);
         
-        sceneManager->TryTransitionScene("Main Scene");
+        sceneManager->TryRequestSceneTransition("Main Scene");
+        sceneManager->Internal_TryTransitionIfRequested(nullptr);
         systemContext.deltaTime = 1.0f;
         systemContext.scene = sceneManager->GetCurrentScene();
         for (size_t i{0}; i < 5; ++i)
         {
-            sceneManager->TryProcess(context);
-            sceneManager->TryProcessPhysics(context);
-            sceneManager->TryProcessEntityCleanup();
+            sceneManager->Internal_TryProcess(context);
+            sceneManager->Internal_TryProcessPhysics(context);
+            sceneManager->Internal_TryProcessEntityCleanup();
         }
-        sceneManager->TryTransitionScene("Test Scene");
+        sceneManager->TryRequestSceneTransition("Test Scene");
+        sceneManager->Internal_TryTransitionIfRequested(nullptr);
         for (size_t i{0}; i < 5; ++i)
         {
-            sceneManager->TryProcess(context);
-            sceneManager->TryProcessPhysics(context);
-            sceneManager->TryProcessEntityCleanup();
+            sceneManager->Internal_TryProcess(context);
+            sceneManager->Internal_TryProcessPhysics(context);
+            sceneManager->Internal_TryProcessEntityCleanup();
         }
     }
     catch (std::exception ex)

@@ -22,26 +22,72 @@ namespace velecs::ecs {
 
 // Public Methods
 
-bool SceneManager::TryTransitionScene(const Uuid& uuid)
-{
-    Scene* scenePtr{nullptr};
-    if (!_scenes.TryGetRef(uuid, scenePtr)) return false;
-    else return TryTransitionScene(scenePtr);
-}
-
-bool SceneManager::TryTransitionScene(const std::string& name)
+bool SceneManager::TryRequestSceneTransition(const Uuid& uuid)
 {
     Scene* scene{nullptr};
-    if (!_scenes.TryGetRef(name, scene)) return false;
-    else return TryTransitionScene(scene);
+    if (_scenes.TryGetRef(uuid, scene)) return TryRequestSceneTransition(scene);
+    else return false;
 }
 
-bool SceneManager::TryReloadCurrentScene()
+bool SceneManager::TryRequestSceneTransition(const std::string& name)
 {
-    return TryTransitionScene(_currentScene);
+    Scene* scene{nullptr};
+    if (_scenes.TryGetRef(name, scene)) return TryRequestSceneTransition(scene);
+    else return false;
 }
 
-bool SceneManager::TryProcess(void* context)
+bool SceneManager::TryRequestSceneTransition(Scene* const scene)
+{
+    if (!scene)
+    {
+        std::cerr << "[WARNING] Scene transition requested to a nullptr scene." << std::endl;
+        return false;
+    }
+        
+    if (_targetScene)
+        std::cerr <<
+            "[WARNING] Scene transition requested but another transition is already pending. Overriding target scene." << std::endl;
+
+    _targetScene = scene;
+    return true;
+}
+
+bool SceneManager::TryRequestCurrentSceneReload()
+{
+    if (_currentScene)
+    {
+        return TryRequestSceneTransition(_currentScene);
+    }
+    else
+    {
+        std::cerr << "[WARNING] Scene reload requested but no scene is currently active." << std::endl;
+        return false;
+    }
+}
+
+/// #############################################################
+/// ### DO NOT CALL - ENGINE-ONLY FUNCTIONS #####################
+/// #############################################################
+
+bool SceneManager::Internal_TryTransitionIfRequested(void* context)
+{
+    // No transition requested
+    if (!_targetScene) return false;
+
+    // Cleanup current scene if one exists
+    if (_currentScene != nullptr) _currentScene->Cleanup(context);
+
+    // Transition to target scene
+    _currentScene = _targetScene;
+    _targetScene = nullptr;
+
+    // Initialize the new scene with context
+    _currentScene->Init(context);
+    
+    return true;
+}
+
+bool SceneManager::Internal_TryProcess(void* context)
 {
     auto scene = GetCurrentScene();
     if (scene == nullptr) return false;
@@ -50,7 +96,7 @@ bool SceneManager::TryProcess(void* context)
     return true;
 }
 
-bool SceneManager::TryProcessPhysics(void* context)
+bool SceneManager::Internal_TryProcessPhysics(void* context)
 {
     auto scene = GetCurrentScene();
     if (scene == nullptr) return false;
@@ -59,7 +105,7 @@ bool SceneManager::TryProcessPhysics(void* context)
     return true;
 }
 
-bool SceneManager::TryProcessGUI(void* context)
+bool SceneManager::Internal_TryProcessGUI(void* context)
 {
     auto scene = GetCurrentScene();
     if (scene == nullptr) return false;
@@ -68,7 +114,7 @@ bool SceneManager::TryProcessGUI(void* context)
     return true;
 }
 
-bool SceneManager::TryProcessEntityCleanup()
+bool SceneManager::Internal_TryProcessEntityCleanup()
 {
     auto scene = GetCurrentScene();
     if (scene == nullptr) return false;
@@ -84,20 +130,5 @@ bool SceneManager::TryProcessEntityCleanup()
 // Private Fields
 
 // Private Methods
-
-bool SceneManager::TryTransitionScene(Scene* const scene)
-{
-    if (scene == nullptr) return false;
-
-    if (_currentScene != nullptr)
-    {
-        _currentScene->Cleanup();
-    }
-
-    _currentScene = scene;
-    _currentScene->Init();
-
-    return true;
-}
 
 } // namespace velecs::ecs

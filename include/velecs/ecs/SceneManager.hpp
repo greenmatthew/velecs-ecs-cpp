@@ -100,42 +100,49 @@ public:
         return uuid;
     }
 
-    /// @brief Attempts to transition to a scene identified by UUID.
+    /// @brief Requests a scene transition to the scene identified by UUID.
     /// @param uuid UUID of the target scene to transition to.
-    /// @return true if the scene was found and transition was successful, false otherwise.
-    /// @details If a current scene is active, its OnExit() method is called before transition.
-    ///          The target scene's OnEnter() method is called after the transition.
-    ///          If the target scene is the same as the current scene, OnExit/OnEnter are still called.
-    /// @note This method will not throw exceptions - check return value for success.
-    bool TryTransitionScene(const Uuid& uuid);
+    /// @return true if the scene was found and transition was queued, false otherwise.
+    /// @details Queues a scene transition request. The actual transition will occur during
+    ///          the next call to EngineAccessOnlyTryTransitionIfRequested(). If a transition
+    ///          is already pending, this will override the previous request with a warning.
+    bool TryRequestSceneTransition(const Uuid& uuid);
 
-    /// @brief Attempts to transition to a scene identified by name.
+    /// @brief Requests a scene transition to the scene identified by name.
     /// @param name Name of the target scene to transition to.
-    /// @return true if the scene was found and transition was successful, false otherwise.
-    /// @details If a current scene is active, its OnExit() method is called before transition.
-    ///          The target scene's OnEnter() method is called after the transition.
-    ///          If the target scene is the same as the current scene, OnExit/OnEnter are still called.
-    /// @note This method will not throw exceptions - check return value for success.
-    bool TryTransitionScene(const std::string& name);
+    /// @return true if the scene was found and transition was queued, false otherwise.
+    /// @details Queues a scene transition request. The actual transition will occur during
+    ///          the next call to EngineAccessOnlyTryTransitionIfRequested(). If a transition
+    ///          is already pending, this will override the previous request with a warning.
+    bool TryRequestSceneTransition(const std::string& name);
+
+    /// @brief Requests a scene transition to the specified scene.
+    /// @param scene Pointer to the target scene to transition to.
+    /// @return true if the scene is valid and transition was queued, false otherwise.
+    /// @details Queues a scene transition request. The actual transition will occur during
+    ///          the next call to EngineAccessOnlyTryTransitionIfRequested(). If a transition
+    ///          is already pending, this will override the previous request with a warning.
+    bool TryRequestSceneTransition(Scene* const scene);
 
     /// @brief Attempts to reload the currently active scene.
     /// @return true if there was an active scene to reload, false if no scene is currently active.
-    /// @details Effectively calls OnExit() followed by OnEnter() on the current scene.
+    /// @details Queues a reload request for the current scene. Effectively queues OnExit() 
+    ///          followed by OnEnter() to be called during the next engine update.
     ///          This is useful for resetting scene state or reloading after configuration changes.
     ///          If no scene is currently active, this method does nothing and returns false.
-    /// @note The scene instance itself is not recreated - only the lifecycle methods are called.
-    bool TryReloadCurrentScene();
-
-    bool TryProcess(void* context);
-    bool TryProcessPhysics(void* context);
-    bool TryProcessGUI(void* context);
-    bool TryProcessEntityCleanup();
+    bool TryRequestCurrentSceneReload();
 
     /// @brief Gets the currently active scene.
-    /// @return Pointer to the active scene, or nullptr if no scene is currently active.
+    /// @return Pointer to the active scene, or nullptr if no scene is currently active.  
     /// @details The returned pointer is safe to use as long as the SceneManager exists
     ///          and no scene transitions occur. Do not store this pointer long-term.
-    inline Scene* GetCurrentScene() const { return _currentScene; }
+    inline Scene* GetCurrentScene() { return _currentScene; }
+
+    /// @brief Gets the currently active scene (const version).
+    /// @return Const pointer to the active scene, or nullptr if no scene is currently active.
+    /// @details The returned pointer is safe to use as long as the SceneManager exists
+    ///          and no scene transitions occur. Do not store this pointer long-term.
+    inline const Scene* GetCurrentScene() const { return _currentScene; }
 
     /// @brief Checks if there is currently an active scene.
     /// @return true if a scene is currently active, false otherwise.
@@ -149,6 +156,42 @@ public:
     /// @brief Checks if the scene registry is empty.
     /// @return true if no scenes are registered, false otherwise.
     inline bool IsEmpty() const { return _scenes.Empty(); }
+    
+
+    /// #############################################################
+    /// ### DO NOT CALL - ENGINE-ONLY FUNCTIONS #####################
+    /// #############################################################
+
+    /// @brief Processes any pending scene transition requests. FOR ENGINE USE ONLY.
+    /// @param context Execution context data passed to the scene's OnEnter method.
+    /// @return true if a transition was processed, false if no transition was pending.
+    /// @details This method should ONLY be called by the main engine update loop.
+    ///          It handles the actual scene transition by calling OnExit on the current scene
+    ///          (if any) and OnEnter on the target scene with the provided context.
+    ///          This allows vital data like deltaTime and manager references to be passed to scenes
+    ///          OnExit and OnEnter implementations.
+    /// @warning This method must be called at the beginning of the engine update loop,
+    ///          before any scene processing methods.
+    bool Internal_TryTransitionIfRequested(void* context);
+
+    /// @brief Processes all enabled systems in the main logic phase for the current scene.
+    /// @param context Execution context data passed to each system.
+    /// @return true if processing succeeded, false if no active scene.
+    bool Internal_TryProcess(void* context);
+
+    /// @brief Processes all enabled systems in the physics phase for the current scene.
+    /// @param context Execution context data passed to each system.
+    /// @return true if processing succeeded, false if no active scene.
+    bool Internal_TryProcessPhysics(void* context);
+
+    /// @brief Processes all enabled systems in the GUI rendering phase for the current scene.
+    /// @param context Execution context data passed to each system.
+    /// @return true if processing succeeded, false if no active scene.
+    bool Internal_TryProcessGUI(void* context);
+
+    /// @brief Processes cleanup and entity destruction for the current scene.
+    /// @return true if processing succeeded, false if no active scene.
+    bool Internal_TryProcessEntityCleanup();
 
 protected:
     // Protected Fields
@@ -160,10 +203,9 @@ private:
 
     NameUuidRegistry<Scene> _scenes;
     Scene* _currentScene{nullptr};
+    Scene* _targetScene{nullptr};
 
     // Private Methods
-
-    bool TryTransitionScene(Scene* const scene);
 };
 
 } // namespace velecs::ecs

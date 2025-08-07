@@ -12,13 +12,14 @@
 
 #include "velecs/ecs/TypeConstraints.hpp"
 
-#include <velecs/common/Uuid.hpp>
-using velecs::common::Uuid;
 #include <velecs/common/NameUuidRegistry.hpp>
+#include <velecs/common/Uuid.hpp>
 using velecs::common::NameUuidRegistry;
+using velecs::common::Uuid;
 
-#include <string>
+#include <algorithm>
 #include <memory>
+#include <string>
 
 namespace velecs::ecs {
 

@@ -140,6 +140,19 @@ protected:
 
     // Protected Methods
 
+    /// @brief Constructor with manager and default name.
+    /// @param manager Pointer to the managing ObjectManager.
+    inline Object(ObjectManager* const manager)
+        : Object(manager, ConstructorKey{}) {}
+
+    /// @brief Constructor with manager and custom name.
+    /// @param manager Pointer to the managing ObjectManager.
+    /// @param name The initial name for this object.
+    inline Object(ObjectManager* const manager, const std::string& name)
+        : Object(manager, name, ConstructorKey{}) {}
+    
+    inline ObjectManager* const GetManager() const { return _manager; }
+
 private:
     // Private Fields
 

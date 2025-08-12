@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "velecs/ecs/Object.hpp"
 #include "velecs/ecs/Tags/DestroyTag.hpp"
 #include "velecs/ecs/TypeConstraints.hpp"
 
@@ -42,7 +43,7 @@ class System;
 /// hooks (OnEnter/OnExit) for setup and cleanup, and handle entity creation, component
 /// management, and system processing. This design enables easy scene transitions and
 /// modular game architecture.
-class Scene {
+class Scene : public Object {
     friend class SceneManager;
 
 private:
@@ -59,7 +60,7 @@ public:
     /// @brief Default capacity for system storage allocation.
     /// @details Scenes reserve this many system slots by default to avoid reallocations
     ///          during typical system registration.
-    static const size_t DEFAULT_SYSTEM_CAPACITY = 128;
+    static const size_t DEFAULT_SYSTEM_CAPACITY = 128UL;
 
     // Constructors and Destructors
 
@@ -74,22 +75,19 @@ public:
     };
 
     /// @brief Constructor for scene creation with custom system capacity.
+    /// @param manager Pointer to the managing ObjectManager.
     /// @param name The name identifier for this scene.
     /// @param systemCapacity Number of systems to reserve space for during initialization.
     /// @param key Constructor access key to control instantiation.
     /// @details Creates a scene with pre-allocated system storage to avoid reallocations
     ///          during system registration. Use this constructor for scenes that will
     ///          have a known large number of systems for optimal performance.
-    Scene(const std::string& name, size_t systemCapacity, ConstructorKey key);
-
-    /// @brief Primary constructor for scene creation with default system capacity.
-    /// @param name The name identifier for this scene.
-    /// @param key Constructor access key to control instantiation.
-    /// @details Creates a scene with default system storage capacity (DEFAULT_SYSTEM_CAPACITY).
-    ///          This constructor delegates to the capacity-based constructor and is suitable
-    ///          for most scenes. For scenes with many systems, consider using the capacity
-    ///          constructor for better performance.
-    Scene(const std::string& name, ConstructorKey key);
+    Scene(
+        ObjectManager* const manager,
+        const std::string& name,
+        ConstructorKey,
+        size_t systemCapacity = DEFAULT_SYSTEM_CAPACITY
+    );
 
     /// @brief Deleted default constructor.
     /// @details Scenes must always have a name identifier.
@@ -101,8 +99,6 @@ public:
     virtual ~Scene() = 0;
 
     // Public Methods
-
-    inline std::string GetName() const { return _name; }
 
     /// @brief Called when the scene becomes active.
     /// @details Override this method in derived classes to perform scene-specific
@@ -483,7 +479,6 @@ protected:
 private:
     // Private Fields
     
-    std::string _name;                                    ///< @brief The name identifier for this scene.
     std::optional<entt::registry> _registry;              ///< @brief The EnTT registry managing entities and components for this scene.
 
     /// @brief Ordered list of system type indices for deterministic iteration.

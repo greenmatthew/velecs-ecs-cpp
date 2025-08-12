@@ -60,7 +60,7 @@ public:
     /// @brief Default capacity for system storage allocation.
     /// @details Scenes reserve this many system slots by default to avoid reallocations
     ///          during typical system registration.
-    static const size_t DEFAULT_SYSTEM_CAPACITY = 128UL;
+    static const size_t DEFAULT_SYSTEM_CAPACITY = 128;
 
     // Constructors and Destructors
 
@@ -82,12 +82,17 @@ public:
     /// @details Creates a scene with pre-allocated system storage to avoid reallocations
     ///          during system registration. Use this constructor for scenes that will
     ///          have a known large number of systems for optimal performance.
-    Scene(
-        ObjectManager* const manager,
-        const std::string& name,
-        ConstructorKey,
-        size_t systemCapacity = DEFAULT_SYSTEM_CAPACITY
-    );
+    Scene(ObjectManager* const manager, const std::string& name, size_t systemCapacity, ConstructorKey key);
+
+    /// @brief Primary constructor for scene creation with default system capacity.
+    /// @param manager Pointer to the managing ObjectManager.
+    /// @param name The name identifier for this scene.
+    /// @param key Constructor access key to control instantiation.
+    /// @details Creates a scene with default system storage capacity (DEFAULT_SYSTEM_CAPACITY).
+    ///          This constructor delegates to the capacity-based constructor and is suitable
+    ///          for most scenes. For scenes with many systems, consider using the capacity
+    ///          constructor for better performance.
+    Scene(ObjectManager* const manager, const std::string& name, ConstructorKey key);
 
     /// @brief Deleted default constructor.
     /// @details Scenes must always have a name identifier.

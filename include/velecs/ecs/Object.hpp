@@ -1,6 +1,6 @@
 /// @file    Object.hpp
 /// @author  Matthew Green
-/// @date    2025-08-07 15:53:31
+/// @date    2025-08-09 12:42:26
 /// 
 /// @section LICENSE
 /// 
@@ -10,13 +10,15 @@
 
 #pragma once
 
-#include <entt/entt.hpp>
+#include <velecs/common/Uuid.hpp>
+using velecs::common::Uuid;
 
 #include <string>
-#include <optional>
-#include <functional>
+#include <iostream>
 
 namespace velecs::ecs {
+
+class ObjectManager;
 
 /// @class Object
 /// @brief Brief description.
@@ -28,126 +30,129 @@ public:
 
     // Public Fields
 
-    static const Object INVALID;
-
     // Constructors and Destructors
 
-    /// @brief Default constructor.
-    Object() = default;
-    
-    /// @brief Copy constructor.
-    /// @param other The object to copy from.
-    Object(const Object& other) = default;
+    /// @brief Constructor access key to enforce controlled object creation.
+    class ConstructorKey {
+        friend class Object;
+        ConstructorKey() = default;
+    public:
+        virtual ~ConstructorKey() = default;
+    };
 
-    /// @brief Move constructor.
-    /// @param other The object to move from.
-    Object(Object&& other) noexcept = default;
+    /// @brief Constructor with manager and default name.
+    /// @param manager Pointer to the managing ObjectManager.
+    /// @param key Constructor access key for controlled instantiation.
+    inline Object(ObjectManager* const manager, ConstructorKey)
+        : _manager(manager) {}
 
-    /// @brief Copy assignment operator.
-    /// @param other The object to copy from.
-    /// @return Reference to this object.
-    Object& operator=(const Object& other) = default;
+    /// @brief Constructor with manager and custom name.
+    /// @param manager Pointer to the managing ObjectManager.
+    /// @param name The initial name for this object.
+    /// @param key Constructor access key for controlled instantiation.
+    inline Object(ObjectManager* const manager, const std::string& name, ConstructorKey)
+        : _manager(manager), _name(name) {}
 
-    /// @brief Move assignment operator.
-    /// @param other The object to move from.
-    /// @return Reference to this object.
-    Object& operator=(Object&& other) noexcept = default;
-    
-    /// @brief Default destructor.
+    /// @brief Creates an object of the specified type with perfect forwarding of constructor arguments.
+    /// @tparam ObjectT The type of object to create. Must inherit from Object.
+    /// @tparam Args The types of constructor arguments (automatically deduced).
+    /// @param manager Pointer to the object manager.
+    /// @param args Constructor arguments to forward to the ObjectT constructor.
+    /// @return Pointer to the newly created object of type ObjectT.
+    /// @details Uses perfect forwarding to support any constructor signature.
+    ///          The manager parameter is always passed first, followed by the forwarded args,
+    ///          and finally the ConstructorKey for access control.
+    template<typename ObjectT, typename... Args>
+    static ObjectT* Create(ObjectManager* const manager, Args&&... args)
+    {
+        static_assert(std::is_base_of_v<Object, ObjectT>, "ObjectT must inherit from Object");
+        
+        auto objStorage = std::make_unique<ObjectT>(manager, std::forward<Args>(args)..., ConstructorKey{});
+        auto obj = objStorage.get();
+        auto uuid = Uuid::GenerateRandom();
+        obj->_uuid = uuid;
+        manager->Register<ObjectT>(std::move(objStorage));
+        return obj;
+    }
+
+    /// @brief Deleted default constructor.
+    /// @details Objects must always be associated with a manager.
+    Object() = delete;
+
+    /// @brief Virtual destructor for proper cleanup of derived classes.
     virtual ~Object() = default;
 
     // Public Methods
 
-    /// @brief Equality comparison operator.
-    /// @param other The object to compare with.
-    /// @return True if both objects reference the same registry and handle.
-    bool operator==(const Object& other) const;
-
-    /// @brief Inequality comparison operator.
-    /// @param other The object to compare with.
-    /// @return True if objects reference different registries or handles.
-    bool operator!=(const Object& other) const;
+    /// @brief Assignment operator.
+    /// @param other The object to copy from.
+    /// @return Reference to this object after assignment.
+    Object& operator=(const Object& other) noexcept;
 
     /// @brief Boolean conversion operator.
     /// @return True if the object is valid, false otherwise.
     /// @details Allows objects to be used in conditional expressions.
     inline explicit operator bool() const { return IsValid(); }
 
+    /// @brief Equality comparison operator.
+    /// @param other The object to compare with.
+    /// @return True if objects have the same UUID and manager, false otherwise.
+    bool operator==(const Object& other) const;
+
+    /// @brief Inequality comparison operator.
+    /// @param other The object to compare with.
+    /// @return True if objects have different UUIDs or managers, false otherwise.
+    bool operator!=(const Object& other) const;
+
     /// @brief Gets the hash code for this object.
-    /// @return Hash value based on the registry pointer and entity handle.
+    /// @return Hash value based on the object's UUID.
     /// @details Used for storing objects in hash-based containers.
     size_t GetHashCode() const;
 
+    /// @brief Gets a string representation of this object.
+    /// @return String containing object name and UUID.
+    std::string ToString() const;
+
     /// @brief Checks if this object is valid.
-    /// @return True if the object has a valid registry and handle, false otherwise.
-    /// @details An object is considered valid if it has a registry reference and
-    ///          the handle is valid within that registry.
+    /// @return True if the object has a valid manager and UUID, false otherwise.
     bool IsValid() const;
 
-    
-    /// @brief Internal tag used to mark objects for deferred destruction.
-    /// @details This tag is applied to objects when RequestDestroy() is called.
-    ///          The destruction system processes all objects with this tag during
-    ///          cleanup phases, allowing for safe deferred destruction without
-    ///          immediate registry modifications during processing loops.
-    struct RequestDestructionTag {};
-    
-    /// @brief Marks this object for deferred destruction.
-    /// @details Adds a RequestDestructionTag to this object, scheduling it for
-    ///          destruction during the next cleanup phase. This allows safe
-    ///          destruction requests during system processing without immediately
-    ///          invalidating iterators or causing race conditions.
-    ///          Only valid objects can be marked for destruction.
-    void RequestDestroy();
+    /// @brief Gets the object's UUID.
+    /// @return The unique identifier for this object.
+    inline const Uuid& GetUuid() const { return _uuid; }
 
-    /// @brief Gets the name of this object.
-    /// @return The current name of the object.
-    const std::string& GetName() const;
+    /// @brief Gets the object's name.
+    /// @return The current name of this object.
+    inline const std::string& GetName() const { return _name; }
 
-    /// @brief Sets the name of this object.
+    /// @brief Sets the object's name.
     /// @param name The new name to assign to this object.
-    /// @details Only valid objects can have their names changed.
-    ///          Invalid objects will ignore name changes.
-    void SetName(const std::string& name);
+    inline void SetName(const std::string& name) { _name = name; }
+
+    /// @brief Stream output operator for easy debugging and logging.
+    /// @param os Output stream to write to.
+    /// @param obj Object to output.
+    /// @return Reference to the output stream.
+    friend std::ostream& operator<<(std::ostream& os, const Object& obj);
 
 protected:
     // Protected Fields
 
     // Protected Methods
 
-    /// @brief Protected constructor for creating valid objects.
-    /// @param registry Pointer to the EnTT registry.
-    /// @param handle The entity handle within the registry.
-    /// @param name The initial name for this object.
-    /// @details This constructor is protected to ensure only derived classes
-    ///          and friend classes can create valid objects.
-    Object(entt::registry* registry, entt::entity handle, const std::string& name);
-
 private:
     // Private Fields
 
-    entt::registry* _registry{nullptr};     ///< @brief Pointer to the EnTT registry
-    entt::entity _handle{entt::null};       ///< @brief Entity handle within the registry
-    std::string _name{"Invalid Object"};    ///< @brief Human-readable name for this object
+    ObjectManager* _manager{nullptr}; ///< @brief Pointer to the managing ObjectManager
+    Uuid _uuid{Uuid::INVALID};        ///< @brief Unique identifier for this object
+    std::string _name{"Object"};      ///< @brief Human-readable name for this object
 
     // Private Methods
-
-    /// @brief Immediately destroys this object and invalidates it.
-    /// @details Removes the object from the registry and resets this instance
-    ///          to an invalid state. Unlike RequestDestroy(), this performs
-    ///          immediate destruction and should be used carefully to avoid
-    ///          iterator invalidation during processing loops.
-    ///          Safe to call on invalid objects (no-op).
-    void Destroy();
-
-    /// @brief Resets this object to an invalid state.
-    /// @details Clears the registry pointer, sets handle to null, and resets
-    ///          the name to "Invalid Object". This is used internally during
-    ///          destruction and error handling to ensure consistent invalid state.
-    void Reset();
 };
 
 } // namespace velecs::ecs
+
+
 
 /// @brief Standard library specialization for hashing Object instances.
 namespace std {

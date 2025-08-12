@@ -1,6 +1,8 @@
 #include <iostream>
 
 #include "velecs/ecs/Common.hpp"
+#include "velecs/ecs/ObjectManager.hpp"
+#include "velecs/ecs/SceneManager.hpp"
 using namespace velecs::ecs;
 
 #include <velecs/math/Vec3.hpp>
@@ -206,6 +208,10 @@ int main()
 {
     try
     {
+        auto objManager = std::make_unique<ObjectManager>();
+        Object* obj = Object::Create<Object>(objManager.get(), "Test Object");
+        std::cout << obj->GetName() << std::endl;
+
         const auto sceneManager = std::make_unique<SceneManager>();
         sceneManager->RegisterScene<MainScene>("Main Scene");
         sceneManager->RegisterScene<TestScene>("Test Scene");

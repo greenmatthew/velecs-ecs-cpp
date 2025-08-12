@@ -1,6 +1,6 @@
-/// @file    Object.cpp
+/// @file    ObjectManager.cpp
 /// @author  Matthew Green
-/// @date    2025-08-09 12:52:23
+/// @date    2025-08-12 11:43:11
 /// 
 /// @section LICENSE
 /// 
@@ -8,10 +8,7 @@
 /// Unauthorized copying of this file, via any medium is strictly prohibited
 /// Proprietary and confidential
 
-#include "velecs/ecs/Object.hpp"
-// #include "velecs/ecs/ObjectManager.hpp"
-
-#include <memory>
+#include "velecs/ecs/ObjectManager.hpp"
 
 namespace velecs::ecs {
 
@@ -21,14 +18,14 @@ namespace velecs::ecs {
 
 // Public Methods
 
-Object& Object::operator=(const Object& other) noexcept
+size_t ObjectManager::GetTotalCount() const
 {
-    if (this != &other) {
-        _manager = other._manager;
-        _uuid = other._uuid;
-        _name = other._name;
+    size_t total = 0;
+    for (const auto& [type, objMap] : _objects)
+    {
+        total += objMap.size();
     }
-    return *this;
+    return total;
 }
 
 // Protected Fields

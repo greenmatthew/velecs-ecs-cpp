@@ -18,6 +18,7 @@
 
 namespace velecs::ecs {
 
+class Entity;
 class Scene;
 
 /// @class Component
@@ -48,7 +49,7 @@ public:
 
     // Public Methods
 
-    Entity GetOwner() const;
+    Entity* GetOwner() const;
 
 protected:
     // Protected Fields
@@ -58,8 +59,7 @@ protected:
 private:
     // Private Fields
 
-    Scene* _scene{nullptr};
-    entt::entity _handle{entt::null};
+    Entity* _owner{nullptr};
 
     // Private Methods
 };

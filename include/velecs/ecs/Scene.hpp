@@ -28,7 +28,6 @@ using velecs::common::Context;
 namespace velecs::ecs {
 
 class SceneManager;
-
 class Entity;
 class EntityBuilder;
 class Component;
@@ -129,7 +128,7 @@ public:
     /// @brief Checks if an entity's handle is valid within this scene's registry.
     /// @param entity The entity to validate.
     /// @return True if the entity's handle is not null and exists in this scene's registry, false otherwise.
-    bool IsEntityHandleValid(const Entity entity);
+    bool IsEntityHandleValid(const Entity* const entity);
 
     /// @brief Creates a new entity within this scene.
     /// @return An EntityBuilder for configuring the newly created entity.
@@ -148,9 +147,9 @@ public:
     /// @param entity The entity to check.
     /// @return True if the entity has the specified tag, false otherwise.
     template<typename TagType, typename = IsTag<TagType>>
-    bool HasTag(const Entity entity) const
+    bool HasTag(const Entity* const entity) const
     {
-        return GetRegistry().all_of<TagType>(entity._handle);
+        return GetRegistry().all_of<TagType>(entity->_handle);
     }
 
     /// @brief Attempts to add a tag of the specified type to an entity.
@@ -159,10 +158,10 @@ public:
     /// @return True if the tag was successfully added, false if the entity already had the tag.
     /// @details Safe to call even if the entity already has the specified tag.
     template<typename TagType, typename = IsTag<TagType>>
-    bool TryAddTag(const Entity entity)
+    bool TryAddTag(Entity* const entity)
     {
         if (HasTag<TagType>(entity)) return false;
-        GetRegistry().emplace<TagType>(entity._handle);
+        GetRegistry().emplace<TagType>(entity->_handle);
         return true;
     }
 
@@ -172,9 +171,9 @@ public:
     /// @return True if the tag was successfully removed, false if the entity didn't have the tag.
     /// @details Safe to call even if the entity doesn't have the specified tag.
     template<typename TagType, typename = IsTag<TagType>>
-    bool TryRemoveTag(const Entity entity)
+    bool TryRemoveTag(Entity* const entity)
     {
-        return GetRegistry().remove<TagType>(entity._handle) > 0;
+        return GetRegistry().remove<TagType>(entity->_handle) > 0;
     }
 
 
@@ -188,9 +187,9 @@ public:
     /// @param entity The entity to check.
     /// @return True if the entity has the specified component, false otherwise.
     template<typename ComponentType, typename = IsComponent<ComponentType>>
-    bool HasComponent(const Entity entity) const
+    bool HasComponent(const Entity* const entity) const
     {
-        return GetRegistry().all_of<ComponentType>(entity._handle);
+        return GetRegistry().all_of<ComponentType>(entity->_handle);
     }
 
     /// @brief Tries to get a mutable component from an entity.
@@ -200,10 +199,10 @@ public:
     /// @return True if the component was found, false otherwise.
     /// @details This non-const overload allows modification of the retrieved component.
     template<typename ComponentType, typename = IsComponent<ComponentType>>
-    bool TryGetComponent(const Entity entity, ComponentType*& outComponent)
+    bool TryGetComponent(const Entity* const entity, ComponentType*& outComponent)
     {
-        assert(entity.IsValid() && "Entity must be valid");
-        outComponent = GetRegistry().try_get<ComponentType>(entity._handle);
+        assert(entity && entity->IsValid() && "Entity must be valid");
+        outComponent = GetRegistry().try_get<ComponentType>(entity->_handle);
         return (outComponent != nullptr);
     }
 
@@ -214,10 +213,10 @@ public:
     /// @return True if the component was found, false otherwise.
     /// @details This const overload provides read-only access to the retrieved component.
     template<typename ComponentType, typename = IsComponent<ComponentType>>
-    bool TryGetComponent(const Entity entity, const ComponentType*& outComponent) const
+    bool TryGetComponent(const Entity* const entity, const ComponentType*& outComponent) const
     {
-        assert(entity.IsValid() && "Entity must be valid");
-        outComponent = GetRegistry().try_get<ComponentType>(entity._handle);
+        assert(entity && entity->IsValid() && "Entity must be valid");
+        outComponent = GetRegistry().try_get<ComponentType>(entity->_handle);
         return (outComponent != nullptr);
     }
 
@@ -229,18 +228,17 @@ public:
     /// @details The component is default-constructed and its scene/handle are automatically set.
     ///          Safe to call even if the entity already has the specified component type.
     template<typename ComponentType, typename = IsComponent<ComponentType>>
-    bool TryAddComponent(const Entity entity, ComponentType*& outComponent)
+    bool TryAddComponent(Entity* const entity, ComponentType*& outComponent)
     {
-        assert(entity.IsValid() && "Entity must be valid");
+        assert(entity && entity->IsValid() && "Entity must be valid");
         if (HasComponent<ComponentType>(entity))
         {
             outComponent = nullptr;
             return false;
         }
 
-        ComponentType& comp = GetRegistry().emplace<ComponentType>(entity._handle);
-        comp._scene = this;
-        comp._handle = entity._handle;
+        ComponentType& comp = GetRegistry().emplace<ComponentType>(entity->_handle);
+        comp._owner = entity;
         outComponent = &comp;
         return true;
     }
@@ -254,18 +252,17 @@ public:
     ///          This const overload provides read-only access to the newly added component.
     ///          Safe to call even if the entity already has the specified component type.
     template<typename ComponentType, typename = IsComponent<ComponentType>>
-    bool TryAddComponent(const Entity entity, const ComponentType*& outComponent)
+    bool TryAddComponent(Entity* const entity, const ComponentType*& outComponent)
     {
-        assert(entity.IsValid() && "Entity must be valid");
+        assert(entity && entity->IsValid() && "Entity must be valid");
         if (HasComponent<ComponentType>(entity))
         {
             outComponent = nullptr;
             return false;
         }
 
-        ComponentType& comp = GetRegistry().emplace<ComponentType>(entity._handle);
-        comp._scene = this;
-        comp._handle = entity._handle;
+        ComponentType& comp = GetRegistry().emplace<ComponentType>(entity->_handle);
+        comp._owner = entity;
         outComponent = &comp;
         return true;
     }
@@ -280,18 +277,17 @@ public:
     /// @details The component is constructed with the provided arguments and its scene/handle are automatically set.
     ///          Safe to call even if the entity already has the specified component type.
     template<typename ComponentType, typename = IsComponent<ComponentType>, typename... Args>
-    bool TryAddComponent(const Entity entity, ComponentType*& outComponent, Args &&...args)
+    bool TryAddComponent(Entity* const entity, ComponentType*& outComponent, Args &&...args)
     {
-        assert(entity.IsValid() && "Entity must be valid");
+        assert(entity && entity->IsValid() && "Entity must be valid");
         if (HasComponent<ComponentType>(entity))
         {
             outComponent = nullptr;
             return false;
         }
 
-        ComponentType& comp = GetRegistry().emplace<ComponentType>(entity._handle, std::forward<Args>(args)...);
-        comp._scene = this;
-        comp._handle = entity._handle;
+        ComponentType& comp = GetRegistry().emplace<ComponentType>(entity->_handle, std::forward<Args>(args)...);
+        comp._owner = entity;
         outComponent = &comp;
         return true;
     }
@@ -307,18 +303,17 @@ public:
     ///          This const overload provides read-only access to the newly added component.
     ///          Safe to call even if the entity already has the specified component type.
     template<typename ComponentType, typename = IsComponent<ComponentType>, typename... Args>
-    bool TryAddComponent(const Entity entity, const ComponentType*& outComponent, Args &&...args)
+    bool TryAddComponent(Entity* const entity, const ComponentType*& outComponent, Args &&...args)
     {
-        assert(entity.IsValid() && "Entity must be valid");
+        assert(entity && entity->IsValid() && "Entity must be valid");
         if (HasComponent<ComponentType>(entity))
         {
             outComponent = nullptr;
             return false;
         }
 
-        ComponentType& comp = GetRegistry().emplace<ComponentType>(entity._handle, std::forward<Args>(args)...);
-        comp._scene = this;
-        comp._handle = entity._handle;
+        ComponentType& comp = GetRegistry().emplace<ComponentType>(entity->_handle, std::forward<Args>(args)...);
+        comp._owner = entity;
         outComponent = &comp;
         return true;
     }
@@ -329,10 +324,11 @@ public:
     /// @return True if the component was successfully removed, false if the entity didn't have the component.
     /// @details Safe to call even if the entity doesn't have the specified component type.
     template<typename ComponentType, typename = IsComponent<ComponentType>>
-    bool TryRemoveComponent(const Entity entity)
+    bool TryRemoveComponent(Entity* const entity)
     {
+        assert(entity && entity->IsValid() && "Entity must be valid");
         if (!HasComponent<ComponentType>(entity)) return false;
-        GetRegistry().remove<ComponentType>(entity._handle);
+        GetRegistry().remove<ComponentType>(entity->_handle);
         return true;
     }
     
@@ -438,8 +434,9 @@ public:
     {
         auto& registry = GetRegistry();
         registry.view<Component>().each([this, &callback](entt::entity entity, TagOrComponent& tagOrComp) {
-            Entity wrappedEntity{this, entity};
-            callback(wrappedEntity, tagOrComp);
+            Entity* entity = TryGetEntity(e);
+            assert(entity && "Should always be able to lookup entity via entt handle");
+            callback(entity, tagOrComp);
         });
     }
 
@@ -450,31 +447,34 @@ public:
         static_assert(sizeof...(TagsOrComponents) > 1, "Use single component Query overload for single component queries");
         
         GetRegistry().view<TagsOrComponents...>().each([this, callback = std::forward<Func>(callback)](entt::entity e, TagsOrComponents&... tagsOrComps) {
-            Entity entity{this, e};
+            Entity* entity = TryGetEntity(e);
+            assert(entity && "Should always be able to lookup entity via entt handle");
             callback(entity, tagsOrComps...);
         });
     }
 
     template<typename TagOrComponent>
-    void Query(std::function<void(Entity, TagOrComponent&)> callback)
+    void Query(std::function<void(Entity*, TagOrComponent&)> callback)
     {
         auto& registry = GetRegistry();
         auto view = registry.view<TagOrComponent>();
         
         for (auto entity : view) {
-            Entity wrappedEntity{this, entity};
-            TagOrComponent& tagOrComp = registry.get<TagOrComponent>(entity);
-            callback(wrappedEntity, tagOrComp);
+            Entity* entity = TryGetEntity(e);
+            assert(entity && "Should always be able to lookup entity via entt handle");
+            TagOrComponent& tagOrComp = registry.get<TagOrComponent>(entity->_handle);
+            callback(entity, tagOrComp);
         }
     }
 
     template<typename... TagsOrComponents>
-    void Query(std::function<void(Entity, TagsOrComponents&...)> callback)
+    void Query(std::function<void(Entity*, TagsOrComponents&...)> callback)
     {
         static_assert(sizeof...(TagsOrComponents) > 1, "Use single component Query overload for single component queries");
         
         GetRegistry().view<TagsOrComponents...>().each([this, &callback](entt::entity e, TagsOrComponents&... tagsOrComps) {
-            Entity entity{this, e};
+            Entity* entity = TryGetEntity(e);
+            assert(entity && "Should always be able to lookup entity via entt handle");
             callback(entity, tagsOrComps...);
         });
     }
@@ -484,10 +484,13 @@ protected:
 
     // Protected Methods
 
+    Entity* TryGetEntity(const entt::entity handle);
+
 private:
     // Private Fields
     
-    std::optional<entt::registry> _registry;              ///< @brief The EnTT registry managing entities and components for this scene.
+    std::optional<entt::registry> _registry; ///< @brief The EnTT registry managing entities and components for this scene.
+    std::unordered_map<entt::entity, Uuid> _entities;
 
     /// @brief Ordered list of system type indices for deterministic iteration.
     std::vector<SystemId> _systemsIterator;
@@ -553,7 +556,7 @@ private:
     /// @param entity The entity to destroy.
     /// @details Immediately removes the entity and all its components from the registry.
     ///          This is used internally by the cleanup system for deferred entity destruction.
-    void DestroyEntity(Entity entity);
+    void DestroyEntity(Entity* const entity);
 
     /// @brief Processes all enabled systems in the main logic phase.
     /// @param context Execution context data passed to each system (currently void* placeholder).

@@ -97,25 +97,25 @@ Mat4 Transform::GetWorldMatrix() const
     return cachedWorldMat;
 }
 
-bool Transform::TrySetParent(const Entity newParent)
+bool Transform::TrySetParent(Entity* const newParent)
 {
     // Only use a valid entity as a parent.
-    if (!newParent.IsValid()) return false;
+    if (!newParent || !newParent->IsValid()) return false;
 
-    const Entity owner = GetOwner();
+    Entity* const owner = GetOwner();
 
     // The new parent must be apart of the same scene.
-    if (owner.GetScene() != newParent.GetScene()) return false;
+    if (owner->GetScene() != newParent->GetScene()) return false;
 
-    assert(GetOwner().GetScene() == newParent.GetScene() && "Must use the same scene");
+    assert(GetOwner()->GetScene() == newParent->GetScene() && "Must use the same scene");
 
     // If its already the parent then no change needed.
     if (HasParent(newParent)) return true;
     
     // Remove from current parent's children list
-    if (_parent.IsValid())
+    if (_parent != nullptr && _parent->IsValid())
     {
-        auto& oldParentTransform = _parent.GetTransform();
+        auto& oldParentTransform = _parent->GetTransform();
         oldParentTransform._children.erase(
             std::remove(oldParentTransform._children.begin(), 
                        oldParentTransform._children.end(), owner),
@@ -127,9 +127,9 @@ bool Transform::TrySetParent(const Entity newParent)
     _parent = newParent;
     
     // Add to new parent's children list
-    if (_parent.IsValid())
+    if (_parent->IsValid())
     {
-        auto& newParentTransform = _parent.GetTransform();
+        auto& newParentTransform = _parent->GetTransform();
         // Check if we're already in the list (shouldn't happen, but safety first)
         if (std::find(newParentTransform._children.begin(), 
                      newParentTransform._children.end(), owner) 
@@ -142,39 +142,39 @@ bool Transform::TrySetParent(const Entity newParent)
     return true;
 }
 
-bool Transform::HasChild(const Entity child) const
+bool Transform::HasChild(const Entity* const child) const
 {
     return std::find(_children.begin(), _children.end(), child) != _children.end();
 }
 
-Entity Transform::TryGetChild(const size_t index) const
+Entity* Transform::TryGetChild(const size_t index) const
 {
-    if (index >= _children.size()) return Entity::INVALID;
+    if (index >= _children.size()) return nullptr;
     return _children[index];
 }
 
-bool Transform::TryAddChild(const Entity child)
+bool Transform::TryAddChild(Entity* const child)
 {
-    assert(GetOwner().GetScene() == child.GetScene() && "Must use the same scene");
+    assert(GetOwner()->GetScene() == child->GetScene() && "Must use the same scene");
 
-    if (!child.IsValid() || child == GetOwner()) return false;
+    if (!child->IsValid() || child == GetOwner()) return false;
     
     // SetParent handles all the bidirectional relationship logic
-    child.GetTransform().TrySetParent(GetOwner());
+    child->GetTransform().TrySetParent(GetOwner());
     return true;
 }
 
-bool Transform::TryRemoveChild(const Entity child)
+bool Transform::TryRemoveChild(Entity* const child)
 {
-    assert(GetOwner().GetScene() == child.GetScene() && "Must use the same scene");
+    assert(GetOwner()->GetScene() == child->GetScene() && "Must use the same scene");
 
     auto it = std::find(_children.begin(), _children.end(), child);
     if (it == _children.end()) return false;
     
     // SetParent(INVALID) will handle removing from our children list
-    if (child.IsValid())
+    if (child->IsValid())
     {
-        child.GetTransform().TrySetParent(Entity::INVALID);
+        child->GetTransform().TrySetParent(nullptr);
     }
     
     return true;
@@ -184,13 +184,13 @@ bool Transform::TryRemoveChild(const size_t index)
 {
     if (index >= _children.size()) return false;
     
-    Entity child = _children[index];
+    Entity* const child = _children[index];
 
-    assert(GetOwner().GetScene() == child.GetScene() && "Must use the same scene");
+    assert(GetOwner()->GetScene() == child->GetScene() && "Must use the same scene");
     
-    if (child.IsValid())
+    if (child->IsValid())
     {
-        child.GetTransform().TrySetParent(Entity::INVALID);
+        child->GetTransform().TrySetParent(nullptr);
     }
 
     return true;
@@ -198,9 +198,9 @@ bool Transform::TryRemoveChild(const size_t index)
 
 size_t Transform::GetSiblingIndex() const
 {
-    if (!_parent.IsValid()) return 0;
+    if (!_parent->IsValid()) return 0;
     
-    const auto& siblings = _parent.GetTransform()._children;
+    const auto& siblings = _parent->GetTransform()._children;
     auto it = std::find(siblings.begin(), siblings.end(), GetOwner());
     
     return (it != siblings.end()) ? std::distance(siblings.begin(), it) : 0;
@@ -208,9 +208,9 @@ size_t Transform::GetSiblingIndex() const
 
 bool Transform::TrySetSiblingIndex(const size_t index)
 {
-    if (!_parent.IsValid()) return false;
+    if (!_parent->IsValid()) return false;
     
-    auto& parentTransform = _parent.GetTransform();
+    auto& parentTransform = _parent->GetTransform();
     auto& siblings = parentTransform._children;
     
     // Find our current position
@@ -226,7 +226,7 @@ bool Transform::TrySetSiblingIndex(const size_t index)
     }  
     
     // Remove from current position
-    Entity self = *it;
+    Entity* const self = *it;
     siblings.erase(it);
     
     // Insert at new position (clamped to valid range)
@@ -242,43 +242,43 @@ bool Transform::TrySetAsFirstSibling()
 
 bool Transform::TrySetAsLastSibling()
 {
-    if (!_parent.IsValid()) return false;
-    return TrySetSiblingIndex(_parent.GetTransform().GetChildCount());
+    if (!_parent->IsValid()) return false;
+    return TrySetSiblingIndex(_parent->GetTransform().GetChildCount());
 }
 
-bool Transform::IsChildOf(const Entity parent) const
+bool Transform::IsChildOf(const Entity* const parent) const
 {
     return _parent == parent;
 }
 
-bool Transform::IsDescendantOf(const Entity ancestor) const
+bool Transform::IsDescendantOf(const Entity* const ancestor) const
 {
-    assert(GetOwner().GetScene() == ancestor.GetScene() && "Must use the same scene");
+    assert(GetOwner()->GetScene() == ancestor->GetScene() && "Must use the same scene");
 
     if (!ancestor) return false;
     
-    Entity current = _parent;
+    Entity* current = _parent;
     while (current)
     {
         if (current == ancestor) return true;
-        current = current.GetTransform()._parent;
+        current = current->GetTransform()._parent;
     }
     return false;
 }
 
-bool Transform::IsAncestorOf(const Entity descendant) const
+bool Transform::IsAncestorOf(const Entity* const descendant) const
 {
-    assert(GetOwner().GetScene() == descendant.GetScene() && "Must use the same scene");
+    assert(GetOwner()->GetScene() == descendant->GetScene() && "Must use the same scene");
 
-    return descendant.IsValid() && descendant.GetTransform().IsDescendantOf(GetOwner());
+    return descendant->IsValid() && descendant->GetTransform().IsDescendantOf(GetOwner());
 }
 
-Entity Transform::GetRoot() const
+Entity* Transform::GetRoot() const
 {
-    Entity current = GetOwner();
-    while (current.GetTransform()._parent.IsValid())
+    Entity* current = GetOwner();
+    while (current->GetTransform()._parent->IsValid())
     {
-        current = current.GetTransform()._parent;
+        current = current->GetTransform()._parent;
     }
     return current;
 }
@@ -303,16 +303,16 @@ Mat4 Transform::CalculateModel() const
 Mat4 Transform::CalculateWorld() const
 {
     // If there is no parent then the model is the world matrix.
-    if (!_parent.IsValid()) return GetModelMatrix();
-    return _parent.GetTransform().GetWorldMatrix() * GetModelMatrix();
+    if (!_parent) return GetModelMatrix();
+    return _parent->GetTransform().GetWorldMatrix() * GetModelMatrix();
 }
 
 void Transform::SetWorldDirty()
 {
     isWorldDirty = true;
-    for (const Entity& child : _children)
+    for (const Entity* child : _children)
     {
-        if (child.IsValid()) child.GetTransform().SetWorldDirty();
+        if (child->IsValid()) child->GetTransform().SetWorldDirty(); 
     }
 }
 

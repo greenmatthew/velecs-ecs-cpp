@@ -25,7 +25,6 @@
 #include "velecs/ecs/Tags/DestroyTag.hpp"
 
 #include "velecs/ecs/Component.hpp"
-#include "velecs/ecs/Components/Name.hpp"
 #include "velecs/ecs/Components/Transform.hpp"
 
 #include "velecs/ecs/System.hpp"

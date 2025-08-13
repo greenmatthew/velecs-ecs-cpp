@@ -10,9 +10,10 @@
 
 #pragma once
 
-#include "velecs/ecs/TypeConstraints.hpp"
-#include "velecs/ecs/Scene.hpp"
 #include "velecs/ecs/Component.hpp"
+#include "velecs/ecs/Object.hpp"
+#include "velecs/ecs/Scene.hpp"
+#include "velecs/ecs/TypeConstraints.hpp"
 
 #include <entt/entt.hpp>
 
@@ -36,7 +37,7 @@ class Transform;
 /// a convenient interface for managing entities within a scene, including
 /// adding/removing components, accessing common components like Name and Transform,
 /// and managing entity lifecycle.
-class Entity {
+class Entity : public Object {
     friend class Scene;
     friend class EntityBuilder;
     friend class Component;
@@ -50,10 +51,11 @@ public:
 
     // Constructors and Destructors
 
-    /// @brief Constructor with scene and handle.
-    /// @param scene The scene that the entity belongs to.
-    /// @param handle The EnTT entity handle to use.
-    explicit Entity(Scene* const scene, const entt::entity handle);
+    inline Entity(World* const world, Scene* const scene, const entt::entity handle, ConstructorKey key)
+        : Object(world, "Entity", key), _scene(scene), _handle(handle) {}
+
+    inline Entity(World* const world, Scene* const scene, const entt::entity handle, const std::string& name, ConstructorKey key)
+        : Object(world, name, key), _scene(scene), _handle(handle) {}
 
     /// @brief Default destructor.
     ~Entity() = default;
@@ -61,7 +63,7 @@ public:
     /// @brief Copy constructor.
     /// @param other The entity to copy from.
     inline Entity(const Entity& other)
-        : _scene(other._scene), _handle(other._handle) {}
+        : Entity(other.GetWorld(), other._scene, other._handle, other.GetName()) {}
 
     /// @brief Creates a new entity in the specified scene.
     /// @param scene The scene where the entity will be created.
@@ -118,18 +120,6 @@ public:
 
     Scene* const GetScene() const { return _scene; }
 
-    /// @brief Gets the name of this entity.
-    /// @details Retrieves the name stored in the Name component of this entity.
-    /// @return A string containing the entity's name.
-    /// @pre Entity must have a Name component.
-    const std::string& GetName() const;
-
-    /// @brief Sets the name of this entity.
-    /// @details Updates the name stored in the Name component of this entity.
-    /// @param newName The new name to assign to this entity.
-    /// @pre Entity must have a Name component.
-    void SetName(const std::string& newName);
-
     /// @brief Gets the Transform component of this entity.
     /// @details This is a convenience method that assumes the entity has a Transform component.
     ///          This method should only be called when you know the entity has a Transform.
@@ -149,7 +139,7 @@ public:
     template<typename TagType, typename = IsTag<TagType>>
     bool HasTag() const
     {
-        return _scene->HasTag<TagType>(*this);
+        return _scene->HasTag<TagType>(this);
     }
 
     /// @brief Attempts to add a tag of the specified type to an entity.
@@ -159,7 +149,7 @@ public:
     template<typename TagType, typename = IsTag<TagType>>
     bool TryAddTag()
     {
-        return _scene->TryAddTag<TagType>(*this);
+        return _scene->TryAddTag<TagType>(this);
     }
 
     /// @brief Attempts to remove a tag of the specified type from an entity.
@@ -169,7 +159,7 @@ public:
     template<typename TagType, typename = IsTag<TagType>>
     bool TryRemoveTag()
     {
-        return _scene->TryRemoveTag<TagType>(*this);
+        return _scene->TryRemoveTag<TagType>(this);
     }
 
 
@@ -184,7 +174,7 @@ public:
     template<typename ComponentType, typename = IsComponent<ComponentType>>
     bool HasComponent() const
     {
-        return _scene->HasComponent<ComponentType>(*this);
+        return _scene->HasComponent<ComponentType>(this);
     }
 
     /// @brief Tries to get a mutable component of the specified type from the entity.
@@ -194,7 +184,7 @@ public:
     template<typename ComponentType, typename = IsComponent<ComponentType>>
     bool TryGetComponent(ComponentType*& outComponent)
     {
-        return _scene->TryGetComponent(*this, outComponent);
+        return _scene->TryGetComponent(this, outComponent);
     }
 
     /// @brief Tries to get a const component of the specified type from the entity.
@@ -204,7 +194,7 @@ public:
     template<typename ComponentType, typename = IsComponent<ComponentType>>
     bool TryGetComponent(const ComponentType*& outComponent) const
     {
-        return _scene->TryGetComponent(*this, outComponent);
+        return _scene->TryGetComponent(this, outComponent);
     }
 
     /// @brief Attempts to add a component of the specified type to this entity.
@@ -216,7 +206,7 @@ public:
     template<typename ComponentType, typename = IsComponent<ComponentType>>
     bool TryAddComponent(ComponentType*& outComponent)
     {
-        return _scene->TryAddComponent<ComponentType>(*this, outComponent);
+        return _scene->TryAddComponent<ComponentType>(this, outComponent);
     }
 
     /// @brief Attempts to add a const component of the specified type to this entity.
@@ -229,7 +219,7 @@ public:
     template<typename ComponentType, typename = IsComponent<ComponentType>>
     bool TryAddComponent(const ComponentType*& outComponent)
     {
-        return _scene->TryAddComponent<ComponentType>(*this, outComponent);
+        return _scene->TryAddComponent<ComponentType>(this, outComponent);
     }
 
     /// @brief Attempts to add a component of the specified type to this entity with constructor arguments.
@@ -243,7 +233,7 @@ public:
     template<typename ComponentType, typename = IsComponent<ComponentType>, typename... Args>
     bool TryAddComponent(ComponentType*& outComponent, Args &&...args)
     {
-        return _scene->TryAddComponent<ComponentType>(*this, outComponent, std::forward<Args>(args)...);
+        return _scene->TryAddComponent<ComponentType>(this, outComponent, std::forward<Args>(args)...);
     }
 
     /// @brief Attempts to add a const component of the specified type to this entity with constructor arguments.
@@ -258,7 +248,7 @@ public:
     template<typename ComponentType, typename = IsComponent<ComponentType>, typename... Args>
     bool TryAddComponent(const ComponentType*& outComponent, Args &&...args)
     {
-        return _scene->TryAddComponent<ComponentType>(*this, outComponent, std::forward<Args>(args)...);
+        return _scene->TryAddComponent<ComponentType>(this, outComponent, std::forward<Args>(args)...);
     }
 
     /// @brief Attempts to remove a component of the specified type from this entity.
@@ -268,7 +258,7 @@ public:
     template<typename ComponentType, typename = IsComponent<ComponentType>>
     bool TryRemoveComponent()
     {
-        return _scene->TryRemoveComponent<ComponentType>(*this);
+        return _scene->TryRemoveComponent<ComponentType>(this);
     }
 
 protected:
@@ -287,7 +277,10 @@ private:
     /// @brief Default constructor.
     /// @details Creates an entity with an invalid handle. Used for creating the INVALID constant.
     inline explicit Entity()
-        : _scene(nullptr), _handle(entt::null) {}
+        : Entity(nullptr, nullptr, entt::null, "Invalid Entity") {}
+    
+    inline Entity(World* const world, Scene* const scene, const entt::entity handle, const std::string& name)
+        : Object(world, name), _scene(scene), _handle(handle) {}
 };
 
 } // namespace velecs::ecs

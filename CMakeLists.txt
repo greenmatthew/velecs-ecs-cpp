@@ -82,7 +82,6 @@ set(LIB_HEADERS
 
     # Components
     include/velecs/ecs/Component.hpp
-    include/velecs/ecs/Components/Name.hpp
     include/velecs/ecs/Components/Transform.hpp
 
     # Systems

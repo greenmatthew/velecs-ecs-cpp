@@ -116,11 +116,11 @@ public:
 
     // ========== Parent Management ==========
 
-    inline bool HasParent(const Entity parent) const { return _parent == parent; }
+    inline bool HasParent(const Entity* const parent) const { return _parent == parent; }
 
     /// @brief Gets the parent entity of this transform.
     /// @return Parent entity, or Entity::INVALID if this is a root transform.
-    inline Entity GetParent() const { return _parent; }
+    inline Entity* GetParent() const { return _parent; }
 
     /// @brief Attempts to set the parent of this transform.
     /// @param newParent New parent entity, or Entity::INVALID to make this a root transform.
@@ -129,24 +129,24 @@ public:
     ///          transform from old parent's children list and adds to new parent's list.
     ///          Marks world matrix as dirty for this transform and all children.
     ///          Fails if it would create a cycle in the hierarchy.
-    bool TrySetParent(const Entity newParent);
+    bool TrySetParent(Entity* const newParent);
 
     // ========== Child Management ==========
 
     /// @brief Checks if the specified entity is a direct child of this transform.
     /// @param child Entity to check for.
     /// @return True if child is a direct child, false otherwise.
-    bool HasChild(const Entity child) const;
+    bool HasChild(const Entity* const child) const;
 
     /// @brief Attempts to get a child by index.
     /// @param index Zero-based index of child to retrieve.
     /// @return Child entity at index, or Entity::INVALID if index is out of range.
-    Entity TryGetChild(const size_t index) const;
+    Entity* TryGetChild(const size_t index) const;
 
     /// @brief Gets read-only access to all direct children.
     /// @return Const reference to vector containing all child entities.
     /// @details Use for iteration or when you need the full children list.
-    inline const std::vector<Entity>& GetChildren() const { return _children; }
+    inline const std::vector<Entity*>& GetChildren() const { return _children; }
 
     /// @brief Gets the number of direct children.
     /// @return Number of direct child entities.
@@ -158,18 +158,18 @@ public:
     /// @details Fails if child is invalid, child is this entity (self-parenting),
     ///          or if adding would create a cycle. Automatically removes child
     ///          from its previous parent.
-    bool TryAddChild(const Entity child);
+    bool TryAddChild(Entity* const child);
 
     /// @brief Attempts to remove a child from this transform.
     /// @param child Entity to remove from children.
     /// @return True if child was found and removed, false if child was not found.
-    /// @details Sets the child's parent to Entity::INVALID.
-    bool TryRemoveChild(const Entity child);
+    /// @details Sets the child's parent to a nullptr.
+    bool TryRemoveChild(Entity* const child);
 
     /// @brief Attempts to remove a child by index.
     /// @param index Zero-based index of child to remove.
     /// @return True if child was removed, false if index was out of range.
-    /// @details Sets the child's parent to Entity::INVALID.
+    /// @details Sets the child's parent to a nullptr.
     bool TryRemoveChild(const size_t index);
 
     // ========== Sibling Management ==========
@@ -203,30 +203,30 @@ public:
     /// @brief Checks if this transform is a direct child of the specified parent.
     /// @param parent Entity to check against.
     /// @return True if this transform's parent is the specified entity.
-    bool IsChildOf(const Entity parent) const;
+    bool IsChildOf(const Entity* const parent) const;
 
     /// @brief Checks if this transform is anywhere in the hierarchy below ancestor.
     /// @param ancestor Entity to check against.
     /// @return True if ancestor is found anywhere up the parent chain.
     /// @details Performs recursive search up the hierarchy tree.
-    bool IsDescendantOf(const Entity ancestor) const;
+    bool IsDescendantOf(const Entity* const ancestor) const;
 
     /// @brief Checks if this transform is an ancestor of the specified descendant.
     /// @param descendant Entity to check against.
     /// @return True if descendant is found anywhere in this transform's hierarchy.
     /// @details More efficient than manually traversing children.
-    bool IsAncestorOf(const Entity descendant) const;
+    bool IsAncestorOf(const Entity* const descendant) const;
 
     /// @brief Gets the root transform of this hierarchy.
     /// @return The topmost ancestor, or this transform if it has no parent.
     /// @details Traverses up the parent chain until reaching a transform with no parent.
-    Entity GetRoot() const;
+    Entity* GetRoot() const;
 
     // ========== Iterator Support ==========
 
     /// @brief Iterator type for range-based loops over children.
     /// @details Allows using range-based for loops: for (auto child : transform) { ... }
-    using iterator = std::vector<Entity>::const_iterator;
+    using iterator = std::vector<Entity*>::const_iterator;
 
     /// @brief Gets iterator to first child.
     /// @return Const iterator pointing to first child entity.
@@ -237,7 +237,7 @@ public:
     inline iterator end() const { return _children.end(); }
 
     /// @brief Reverse iterator type for iterating children in reverse order.
-    using reverse_iterator = std::vector<Entity>::const_reverse_iterator;
+    using reverse_iterator = std::vector<Entity*>::const_reverse_iterator;
 
     /// @brief Gets reverse iterator to last child (for iterating backwards).
     /// @return Reverse iterator pointing to last child entity.
@@ -268,8 +268,8 @@ private:
     Vec3 scale{Vec3::ONE};                       /// @brief Local scale relative to parent  
     Quat rot{Quat::IDENTITY};                    /// @brief Local rotation relative to parent
 
-    Entity _parent{Entity::INVALID};             /// @brief Parent entity (INVALID if root)
-    std::vector<Entity> _children;               /// @brief List of direct child entities
+    Entity* _parent{nullptr};                    /// @brief Parent entity (nullptr if root)
+    std::vector<Entity*> _children;              /// @brief List of direct child entities
 
     mutable bool isModelDirty{true};             /// @brief Flag indicating model matrix needs recalculation
     mutable Mat4 cachedModelMat{Mat4::IDENTITY}; /// @brief Cached local-to-parent transformation matrix
@@ -315,7 +315,7 @@ class TraversalIterator {
 public:
     // STL iterator traits
     using iterator_category = std::forward_iterator_tag;
-    using value_type = std::pair<Entity, Transform&>;
+    using value_type = std::pair<Entity*, Transform&>;
     using difference_type = std::ptrdiff_t;
     using pointer = value_type*;
     using reference = value_type&;
@@ -323,10 +323,10 @@ public:
     /// @brief Default constructor.
     inline TraversalIterator() : _isEnd(true) {}
 
-    explicit TraversalIterator(Entity root)
+    explicit TraversalIterator(Entity* root)
         : _isEnd(false)
     {
-        if (!root.IsValid())
+        if (root == nullptr)
         {
             _isEnd = true;
             return;
@@ -339,7 +339,7 @@ public:
 
     value_type operator*() const
     {
-        return std::make_pair(_current, std::ref(_current.GetTransform()));
+        return std::make_pair(_current, std::ref(_current->GetTransform()));
     }
 
     value_type operator->() const
@@ -371,12 +371,12 @@ public:
 
 private:
 
-    Entity _current{Entity::INVALID};
+    Entity* _current{nullptr};
     bool _isEnd{true};
-    std::stack<Entity> _stack;
-    std::unordered_set<Entity> _visitedParents; // For post-order traversal
+    std::stack<Entity*> _stack;
+    std::unordered_set<Entity*> _visitedParents; // For post-order traversal
 
-    void Initialize(Entity root);
+    void Initialize(Entity* const root);
     void Advance();
     void AdvanceToNextPostOrderNode();
     void AdvanceToNextInOrderNode();
@@ -388,17 +388,17 @@ private:
 template<TraversalOrder Order>
 class TraversalRange {
 public:
-    TraversalRange(Entity root) : _root(root) {}
+    TraversalRange(Entity* root) : _root(root) {}
     TraversalIterator<Order> begin() const { return TraversalIterator<Order>(_root); }
     TraversalIterator<Order> end() const { return TraversalIterator<Order>(); }
 
 private:
-    Entity _root;
+    Entity* _root;
 };
 
 // Template specialization for PreOrder
 template<>
-inline void TraversalIterator<TraversalOrder::PreOrder>::Initialize(Entity root)
+inline void TraversalIterator<TraversalOrder::PreOrder>::Initialize(Entity* const root)
 {
     _stack.push(root);
     Advance(); // Position at first element
@@ -418,10 +418,10 @@ inline void TraversalIterator<TraversalOrder::PreOrder>::Advance()
     _stack.pop();
     
     // Push children in reverse order so left-most child is processed first
-    const auto& children = _current.GetTransform().GetChildren();
+    const auto& children = _current->GetTransform().GetChildren();
     for (auto it = children.rbegin(); it != children.rend(); ++it)
     {
-        if (it->IsValid())
+        if (*it != nullptr)
         {
             _stack.push(*it);
         }
@@ -430,7 +430,7 @@ inline void TraversalIterator<TraversalOrder::PreOrder>::Advance()
 
 // Template specialization for PostOrder
 template<>
-inline void TraversalIterator<TraversalOrder::PostOrder>::Initialize(Entity root)
+inline void TraversalIterator<TraversalOrder::PostOrder>::Initialize(Entity* const root)
 {
     _visitedParents.clear();
     _stack.push(root);
@@ -457,7 +457,7 @@ inline void TraversalIterator<TraversalOrder::PostOrder>::AdvanceToNextPostOrder
 {
     while (!_stack.empty())
     {
-        Entity top = _stack.top();
+        Entity* top = _stack.top();
         
         // Check if we've already processed this node's children
         if (_visitedParents.find(top) != _visitedParents.end())
@@ -471,12 +471,13 @@ inline void TraversalIterator<TraversalOrder::PostOrder>::AdvanceToNextPostOrder
         _visitedParents.insert(top);
         
         // Add children to stack (in reverse order so leftmost is processed first)
-        const auto& children = top.GetTransform().GetChildren();
+        const auto& children = top->GetTransform().GetChildren();
         bool hasValidChildren = false;
         
         for (auto it = children.rbegin(); it != children.rend(); ++it)
         {
-            if (it->IsValid()) {
+            if (*it != nullptr)
+            {
                 _stack.push(*it);
                 hasValidChildren = true;
             }

@@ -36,7 +36,7 @@ public:
             Vec3 pos = transform.GetPos();
             transform.SetPos(pos + (ctx->deltaTime * velocity.vel));
             Vec3 newPos = transform.GetPos();
-            std::cout << entity.GetName() << "'s position: " << pos << " -> " << transform.GetPos() << std::endl;
+            std::cout << entity->GetName() << "'s position: " << pos << " -> " << transform.GetPos() << std::endl;
         });
     }
 };
@@ -51,26 +51,26 @@ public:
 
     void OnEnter(void* context)
     {
-        Entity parent = CreateEntity()
+        Entity* parent = Entity::Create(this)
             .WithName("Parent Entity")
             .WithPos(Vec3::ZERO)
             ;
-        Transform& parentTransform = parent.GetTransform();
-        std::cout << "Transform: " << parent.GetName() << std::endl;
+        Transform& parentTransform = parent->GetTransform();
+        std::cout << "Transform: " << parent->GetName() << std::endl;
         std::cout << "\tPosition: " << parentTransform.GetPos() << std::endl;
         std::cout << "\tScale: " << parentTransform.GetScale() << std::endl;
         std::cout << "\tRotation: " << parentTransform.GetEulerAnglesDeg() << std::endl;
         std::cout << "\tModel Matrix:\n" << parentTransform.GetModelMatrix() << std::endl;
         std::cout << "\tWorld Matrix:\n" << parentTransform.GetWorldMatrix() << std::endl;
 
-        Entity child = CreateEntity()
+        Entity* child = Entity::Create(this)
             .WithName("Child Entity")
             .WithParent(parent)
             .WithPos(Vec3::BACKWARD * 10)
             ;
-        Transform& childTransform = child.GetTransform();
-        std::cout << "Transform: " << child.GetName() << std::endl;
-        std::cout << "\tParent:" << (childTransform.GetParent() ? childTransform.GetParent().GetName() : "(n/a)") << '\n' << std::endl;
+        Transform& childTransform = child->GetTransform();
+        std::cout << "Transform: " << child->GetName() << std::endl;
+        std::cout << "\tParent:" << (childTransform.GetParent() ? childTransform.GetParent()->GetName() : "(n/a)") << '\n' << std::endl;
         std::cout << "\tPosition: " << childTransform.GetPos() << std::endl;
         std::cout << "\tScale: " << childTransform.GetScale() << std::endl;
         std::cout << "\tRotation: " << childTransform.GetEulerAnglesDeg() << std::endl;
@@ -78,23 +78,23 @@ public:
         std::cout << "\tWorld Matrix:\n" << childTransform.GetWorldMatrix() << std::endl;
 
         // Tag system tests
-        assert( parent.TryAddTag<ExampleTag>()    && "Should be able to add a tag if entity doesn't already have it");
-        assert(!parent.TryAddTag<ExampleTag>()    && "Cannot add the same tag more than once");
-        assert(!parent.TryAddTag<ExampleTag>()    && "Cannot add the same tag more than once (second attempt)");
-        assert( parent.HasTag<ExampleTag>()       && "Entity should have the tag after adding it");
-        assert( parent.TryRemoveTag<ExampleTag>() && "Should be able to remove a tag that exists");
-        assert(!parent.TryRemoveTag<ExampleTag>() && "Cannot remove a tag that has already been removed");
-        assert(!parent.HasTag<ExampleTag>()       && "Entity should not have the tag after removing it");
+        assert( parent->TryAddTag<ExampleTag>()    && "Should be able to add a tag if entity doesn't already have it");
+        assert(!parent->TryAddTag<ExampleTag>()    && "Cannot add the same tag more than once");
+        assert(!parent->TryAddTag<ExampleTag>()    && "Cannot add the same tag more than once (second attempt)");
+        assert( parent->HasTag<ExampleTag>()       && "Entity should have the tag after adding it");
+        assert( parent->TryRemoveTag<ExampleTag>() && "Should be able to remove a tag that exists");
+        assert(!parent->TryRemoveTag<ExampleTag>() && "Cannot remove a tag that has already been removed");
+        assert(!parent->HasTag<ExampleTag>()       && "Entity should not have the tag after removing it");
 
         // Component system tests
         const ExampleComponent* _{nullptr};
-        assert( parent.TryAddComponent<ExampleComponent>(_)    && "Should be able to add a component if entity doesn't already have it");
-        assert(!parent.TryAddComponent<ExampleComponent>(_)    && "Cannot add the same component more than once");
-        assert(!parent.TryAddComponent<ExampleComponent>(_)    && "Cannot add the same component more than once (second attempt)");
-        assert( parent.HasComponent<ExampleComponent>()        && "Entity should have the component after adding it");
-        assert( parent.TryRemoveComponent<ExampleComponent>()  && "Should be able to remove a component that exists");
-        assert(!parent.TryRemoveComponent<ExampleComponent>()  && "Cannot remove a component that has already been removed");
-        assert(!parent.HasComponent<ExampleComponent>()        && "Entity should not have the component after removing it");
+        assert( parent->TryAddComponent<ExampleComponent>(_)    && "Should be able to add a component if entity doesn't already have it");
+        assert(!parent->TryAddComponent<ExampleComponent>(_)    && "Cannot add the same component more than once");
+        assert(!parent->TryAddComponent<ExampleComponent>(_)    && "Cannot add the same component more than once (second attempt)");
+        assert( parent->HasComponent<ExampleComponent>()        && "Entity should have the component after adding it");
+        assert( parent->TryRemoveComponent<ExampleComponent>()  && "Should be able to remove a component that exists");
+        assert(!parent->TryRemoveComponent<ExampleComponent>()  && "Cannot remove a component that has already been removed");
+        assert(!parent->HasComponent<ExampleComponent>()        && "Entity should not have the component after removing it");
 
         // System systems tests
         assert( TryAddSystem<ExampleSystem>()    && "Should be able to add a system if scene doesn't already have it");
@@ -106,7 +106,7 @@ public:
         assert(!TryRemoveSystem<ExampleSystem>() && "Scene should not have the system after removing it");
 
         Velocity* vel{nullptr};
-        if (parent.TryAddComponent<Velocity>(vel))
+        if (parent->TryAddComponent<Velocity>(vel))
         {
             vel->vel = 10.0f * Vec3::RIGHT;
         }
@@ -126,53 +126,53 @@ public:
     void OnEnter(void* context)
     {
         // Create test hierarchy
-        Entity root1 = CreateEntity()
+        Entity* root1 = Entity::Create(this)
             .WithName("1")
             ;
         
-        Entity child2 = CreateEntity()
+        Entity* child2 = Entity::Create(this)
             .WithName("2")
             .WithParent(root1)
             ;
         
-        Entity child3 = CreateEntity()
+        Entity* child3 = Entity::Create(this)
             .WithName("3")
             .WithParent(root1)
             ;
         
-        Entity grandchild4 = CreateEntity()
+        Entity* grandchild4 = Entity::Create(this)
             .WithName("4")
             .WithParent(child2)
             ;
         
-        Entity grandchild5 = CreateEntity()
+        Entity* grandchild5 = Entity::Create(this)
             .WithName("5")
             .WithParent(child2)
             ;
 
-        Entity grandchild6 = CreateEntity()
+        Entity* grandchild6 = Entity::Create(this)
             .WithName("6")
             .WithParent(child3)
             ;
         
-        Entity grandchild7 = CreateEntity()
+        Entity* grandchild7 = Entity::Create(this)
             .WithName("7")
             .WithParent(child3)
             ;
         
-        Transform& rootTransform = root1.GetTransform();
+        Transform& rootTransform = root1->GetTransform();
 
         std::cout << "Children " << "(count: " << rootTransform.GetChildCount() << "):" << std::endl;
         for (auto entity : rootTransform.GetChildren())
         {
-            std::cout << "  " << entity.GetName();
+            std::cout << "  " << entity->GetName();
         }
         std::cout << std::endl;
         
         std::cout << "Pre-order:" << std::endl;
         for (auto [entity, transform] : rootTransform.Traverse<TraversalOrder::PreOrder>())
         {
-            std::cout << "  " << entity.GetName();
+            std::cout << "  " << entity->GetName();
         }
 
         std::cout << std::endl;
@@ -180,11 +180,11 @@ public:
         std::cout << "Post-order:" << std::endl;
         for (auto [entity, transform] : rootTransform.Traverse<TraversalOrder::PostOrder>())
         {
-            std::cout << "  " << entity.GetName();
+            std::cout << "  " << entity->GetName();
         }
         std::cout << std::endl;
 
-        root1.MarkForDestruction();
+        root1->MarkForDestruction();
     }
 };
 
@@ -204,6 +204,27 @@ int main()
         if (world->scenes->TryRequestSceneTransition(mainScene->GetUuid()))
             std::cout << "Successfully request scene transition to: " << mainScene->GetName() << std::endl;
 
+        for (size_t i{0}; i < 5UL; ++i)
+        {
+            SystemContext systemContext{};
+            void* context = static_cast<void*>(&systemContext);
+            systemContext.deltaTime = 1.0f;
+            systemContext.scene = world->scenes->GetCurrentScene();
+
+            if (world->scenes->Internal_TryTransitionIfRequested(nullptr))
+            {
+                std::cout << "Transitioned scene to: " << world->scenes->GetCurrentScene()->GetName() << std::endl;
+                systemContext.scene = world->scenes->GetCurrentScene();
+            }
+
+            world->scenes->Internal_TryProcess(context);
+            world->scenes->Internal_TryProcessPhysics(context);
+            world->scenes->Internal_TryProcessEntityCleanup();
+        }
+
+        if (world->scenes->TryRequestSceneTransition(testScene->GetUuid()))
+            std::cout << "Successfully request scene transition to: " << testScene->GetName() << std::endl;
+        
         for (size_t i{0}; i < 5UL; ++i)
         {
             SystemContext systemContext{};

@@ -12,7 +12,6 @@
 
 #include "velecs/ecs/Entity.hpp"
 
-#include "velecs/ecs/components/Name.hpp"
 #include "velecs/ecs/components/Transform.hpp"
 
 namespace velecs::ecs {
@@ -35,14 +34,14 @@ public:
 
     // Constructors and Destructors
 
-    EntityBuilder(Scene* const scene, const entt::entity handle);
+    EntityBuilder(Entity* const entity);
 
     /// @brief Default constructor
     EntityBuilder() = delete;
 
     /// @brief Conversion operator to get the built entity.
     /// @return The fully configured entity.
-    inline operator Entity() const {
+    inline operator Entity*() const {
         return _entity;
     }
 
@@ -56,14 +55,14 @@ public:
     /// @return Reference to this builder for method chaining.
     inline EntityBuilder& WithName(const std::string& name)
     {
-        _name->SetName(name);
+        _entity->SetName(name);
         return *this;
     }
 
     /// @brief Sets the parent of the entity.
     /// @param parent The parent entity to which this entity will be attached.
     /// @return Reference to this builder for method chaining.
-    inline EntityBuilder& WithParent(const Entity parent)
+    inline EntityBuilder& WithParent(Entity* const parent)
     {
         _transform->TrySetParent(parent);
         return *this;
@@ -122,12 +121,9 @@ protected:
 private:
     // Private Fields
 
-    /// @brief The entity being constructed.
-    Entity _entity{Entity::INVALID};
+    /// @brief Pointer to entity being constructed.
+    Entity* const _entity{nullptr};
 
-    /// @brief Pointer to the entity's name component.
-    Name* _name{nullptr};
-    
     /// @brief Pointer to the entity's transform component.
     Transform* _transform{nullptr};
 

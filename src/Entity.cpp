@@ -14,7 +14,6 @@
 
 #include "velecs/ecs/tags/DestroyTag.hpp"
 
-#include "velecs/ecs/components/Name.hpp"
 #include "velecs/ecs/components/Transform.hpp"
 
 #include <memory>
@@ -25,12 +24,9 @@ namespace velecs::ecs {
 
 // Public Fields
 
-const Entity Entity::INVALID{nullptr, entt::null};
+const Entity Entity::INVALID;
 
 // Constructors and Destructors
-
-Entity::Entity(Scene* const scene, const entt::entity handle)
-    : _scene(scene), _handle(handle) {}
 
 EntityBuilder Entity::Create(Scene* const scene)
 {
@@ -41,29 +37,15 @@ EntityBuilder Entity::Create(Scene* const scene)
 
 bool Entity::IsValid() const
 {
-    return _scene != nullptr
-        && _scene->IsEntityHandleValid(*this);
+    return _handle != entt::null
+        && GetWorld() != nullptr
+        && _scene != nullptr
+        && _scene->IsEntityHandleValid(this);
 }
 
 void Entity::MarkForDestruction()
 {
     if (IsValid()) TryAddTag<DestroyTag>();
-}
-
-const std::string& Entity::GetName() const
-{
-    const Name* name{nullptr}; // Use const pointer since this is a const method
-    TryGetComponent<Name>(name);
-    assert(name != nullptr && "Entity missing required Name component. All entities must have Name and Transform components.");
-    return name->GetName();
-}
-
-void Entity::SetName(const std::string& newName)
-{
-    Name* name{nullptr};
-    TryGetComponent<Name>(name);
-    assert(name != nullptr && "Entity missing required Name component. All entities must have Name and Transform components.");
-    name->SetName(newName);
 }
 
 Transform& Entity::GetTransform() const

@@ -8,12 +8,12 @@
 /// Unauthorized copying of this file, via any medium is strictly prohibited
 /// Proprietary and confidential
 
-#include "velecs/ecs/Scene.hpp"
-
+#include "velecs/ecs/Component.hpp"
 #include "velecs/ecs/Entity.hpp"
 #include "velecs/ecs/EntityBuilder.hpp"
-#include "velecs/ecs/Component.hpp"
+#include "velecs/ecs/Scene.hpp"
 #include "velecs/ecs/System.hpp"
+#include "velecs/ecs/World.hpp"
 
 namespace velecs::ecs {
 
@@ -35,20 +35,35 @@ Scene::~Scene() = default;
 
 // Public Methods
 
-bool Scene::IsEntityHandleValid(const Entity entity)
+bool Scene::IsEntityHandleValid(const Entity* const entity)
 {
-    return entity._handle != entt::null
-        && GetRegistry().valid(entity._handle);
+    return entity != nullptr
+        && entity->_scene == this
+        && entity->GetWorld() == GetWorld()
+        && GetRegistry().valid(entity->_handle);
 }
 
 EntityBuilder Scene::CreateEntity()
 {
-    return EntityBuilder(this, GetRegistry().create());
+    Entity* const entity = Object::Create<Entity>(GetWorld(), this, GetRegistry().create());
+    Uuid uuid = entity->GetUuid();
+    auto handle = entity->_handle;
+    auto [it, inserted] = _entities.try_emplace(handle, uuid);
+    assert(inserted && "A new entity should never fail to be inserted");
+    return EntityBuilder(entity);
 }
 
 // Protected Fields
 
 // Protected Methods
+
+Entity* Scene::TryGetEntity(const entt::entity handle)
+{
+    auto it = _entities.find(handle);
+    if (it == _entities.end()) return nullptr;
+    auto uuid = it->second;
+    return GetWorld()->TryGet<Entity>(uuid);
+}
 
 // Private Fields
 
@@ -85,9 +100,10 @@ void Scene::Cleanup(void* context)
     }
 }
 
-void Scene::DestroyEntity(Entity entity)
+void Scene::DestroyEntity(Entity* const entity)
 {
-    GetRegistry().destroy(entity._handle);
+    if (!entity || !entity->IsValid()) return;
+    GetRegistry().destroy(entity->_handle);
 }
 
 void Scene::Process(void* context)
@@ -123,23 +139,23 @@ void Scene::ProcessGUI(void* context)
 void Scene::ProcessEntityCleanup()
 {
     // deque? queue? vector? idk
-    std::vector<Entity> destructionQueue;
+    std::vector<Entity*> destructionQueue;
     GetRegistry().view<DestroyTag>().each([&](auto e, auto& tag){
-        Entity entity{this, e};
-        auto& transform = entity.GetTransform();
+        Entity* entity = TryGetEntity(e);
+        assert(entity && "Should always be able to lookup entity via entt handle");
         destructionQueue.push_back(entity);
     });
 
     
-    for (Entity entityToDelete : destructionQueue)
+    for (Entity* entityToDelete : destructionQueue)
     {
         // May already have been deleted
-        if (!entityToDelete.IsValid()) continue;
+        if (!entityToDelete->IsValid()) continue;
 
-        for (auto [entity, transform] : entityToDelete.GetTransform().Traverse<TraversalOrder::PostOrder>())
+        for (auto [entity, transform] : entityToDelete->GetTransform().Traverse<TraversalOrder::PostOrder>())
         {
             // Do not forget to remove the root entity from its parent's children vector
-            if (entity == entityToDelete) transform.TrySetParent(Entity::INVALID);
+            if (entity == entityToDelete) transform.TrySetParent(nullptr);
 
             DestroyEntity(entity);
         }

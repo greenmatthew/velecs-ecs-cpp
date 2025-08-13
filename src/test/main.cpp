@@ -201,7 +201,7 @@ int main()
         Object* obj = Object::Create<Object>(world, "Test Object");
         std::cout << obj->GetName() << std::endl;
 
-        if (world->scenes->TryRequestSceneTransition(mainScene->GetUuid()))
+        if (world->scenes->TryRequestSceneTransition("Main Scene"))
             std::cout << "Successfully request scene transition to: " << mainScene->GetName() << std::endl;
 
         for (size_t i{0}; i < 5UL; ++i)
@@ -222,7 +222,7 @@ int main()
             world->scenes->Internal_TryProcessEntityCleanup();
         }
 
-        if (world->scenes->TryRequestSceneTransition(testScene->GetUuid()))
+        if (world->scenes->TryRequestSceneTransition("Test Scene"))
             std::cout << "Successfully request scene transition to: " << testScene->GetName() << std::endl;
         
         for (size_t i{0}; i < 5UL; ++i)

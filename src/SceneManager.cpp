@@ -25,16 +25,21 @@ namespace velecs::ecs {
 bool SceneManager::TryRequestSceneTransition(const Uuid& uuid)
 {
     Scene* scene = _world->TryGet<Scene>(uuid);
-    _targetScene = scene;
-    return scene;
+    if (!scene) return false;
+    return TryRequestSceneTransition(scene);
 }
 
-// bool SceneManager::TryRequestSceneTransition(const std::string& name)
-// {
-//     Scene* scene{nullptr};
-//     if (_scenes.TryGetRef(name, scene)) return TryRequestSceneTransition(scene);
-//     else return false;
-// }
+bool SceneManager::TryRequestSceneTransition(const std::string& name)
+{
+    std::vector<Scene*> scenes = _world->TryGet<Scene>(name);
+
+    if (scenes.empty()) return false;
+
+    if (scenes.size() >= 2) std::cerr << "[WARNING] Multiple scenes with name '" << name << "' found. Using first scene." << std::endl;
+
+    Scene* scene = scenes.front();
+    return TryRequestSceneTransition(scene);
+}
 
 bool SceneManager::TryRequestSceneTransition(Scene* const scene)
 {

@@ -109,6 +109,31 @@ public:
         return static_cast<ObjectT*>(objIt->second.get());
     }
 
+    /// @brief Attempts to retrieve an object by type and UUID.
+    /// @tparam ObjectT The type of object to retrieve.
+    /// @param uuid The UUID of the object to find.
+    /// @return Pointer to the object if found, nullptr otherwise.
+    template<typename ObjectT>
+    std::vector<ObjectT*> TryGet(const std::string& name)
+    {
+        static_assert(std::is_base_of_v<Object, ObjectT>, "ObjectT must inherit from Object");
+        
+        std::type_index typeKey = std::type_index(typeid(ObjectT));
+
+        std::vector<ObjectT*> objs;
+        
+        auto typeIt = _objects.find(typeKey);
+        if (typeIt == _objects.end()) return objs;
+
+        for (const auto& [uuid, objStorage] : typeIt->second)
+        {
+            auto obj = objStorage.get();
+            if (obj->GetName() == name) objs.push_back(static_cast<ObjectT*>(obj));
+        }
+
+        return objs;
+    }
+
     /// @brief Attempts to remove an object by type and UUID.
     /// @tparam ObjectT The type of object to remove.
     /// @param uuid The UUID of the object to remove.

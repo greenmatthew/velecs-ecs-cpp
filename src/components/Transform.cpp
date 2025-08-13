@@ -107,7 +107,7 @@ bool Transform::TrySetParent(Entity* const newParent)
     // The new parent must be apart of the same scene.
     if (owner->GetScene() != newParent->GetScene()) return false;
 
-    assert(GetOwner()->GetScene() == newParent->GetScene() && "Must use the same scene");
+    assert(GetScene() == newParent->GetScene() && "Must use the same scene");
 
     // If its already the parent then no change needed.
     if (HasParent(newParent)) return true;
@@ -155,7 +155,7 @@ Entity* Transform::TryGetChild(const size_t index) const
 
 bool Transform::TryAddChild(Entity* const child)
 {
-    assert(GetOwner()->GetScene() == child->GetScene() && "Must use the same scene");
+    assert(GetScene() == child->GetScene() && "Must use the same scene");
 
     if (!child->IsValid() || child == GetOwner()) return false;
     
@@ -166,7 +166,7 @@ bool Transform::TryAddChild(Entity* const child)
 
 bool Transform::TryRemoveChild(Entity* const child)
 {
-    assert(GetOwner()->GetScene() == child->GetScene() && "Must use the same scene");
+    assert(GetScene() == child->GetScene() && "Must use the same scene");
 
     auto it = std::find(_children.begin(), _children.end(), child);
     if (it == _children.end()) return false;
@@ -186,7 +186,7 @@ bool Transform::TryRemoveChild(const size_t index)
     
     Entity* const child = _children[index];
 
-    assert(GetOwner()->GetScene() == child->GetScene() && "Must use the same scene");
+    assert(GetScene() == child->GetScene() && "Must use the same scene");
     
     if (child->IsValid())
     {
@@ -253,7 +253,7 @@ bool Transform::IsChildOf(const Entity* const parent) const
 
 bool Transform::IsDescendantOf(const Entity* const ancestor) const
 {
-    assert(GetOwner()->GetScene() == ancestor->GetScene() && "Must use the same scene");
+    assert(GetScene() == ancestor->GetScene() && "Must use the same scene");
 
     if (!ancestor) return false;
     
@@ -268,7 +268,7 @@ bool Transform::IsDescendantOf(const Entity* const ancestor) const
 
 bool Transform::IsAncestorOf(const Entity* const descendant) const
 {
-    assert(GetOwner()->GetScene() == descendant->GetScene() && "Must use the same scene");
+    assert(GetScene() == descendant->GetScene() && "Must use the same scene");
 
     return descendant->IsValid() && descendant->GetTransform().IsDescendantOf(GetOwner());
 }

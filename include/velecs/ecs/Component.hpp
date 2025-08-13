@@ -20,6 +20,7 @@ namespace velecs::ecs {
 
 class Entity;
 class Scene;
+class Transform;
 
 /// @class Component
 /// @brief Abstract base class for all component types in the ECS system.
@@ -50,6 +51,10 @@ public:
     // Public Methods
 
     Entity* GetOwner() const;
+
+    Scene* GetScene() const;
+
+    Transform& GetTransform() const;
 
 protected:
     // Protected Fields

@@ -18,7 +18,7 @@ using velecs::common::Uuid;
 
 namespace velecs::ecs {
 
-class ObjectManager;
+class World;
 
 /// @class Object
 /// @brief Brief description.
@@ -40,43 +40,67 @@ public:
         virtual ~ConstructorKey() = default;
     };
 
-    /// @brief Constructor with manager and default name.
-    /// @param manager Pointer to the managing ObjectManager.
+    /// @brief Constructor with world and default name.
+    /// @param world Pointer to the managing World.
     /// @param key Constructor access key for controlled instantiation.
-    inline Object(ObjectManager* const manager, ConstructorKey)
-        : _manager(manager) {}
+    inline Object(World* const world, ConstructorKey)
+        : _world(world) {}
 
-    /// @brief Constructor with manager and custom name.
-    /// @param manager Pointer to the managing ObjectManager.
+    /// @brief Constructor with world and custom name.
+    /// @param world Pointer to the managing World.
     /// @param name The initial name for this object.
     /// @param key Constructor access key for controlled instantiation.
-    inline Object(ObjectManager* const manager, const std::string& name, ConstructorKey)
-        : _manager(manager), _name(name) {}
+    inline Object(World* const world, const std::string& name, ConstructorKey)
+        : _world(world), _name(name) {}
 
     /// @brief Creates an object of the specified type with perfect forwarding of constructor arguments.
     /// @tparam ObjectT The type of object to create. Must inherit from Object.
     /// @tparam Args The types of constructor arguments (automatically deduced).
-    /// @param manager Pointer to the object manager.
+    /// @param world Pointer to the object world.
     /// @param args Constructor arguments to forward to the ObjectT constructor.
     /// @return Pointer to the newly created object of type ObjectT.
     /// @details Uses perfect forwarding to support any constructor signature.
-    ///          The manager parameter is always passed first, followed by the forwarded args,
+    ///          The world parameter is always passed first, followed by the forwarded args,
     ///          and finally the ConstructorKey for access control.
     template<typename ObjectT, typename... Args>
-    static ObjectT* Create(ObjectManager* const manager, Args&&... args)
+    static ObjectT* Create(World* const world, Args&&... args)
     {
         static_assert(std::is_base_of_v<Object, ObjectT>, "ObjectT must inherit from Object");
         
-        auto objStorage = std::make_unique<ObjectT>(manager, std::forward<Args>(args)..., ConstructorKey{});
+        auto objStorage = std::make_unique<ObjectT>(world, std::forward<Args>(args)..., ConstructorKey{});
         auto obj = objStorage.get();
         auto uuid = Uuid::GenerateRandom();
         obj->_uuid = uuid;
-        manager->Register<ObjectT>(std::move(objStorage));
+        world->Internal_Register<ObjectT>(std::move(objStorage));
         return obj;
     }
 
+    /// @brief Creates an object but stores it under a different type for polymorphic lookup.
+    /// @tparam StorageT The type to store as (usually base class).
+    /// @tparam ObjectT The concrete type to create.
+    /// @tparam Args Constructor argument types.
+    /// @param world Pointer to the object world.
+    /// @param args Constructor arguments to forward.
+    /// @return Pointer to the newly created object of type ObjectT.
+    template<typename StorageT, typename ObjectT, typename... Args>
+    static ObjectT* CreateAs(World* const world, Args&&... args)
+    {
+        static_assert(std::is_base_of_v<Object, ObjectT>, "ObjectT must inherit from Object");
+        static_assert(std::is_base_of_v<StorageT, ObjectT>, "ObjectT must inherit from StorageT");
+        
+        auto objStorage = std::unique_ptr<StorageT>(new ObjectT(world, std::forward<Args>(args)..., ConstructorKey{}));
+        auto* obj = objStorage.get();
+        obj->_uuid = Uuid::GenerateRandom();
+        world->Internal_Register<StorageT>(std::move(objStorage));
+
+        auto* verify = world->TryGet<StorageT>(obj->_uuid);
+        std::cout << "Verification lookup returned: " << verify << std::endl;
+
+        return static_cast<ObjectT*>(obj);
+    }
+
     /// @brief Deleted default constructor.
-    /// @details Objects must always be associated with a manager.
+    /// @details Objects must always be associated with a world.
     Object() = delete;
 
     /// @brief Virtual destructor for proper cleanup of derived classes.
@@ -96,7 +120,7 @@ public:
 
     /// @brief Equality comparison operator.
     /// @param other The object to compare with.
-    /// @return True if objects have the same UUID and manager, false otherwise.
+    /// @return True if objects have the same UUID and world, false otherwise.
     bool operator==(const Object& other) const;
 
     /// @brief Inequality comparison operator.
@@ -114,7 +138,7 @@ public:
     std::string ToString() const;
 
     /// @brief Checks if this object is valid.
-    /// @return True if the object has a valid manager and UUID, false otherwise.
+    /// @return True if the object has a valid world and UUID, false otherwise.
     bool IsValid() const;
 
     /// @brief Gets the object's UUID.
@@ -140,25 +164,25 @@ protected:
 
     // Protected Methods
 
-    /// @brief Constructor with manager and default name.
-    /// @param manager Pointer to the managing ObjectManager.
-    inline Object(ObjectManager* const manager)
-        : Object(manager, ConstructorKey{}) {}
+    /// @brief Constructor with world and default name.
+    /// @param world Pointer to the managing World.
+    inline Object(World* const world)
+        : Object(world, ConstructorKey{}) {}
 
-    /// @brief Constructor with manager and custom name.
-    /// @param manager Pointer to the managing ObjectManager.
+    /// @brief Constructor with world and custom name.
+    /// @param world Pointer to the managing World.
     /// @param name The initial name for this object.
-    inline Object(ObjectManager* const manager, const std::string& name)
-        : Object(manager, name, ConstructorKey{}) {}
+    inline Object(World* const world, const std::string& name)
+        : Object(world, name, ConstructorKey{}) {}
     
-    inline ObjectManager* const GetManager() const { return _manager; }
+    inline World* const GetWorld() const { return _world; }
 
 private:
     // Private Fields
 
-    ObjectManager* _manager{nullptr}; ///< @brief Pointer to the managing ObjectManager
-    Uuid _uuid{Uuid::INVALID};        ///< @brief Unique identifier for this object
-    std::string _name{"Object"};      ///< @brief Human-readable name for this object
+    World* _world{nullptr};      ///< @brief Pointer to the managing World
+    Uuid _uuid{Uuid::INVALID};   ///< @brief Unique identifier for this object
+    std::string _name{"Object"}; ///< @brief Human-readable name for this object
 
     // Private Methods
 };

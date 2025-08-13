@@ -34,7 +34,7 @@ set(LIB_SOURCES
     src/test/main.cpp
 
     # Objects
-    src/ObjectManager.cpp
+    src/World.cpp
     src/Object.cpp
 
     # Scenes
@@ -65,7 +65,7 @@ set(LIB_HEADERS
     include/velecs/ecs/TypeConstraints.hpp
 
     # Objects
-    include/velecs/ecs/ObjectManager.hpp
+    include/velecs/ecs/World.hpp
     include/velecs/ecs/Object.hpp
     
     # Scenes

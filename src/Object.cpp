@@ -9,7 +9,7 @@
 /// Proprietary and confidential
 
 #include "velecs/ecs/Object.hpp"
-// #include "velecs/ecs/ObjectManager.hpp"
+// #include "velecs/ecs/World.hpp"
 
 #include <memory>
 
@@ -24,7 +24,7 @@ namespace velecs::ecs {
 Object& Object::operator=(const Object& other) noexcept
 {
     if (this != &other) {
-        _manager = other._manager;
+        _world = other._world;
         _uuid = other._uuid;
         _name = other._name;
     }

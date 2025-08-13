@@ -1,4 +1,4 @@
-/// @file    ObjectManager.hpp
+/// @file    World.hpp
 /// @author  Matthew Green
 /// @date    2025-08-12 11:13:10
 /// 
@@ -11,6 +11,7 @@
 #pragma once
 
 #include "velecs/ecs/Object.hpp"
+#include "velecs/ecs/SceneManager.hpp"
 
 #include <velecs/common/Uuid.hpp>
 using velecs::common::Uuid;
@@ -23,11 +24,11 @@ using velecs::common::Uuid;
 
 namespace velecs::ecs {
 
-/// @class ObjectManager
+/// @class World
 /// @brief Manages the lifecycle and storage of all objects in the ECS system.
 /// @details Provides type-safe storage and retrieval of objects organized by type.
 ///          Uses std::type_index for efficient type-based lookups.
-class ObjectManager {
+class World {
 public:
     // Enums
 
@@ -37,21 +38,24 @@ public:
     using ObjectMap = std::unordered_map<Uuid, ObjectStorage>;
     using TypedObjectStorageMap = std::unordered_map<std::type_index, ObjectMap>;
 
+    std::unique_ptr<SceneManager> scenes{nullptr};
+
     // Constructors and Destructors
 
     /// @brief Default constructor.
-    ObjectManager() = default;
+    inline World()
+        : scenes(std::make_unique<SceneManager>(this)) {}
 
     /// @brief Default deconstructor.
-    ~ObjectManager() = default;
+    ~World() = default;
 
     // Delete copy operations to ensure single ownership
-    ObjectManager(const ObjectManager&) = delete;
-    ObjectManager& operator=(const ObjectManager&) = delete;
+    World(const World&) = delete;
+    World& operator=(const World&) = delete;
 
     // Allow move operations
-    ObjectManager(ObjectManager&&) = default;
-    ObjectManager& operator=(ObjectManager&&) = default;
+    World(World&&) = default;
+    World& operator=(World&&) = default;
 
     // Public Methods
 
@@ -62,7 +66,7 @@ public:
     ///          This should generally never fail unless there's a UUID collision (extremely rare)
     ///          or double registration (programming error).
     template<typename ObjectT>
-    void Register(std::unique_ptr<ObjectT> obj)
+    void Internal_Register(std::unique_ptr<ObjectT> obj)
     {
         static_assert(std::is_base_of_v<Object, ObjectT>, "ObjectT must inherit from Object");
         

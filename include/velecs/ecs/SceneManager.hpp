@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "velecs/ecs/Object.hpp"
 #include "velecs/ecs/TypeConstraints.hpp"
 
 #include <velecs/common/NameUuidRegistry.hpp>
@@ -23,6 +24,7 @@ using velecs::common::Uuid;
 
 namespace velecs::ecs {
 
+class World;
 class Scene;
 
 /// @class SceneManager
@@ -62,8 +64,11 @@ public:
 
     // Constructors and Destructors
 
+    inline SceneManager(World* const world)
+        : _world(world) {}
+
     /// @brief Default constructor.
-    SceneManager() = default;
+    SceneManager() = delete;
 
     /// @brief Default destructor.
     /// @details Automatically cleans up all registered scenes and calls OnExit on the current scene if active.
@@ -79,26 +84,27 @@ public:
 
     // Public Methods
 
-    /// @brief Registers a new scene of the specified type with the given name.
-    /// @tparam SceneType The type of scene to create. Must inherit from Scene.
-    /// @param name Unique name identifier for the scene. Used for name-based lookups.
-    /// @return UUID assigned to the registered scene for future reference.
-    /// @throws std::runtime_error if a scene with the given name already exists.
-    /// @details Creates a new scene instance using SceneType's constructor and stores it
-    ///          in the internal registry. The scene name is passed to the constructor along
-    ///          with the required ConstructorKey for access control.
-    /// @code
-    /// auto uuid = sceneManager.RegisterScene<GameplayScene>("Level1");
-    /// @endcode
-    template<typename SceneType, typename = IsScene<SceneType>>
-    Uuid RegisterScene(const std::string& name)
+    template<typename SceneT, typename = IsScene<SceneT>>
+    SceneT* RegisterScene(const std::string& name, std::optional<size_t> systemCapacity = std::nullopt)
     {
         if (name.empty() || std::all_of(name.begin(), name.end(), [](char c) { return std::isspace(c); }))
         {
             throw std::invalid_argument("Scene name cannot be empty or contain only whitespace");
         }
-        auto [sceneRef, uuid] = _scenes.EmplaceAs<SceneType>(name, name, Scene::ConstructorKey{});
-        return uuid;
+
+        // Create concrete type but immediately upcast for storage
+        std::unique_ptr<SceneT> concreteScene = systemCapacity.has_value()
+            ? std::make_unique<SceneT>(_world, name, systemCapacity.value(), Object::ConstructorKey{})
+            : std::make_unique<SceneT>(_world, name, Object::ConstructorKey{});
+        
+        auto* ptr = concreteScene.get();
+        ptr->_uuid = Uuid::GenerateRandom();
+        
+        // Store as Scene base type
+        std::unique_ptr<Scene> sceneBase(concreteScene.release());
+        _world->Internal_Register<Scene>(std::move(sceneBase));
+        
+        return ptr;
     }
 
     /// @brief Requests a scene transition to the scene identified by UUID.
@@ -151,12 +157,12 @@ public:
     inline bool HasActiveScene() const { return _currentScene != nullptr; }
 
     /// @brief Gets the number of registered scenes.
-    /// @return Total number of scenes currently registered in the manager.
-    inline size_t GetSceneCount() const { return _scenes.Size(); }
+    /// @return Total number of scenes currently registered in the world.
+    size_t GetSceneCount() const;
 
     /// @brief Checks if the scene registry is empty.
     /// @return true if no scenes are registered, false otherwise.
-    inline bool IsEmpty() const { return _scenes.Empty(); }
+    bool IsEmpty() const;
     
 
     /// #############################################################
@@ -169,7 +175,7 @@ public:
     /// @details This method should ONLY be called by the main engine update loop.
     ///          It handles the actual scene transition by calling OnExit on the current scene
     ///          (if any) and OnEnter on the target scene with the provided context.
-    ///          This allows vital data like deltaTime and manager references to be passed to scenes
+    ///          This allows vital data like deltaTime and world references to be passed to scenes
     ///          OnExit and OnEnter implementations.
     /// @warning This method must be called at the beginning of the engine update loop,
     ///          before any scene processing methods.
@@ -202,7 +208,7 @@ protected:
 private:
     // Private Fields
 
-    NameUuidRegistry<Scene> _scenes;
+    World* _world;
     Scene* _currentScene{nullptr};
     Scene* _targetScene{nullptr};
 

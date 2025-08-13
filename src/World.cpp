@@ -1,4 +1,4 @@
-/// @file    ObjectManager.cpp
+/// @file    World.cpp
 /// @author  Matthew Green
 /// @date    2025-08-12 11:43:11
 /// 
@@ -8,7 +8,7 @@
 /// Unauthorized copying of this file, via any medium is strictly prohibited
 /// Proprietary and confidential
 
-#include "velecs/ecs/ObjectManager.hpp"
+#include "velecs/ecs/World.hpp"
 
 namespace velecs::ecs {
 
@@ -18,7 +18,7 @@ namespace velecs::ecs {
 
 // Public Methods
 
-size_t ObjectManager::GetTotalCount() const
+size_t World::GetTotalCount() const
 {
     size_t total = 0;
     for (const auto& [type, objMap] : _objects)

@@ -64,35 +64,38 @@ public:
 
     // Constructors and Destructors
 
-    /// @brief Constructor access key to enforce controlled scene creation.
-    /// @details This prevents direct instantiation and ensures scenes are created
-    ///          through proper management systems (like SceneManager).
-    class ConstructorKey {
-        friend class SceneManager;
-        ConstructorKey() = default;
-    public:
-        virtual ~ConstructorKey() = default;
-    };
-
     /// @brief Constructor for scene creation with custom system capacity.
-    /// @param manager Pointer to the managing ObjectManager.
+    /// @param world Pointer to the managing World.
     /// @param name The name identifier for this scene.
     /// @param systemCapacity Number of systems to reserve space for during initialization.
-    /// @param key Constructor access key to control instantiation.
+    /// @param key Constructor access key for controlled instantiation.
     /// @details Creates a scene with pre-allocated system storage to avoid reallocations
     ///          during system registration. Use this constructor for scenes that will
     ///          have a known large number of systems for optimal performance.
-    Scene(ObjectManager* const manager, const std::string& name, size_t systemCapacity, ConstructorKey key);
+    Scene(World* const world, const std::string& name, size_t systemCapacity, ConstructorKey key);
 
     /// @brief Primary constructor for scene creation with default system capacity.
-    /// @param manager Pointer to the managing ObjectManager.
+    /// @param world Pointer to the managing World.
     /// @param name The name identifier for this scene.
-    /// @param key Constructor access key to control instantiation.
+    /// @param key Constructor access key for controlled instantiation.
     /// @details Creates a scene with default system storage capacity (DEFAULT_SYSTEM_CAPACITY).
     ///          This constructor delegates to the capacity-based constructor and is suitable
     ///          for most scenes. For scenes with many systems, consider using the capacity
     ///          constructor for better performance.
-    Scene(ObjectManager* const manager, const std::string& name, ConstructorKey key);
+    Scene(World* const world, const std::string& name, ConstructorKey key);
+
+    template<typename SceneT, typename = IsScene<SceneT>>
+    static SceneT* Create(World* const world, const std::string& name, std::optional<size_t> systemCapacity = std::nullopt)
+    {
+        if (name.empty() || std::all_of(name.begin(), name.end(), [](char c) { return std::isspace(c); }))
+        {
+            throw std::invalid_argument("Scene name cannot be empty or contain only whitespace");
+        }
+
+        return systemCapacity.has_value()
+            ? CreateAs<Scene, SceneT>(world, name, systemCapacity.value())
+            : CreateAs<Scene, SceneT>(world, name);
+    }
 
     /// @brief Deleted default constructor.
     /// @details Scenes must always have a name identifier.

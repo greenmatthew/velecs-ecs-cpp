@@ -1,7 +1,6 @@
 #include <iostream>
 
 #include "velecs/ecs/Common.hpp"
-#include "velecs/ecs/ObjectManager.hpp"
 #include "velecs/ecs/SceneManager.hpp"
 using namespace velecs::ecs;
 
@@ -44,8 +43,11 @@ public:
 
 class MainScene : public Scene {
 public:
-    MainScene(const std::string& name, ConstructorKey key)
-        : Scene(name, key) {}
+    MainScene(World* const world, const std::string& name, ConstructorKey key)
+        : Scene(world, name, key) {}
+    
+    MainScene(World* const world, const std::string& name, size_t systemCapacity, ConstructorKey key)
+        : Scene(world, name, systemCapacity, key) {}
 
     void OnEnter(void* context)
     {
@@ -115,8 +117,11 @@ public:
 
 class TestScene : public Scene {
 public:
-    TestScene(const std::string& name, ConstructorKey key)
-        : Scene(name, key) {}
+    TestScene(World* const world, const std::string& name, ConstructorKey key)
+        : Scene(world, name, key) {}
+
+    TestScene(World* const world, const std::string& name, size_t systemCapacity, ConstructorKey key)
+        : Scene(world, name, systemCapacity, key) {}
 
     void OnEnter(void* context)
     {
@@ -172,33 +177,12 @@ public:
 
         std::cout << std::endl;
 
-        // std::cout << "In-order:" << std::endl;
-        // for (auto [entity, transform] : rootTransform.Traverse<TraversalOrder::InOrder>())
-        // {
-        //     std::cout << "  " << entity.GetName();
-        // }
-        // std::cout << std::endl;
-
         std::cout << "Post-order:" << std::endl;
         for (auto [entity, transform] : rootTransform.Traverse<TraversalOrder::PostOrder>())
         {
             std::cout << "  " << entity.GetName();
         }
         std::cout << std::endl;
-
-        // std::cout << "Level-order:" << std::endl;
-        // for (auto [entity, transform] : rootTransform.Traverse<TraversalOrder::LevelOrder>())
-        // {
-        //     std::cout << "  " << entity.GetName();
-        // }
-        // std::cout << std::endl;
-
-        // std::cout << "Reverse Level-order:" << std::endl;
-        // for (auto [entity, transform] : rootTransform.Traverse<TraversalOrder::ReverseLevelOrder>())
-        // {
-        //     std::cout << "  " << entity.GetName();
-        // }
-        // std::cout << std::endl;
 
         root1.MarkForDestruction();
     }
@@ -208,35 +192,64 @@ int main()
 {
     try
     {
-        auto objManager = std::make_unique<ObjectManager>();
-        Object* obj = Object::Create<Object>(objManager.get(), "Test Object");
+        auto worldStorage = std::make_unique<World>();
+        auto world = worldStorage.get();
+        auto mainScene = Scene::Create<MainScene>(world, "Main Scene");
+        std::cout << mainScene->GetName() << std::endl;
+        auto testScene = Scene::Create<TestScene>(world, "Test Scene");
+        std::cout << testScene->GetName() << std::endl;
+        Object* obj = Object::Create<Object>(world, "Test Object");
         std::cout << obj->GetName() << std::endl;
 
-        const auto sceneManager = std::make_unique<SceneManager>();
-        sceneManager->RegisterScene<MainScene>("Main Scene");
-        sceneManager->RegisterScene<TestScene>("Test Scene");
+        if (world->scenes->TryRequestSceneTransition(mainScene->GetUuid()))
+            std::cout << "Successfully request scene transition to: " << mainScene->GetName() << std::endl;
 
-        SystemContext systemContext{};
-        void* context = static_cast<void*>(&systemContext);
+        for (size_t i{0}; i < 5UL; ++i)
+        {
+            std::cout << "SceneManager address: " << world->scenes.get() << std::endl;
+            std::cout << "_currentScene address: " << world->scenes->GetCurrentScene() << std::endl;
+
+            SystemContext systemContext{};
+            void* context = static_cast<void*>(&systemContext);
+            systemContext.deltaTime = 1.0f;
+            systemContext.scene = world->scenes->GetCurrentScene();
+
+            if (world->scenes->Internal_TryTransitionIfRequested(nullptr))
+            {
+                std::cout << "Transitioned scene to: " << world->scenes->GetCurrentScene()->GetName() << std::endl;
+                systemContext.scene = world->scenes->GetCurrentScene();
+            }
+
+            world->scenes->Internal_TryProcess(context);
+            world->scenes->Internal_TryProcessPhysics(context);
+            world->scenes->Internal_TryProcessEntityCleanup();
+        }
         
-        sceneManager->TryRequestSceneTransition("Main Scene");
-        sceneManager->Internal_TryTransitionIfRequested(nullptr);
-        systemContext.deltaTime = 1.0f;
-        systemContext.scene = sceneManager->GetCurrentScene();
-        for (size_t i{0}; i < 5; ++i)
-        {
-            sceneManager->Internal_TryProcess(context);
-            sceneManager->Internal_TryProcessPhysics(context);
-            sceneManager->Internal_TryProcessEntityCleanup();
-        }
-        sceneManager->TryRequestSceneTransition("Test Scene");
-        sceneManager->Internal_TryTransitionIfRequested(nullptr);
-        for (size_t i{0}; i < 5; ++i)
-        {
-            sceneManager->Internal_TryProcess(context);
-            sceneManager->Internal_TryProcessPhysics(context);
-            sceneManager->Internal_TryProcessEntityCleanup();
-        }
+        // const auto sceneManager = std::make_unique<SceneManager>();
+        // sceneManager->RegisterScene<MainScene>("Main Scene");
+        // sceneManager->RegisterScene<TestScene>("Test Scene");
+
+        // SystemContext systemContext{};
+        // void* context = static_cast<void*>(&systemContext);
+        
+        // sceneManager->TryRequestSceneTransition("Main Scene");
+        // sceneManager->Internal_TryTransitionIfRequested(nullptr);
+        // systemContext.deltaTime = 1.0f;
+        // systemContext.scene = sceneManager->GetCurrentScene();
+        // for (size_t i{0}; i < 5; ++i)
+        // {
+        //     sceneManager->Internal_TryProcess(context);
+        //     sceneManager->Internal_TryProcessPhysics(context);
+        //     sceneManager->Internal_TryProcessEntityCleanup();
+        // }
+        // sceneManager->TryRequestSceneTransition("Test Scene");
+        // sceneManager->Internal_TryTransitionIfRequested(nullptr);
+        // for (size_t i{0}; i < 5; ++i)
+        // {
+        //     sceneManager->Internal_TryProcess(context);
+        //     sceneManager->Internal_TryProcessPhysics(context);
+        //     sceneManager->Internal_TryProcessEntityCleanup();
+        // }
     }
     catch (std::exception ex)
     {

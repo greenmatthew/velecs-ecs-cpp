@@ -9,8 +9,8 @@
 /// Proprietary and confidential
 
 #include "velecs/ecs/SceneManager.hpp"
-
 #include "velecs/ecs/Scene.hpp"
+#include "velecs/ecs/World.hpp"
 
 #include <velecs/common/Exceptions.hpp>
 
@@ -24,17 +24,17 @@ namespace velecs::ecs {
 
 bool SceneManager::TryRequestSceneTransition(const Uuid& uuid)
 {
-    Scene* scene{nullptr};
-    if (_scenes.TryGetRef(uuid, scene)) return TryRequestSceneTransition(scene);
-    else return false;
+    Scene* scene = _world->TryGet<Scene>(uuid);
+    _targetScene = scene;
+    return scene;
 }
 
-bool SceneManager::TryRequestSceneTransition(const std::string& name)
-{
-    Scene* scene{nullptr};
-    if (_scenes.TryGetRef(name, scene)) return TryRequestSceneTransition(scene);
-    else return false;
-}
+// bool SceneManager::TryRequestSceneTransition(const std::string& name)
+// {
+//     Scene* scene{nullptr};
+//     if (_scenes.TryGetRef(name, scene)) return TryRequestSceneTransition(scene);
+//     else return false;
+// }
 
 bool SceneManager::TryRequestSceneTransition(Scene* const scene)
 {
@@ -63,6 +63,16 @@ bool SceneManager::TryRequestCurrentSceneReload()
         std::cerr << "[WARNING] Scene reload requested but no scene is currently active." << std::endl;
         return false;
     }
+}
+
+size_t SceneManager::GetSceneCount() const
+{
+    return _world->GetCount<Scene>();
+}
+
+bool SceneManager::IsEmpty() const
+{
+    return _world->GetCount<Scene>() == 0;
 }
 
 /// #############################################################

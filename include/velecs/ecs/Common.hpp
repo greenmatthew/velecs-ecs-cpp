@@ -12,6 +12,8 @@
 
 #include "velecs/ecs/TypeConstraints.hpp"
 
+#include "velecs/ecs/World.hpp"
+
 #include "velecs/ecs/Object.hpp"
 
 #include "velecs/ecs/Scene.hpp"

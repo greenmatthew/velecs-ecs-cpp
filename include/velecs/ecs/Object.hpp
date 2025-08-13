@@ -93,9 +93,6 @@ public:
         obj->_uuid = Uuid::GenerateRandom();
         world->Internal_Register<StorageT>(std::move(objStorage));
 
-        auto* verify = world->TryGet<StorageT>(obj->_uuid);
-        std::cout << "Verification lookup returned: " << verify << std::endl;
-
         return static_cast<ObjectT*>(obj);
     }
 

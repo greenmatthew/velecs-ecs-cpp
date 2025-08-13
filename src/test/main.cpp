@@ -206,9 +206,6 @@ int main()
 
         for (size_t i{0}; i < 5UL; ++i)
         {
-            std::cout << "SceneManager address: " << world->scenes.get() << std::endl;
-            std::cout << "_currentScene address: " << world->scenes->GetCurrentScene() << std::endl;
-
             SystemContext systemContext{};
             void* context = static_cast<void*>(&systemContext);
             systemContext.deltaTime = 1.0f;

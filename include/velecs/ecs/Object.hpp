@@ -32,25 +32,15 @@ public:
 
     // Constructors and Destructors
 
-    /// @brief Constructor access key to enforce controlled object creation.
-    class ConstructorKey {
-        friend class Object;
-        ConstructorKey() = default;
-    public:
-        virtual ~ConstructorKey() = default;
-    };
-
     /// @brief Constructor with world and default name.
     /// @param world Pointer to the managing World.
-    /// @param key Constructor access key for controlled instantiation.
-    inline Object(World* const world, ConstructorKey)
+    inline Object(World* const world)
         : _world(world) {}
 
     /// @brief Constructor with world and custom name.
     /// @param world Pointer to the managing World.
     /// @param name The initial name for this object.
-    /// @param key Constructor access key for controlled instantiation.
-    inline Object(World* const world, const std::string& name, ConstructorKey)
+    inline Object(World* const world, const std::string& name)
         : _world(world), _name(name) {}
 
     /// @brief Creates an object of the specified type with perfect forwarding of constructor arguments.
@@ -63,15 +53,15 @@ public:
     ///          The world parameter is always passed first, followed by the forwarded args,
     ///          and finally the ConstructorKey for access control.
     template<typename ObjectT, typename... Args>
-    static ObjectT* Create(World* const world, Args&&... args)
+    static ObjectT* Create(Args&&... args)
     {
         static_assert(std::is_base_of_v<Object, ObjectT>, "ObjectT must inherit from Object");
         
-        auto objStorage = std::make_unique<ObjectT>(world, std::forward<Args>(args)..., ConstructorKey{});
+        auto objStorage = std::make_unique<ObjectT>(std::forward<Args>(args)...);
         auto obj = objStorage.get();
         auto uuid = Uuid::GenerateRandom();
         obj->_uuid = uuid;
-        world->Internal_Register<ObjectT>(std::move(objStorage));
+        obj->GetWorld()->Internal_Register<ObjectT>(std::move(objStorage));
         return obj;
     }
 
@@ -83,15 +73,15 @@ public:
     /// @param args Constructor arguments to forward.
     /// @return Pointer to the newly created object of type ObjectT.
     template<typename StorageT, typename ObjectT, typename... Args>
-    static ObjectT* CreateAs(World* const world, Args&&... args)
+    static ObjectT* CreateAs(Args&&... args)
     {
         static_assert(std::is_base_of_v<Object, ObjectT>, "ObjectT must inherit from Object");
         static_assert(std::is_base_of_v<StorageT, ObjectT>, "ObjectT must inherit from StorageT");
         
-        auto objStorage = std::unique_ptr<StorageT>(new ObjectT(world, std::forward<Args>(args)..., ConstructorKey{}));
+        auto objStorage = std::unique_ptr<StorageT>(new ObjectT(std::forward<Args>(args)...));
         auto* obj = objStorage.get();
         obj->_uuid = Uuid::GenerateRandom();
-        world->Internal_Register<StorageT>(std::move(objStorage));
+        obj->GetWorld()->Internal_Register<StorageT>(std::move(objStorage));
 
         return static_cast<ObjectT*>(obj);
     }
@@ -160,17 +150,6 @@ protected:
     // Protected Fields
 
     // Protected Methods
-
-    /// @brief Constructor with world and default name.
-    /// @param world Pointer to the managing World.
-    inline Object(World* const world)
-        : Object(world, ConstructorKey{}) {}
-
-    /// @brief Constructor with world and custom name.
-    /// @param world Pointer to the managing World.
-    /// @param name The initial name for this object.
-    inline Object(World* const world, const std::string& name)
-        : Object(world, name, ConstructorKey{}) {}
     
     inline World* const GetWorld() const { return _world; }
 

@@ -43,11 +43,8 @@ public:
 
 class MainScene : public Scene {
 public:
-    MainScene(World* const world, const std::string& name, ConstructorKey key)
-        : Scene(world, name, key) {}
-    
-    MainScene(World* const world, const std::string& name, size_t systemCapacity, ConstructorKey key)
-        : Scene(world, name, systemCapacity, key) {}
+    MainScene(World* const world, const std::string& name, size_t systemCapacity)
+        : Scene(world, name, systemCapacity) {}
 
     void OnEnter(void* context)
     {
@@ -117,11 +114,8 @@ public:
 
 class TestScene : public Scene {
 public:
-    TestScene(World* const world, const std::string& name, ConstructorKey key)
-        : Scene(world, name, key) {}
-
-    TestScene(World* const world, const std::string& name, size_t systemCapacity, ConstructorKey key)
-        : Scene(world, name, systemCapacity, key) {}
+    TestScene(World* const world, const std::string& name, size_t systemCapacity)
+        : Scene(world, name, systemCapacity) {}
 
     void OnEnter(void* context)
     {
@@ -242,32 +236,6 @@ int main()
             world->scenes->Internal_TryProcessPhysics(context);
             world->scenes->Internal_TryProcessEntityCleanup();
         }
-        
-        // const auto sceneManager = std::make_unique<SceneManager>();
-        // sceneManager->RegisterScene<MainScene>("Main Scene");
-        // sceneManager->RegisterScene<TestScene>("Test Scene");
-
-        // SystemContext systemContext{};
-        // void* context = static_cast<void*>(&systemContext);
-        
-        // sceneManager->TryRequestSceneTransition("Main Scene");
-        // sceneManager->Internal_TryTransitionIfRequested(nullptr);
-        // systemContext.deltaTime = 1.0f;
-        // systemContext.scene = sceneManager->GetCurrentScene();
-        // for (size_t i{0}; i < 5; ++i)
-        // {
-        //     sceneManager->Internal_TryProcess(context);
-        //     sceneManager->Internal_TryProcessPhysics(context);
-        //     sceneManager->Internal_TryProcessEntityCleanup();
-        // }
-        // sceneManager->TryRequestSceneTransition("Test Scene");
-        // sceneManager->Internal_TryTransitionIfRequested(nullptr);
-        // for (size_t i{0}; i < 5; ++i)
-        // {
-        //     sceneManager->Internal_TryProcess(context);
-        //     sceneManager->Internal_TryProcessPhysics(context);
-        //     sceneManager->Internal_TryProcessEntityCleanup();
-        // }
     }
     catch (std::exception ex)
     {

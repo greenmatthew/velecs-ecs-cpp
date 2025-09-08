@@ -51,11 +51,11 @@ public:
 
     // Constructors and Destructors
 
-    inline Entity(World* const world, Scene* const scene, const entt::entity handle, ConstructorKey key)
-        : Object(world, "Entity", key), _scene(scene), _handle(handle) {}
+    inline Entity(World* const world, Scene* const scene, const entt::entity handle)
+        : Object(world, "Entity"), _scene(scene), _handle(handle) {}
 
-    inline Entity(World* const world, Scene* const scene, const entt::entity handle, const std::string& name, ConstructorKey key)
-        : Object(world, name, key), _scene(scene), _handle(handle) {}
+    inline Entity(World* const world, Scene* const scene, const entt::entity handle, const std::string& name)
+        : Object(world, name), _scene(scene), _handle(handle) {}
 
     /// @brief Default destructor.
     ~Entity() = default;
@@ -278,9 +278,6 @@ private:
     /// @details Creates an entity with an invalid handle. Used for creating the INVALID constant.
     inline explicit Entity()
         : Entity(nullptr, nullptr, entt::null, "Invalid Entity") {}
-    
-    inline Entity(World* const world, Scene* const scene, const entt::entity handle, const std::string& name)
-        : Object(world, name), _scene(scene), _handle(handle) {}
 };
 
 } // namespace velecs::ecs

@@ -21,15 +21,12 @@ namespace velecs::ecs {
 
 // Constructors and Destructors
 
-Scene::Scene(World* const world, const std::string& name, size_t systemCapacity, ConstructorKey key)
-    : Object(world, name, key)
+Scene::Scene(World* const world, const std::string& name, size_t systemCapacity)
+    : Object(world, name)
 {
     _systemsIterator.reserve(systemCapacity);
     _systems.reserve(systemCapacity);
 }
-
-Scene::Scene(World* const world, const std::string& name, ConstructorKey key)
-    : Scene(world, name, DEFAULT_SYSTEM_CAPACITY, key) {}
 
 Scene::~Scene() = default;
 

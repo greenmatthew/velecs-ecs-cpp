@@ -67,33 +67,20 @@ public:
     /// @param world Pointer to the managing World.
     /// @param name The name identifier for this scene.
     /// @param systemCapacity Number of systems to reserve space for during initialization.
-    /// @param key Constructor access key for controlled instantiation.
     /// @details Creates a scene with pre-allocated system storage to avoid reallocations
     ///          during system registration. Use this constructor for scenes that will
     ///          have a known large number of systems for optimal performance.
-    Scene(World* const world, const std::string& name, size_t systemCapacity, ConstructorKey key);
-
-    /// @brief Primary constructor for scene creation with default system capacity.
-    /// @param world Pointer to the managing World.
-    /// @param name The name identifier for this scene.
-    /// @param key Constructor access key for controlled instantiation.
-    /// @details Creates a scene with default system storage capacity (DEFAULT_SYSTEM_CAPACITY).
-    ///          This constructor delegates to the capacity-based constructor and is suitable
-    ///          for most scenes. For scenes with many systems, consider using the capacity
-    ///          constructor for better performance.
-    Scene(World* const world, const std::string& name, ConstructorKey key);
+    Scene(World* const world, const std::string& name, size_t systemCapacity);
 
     template<typename SceneT, typename = IsScene<SceneT>>
-    static SceneT* Create(World* const world, const std::string& name, std::optional<size_t> systemCapacity = std::nullopt)
+    static SceneT* Create(World* const world, const std::string& name, size_t systemCapacity = DEFAULT_SYSTEM_CAPACITY)
     {
         if (name.empty() || std::all_of(name.begin(), name.end(), [](char c) { return std::isspace(c); }))
         {
             throw std::invalid_argument("Scene name cannot be empty or contain only whitespace");
         }
 
-        return systemCapacity.has_value()
-            ? CreateAs<Scene, SceneT>(world, name, systemCapacity.value())
-            : CreateAs<Scene, SceneT>(world, name);
+        return CreateAs<Scene, SceneT>(world, name, systemCapacity);
     }
 
     /// @brief Deleted default constructor.

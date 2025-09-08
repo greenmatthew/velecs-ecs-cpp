@@ -73,14 +73,14 @@ public:
     Scene(World* const world, const std::string& name, size_t systemCapacity);
 
     template<typename SceneT, typename = IsScene<SceneT>>
-    static SceneT* Create(World* const world, const std::string& name, size_t systemCapacity = DEFAULT_SYSTEM_CAPACITY)
+    static SceneT* Create(World* const world, const std::string& name, std::optional<size_t> systemCapacity = std::nullopt)
     {
         if (name.empty() || std::all_of(name.begin(), name.end(), [](char c) { return std::isspace(c); }))
         {
             throw std::invalid_argument("Scene name cannot be empty or contain only whitespace");
         }
 
-        return CreateAs<Scene, SceneT>(world, name, systemCapacity);
+        return CreateAs<Scene, SceneT>(world, name, systemCapacity.value_or(DEFAULT_SYSTEM_CAPACITY));
     }
 
     /// @brief Deleted default constructor.

@@ -19,6 +19,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # Option to control whether to build the test executable
 option(VELECS_ECS_BUILD_TESTS "Build test executable for velecs-ecs" OFF)
 
+# Add local dependencies (sibling directories)
 if(NOT TARGET velecs-common)
     add_subdirectory(../velecs-common ${CMAKE_BINARY_DIR}/velecs-common)
 endif()
@@ -27,12 +28,13 @@ if(NOT TARGET velecs-math)
     add_subdirectory(../velecs-math ${CMAKE_BINARY_DIR}/velecs-math)
 endif()
 
-add_subdirectory(libs/entt)
+# Add EnTT dependency
+if(NOT TARGET EnTT::EnTT)
+    add_subdirectory(libs/entt)
+endif()
 
 # Source files for the library
 set(LIB_SOURCES
-    src/test/main.cpp
-
     # Objects
     src/World.cpp
     src/Object.cpp
@@ -41,16 +43,13 @@ set(LIB_SOURCES
     src/SceneManager.cpp
     src/Scene.cpp
     
-
     # Entities
     src/Entity.cpp
     src/EntityBuilder.cpp
 
-
     # Tags
     src/Tag.cpp
     
-
     # Components
     src/Component.cpp
     src/Components/Transform.cpp
@@ -95,6 +94,7 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${LIB_SOURCES} ${LIB_HEADERS
 target_include_directories(velecs-ecs
     PUBLIC 
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
 )
 
 target_link_libraries(velecs-ecs
@@ -103,15 +103,25 @@ target_link_libraries(velecs-ecs
     PUBLIC EnTT::EnTT
 )
 
-# Conditionally build the test executable
-if(VELECS_ECS_BUILD_TESTS)
-    add_executable(velecs-ecs-test src/test/main.cpp)
-    target_link_libraries(velecs-ecs-test PRIVATE velecs-ecs)
-    set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT velecs-ecs-test)
-endif()
+# Installation rules for the library
+install(TARGETS velecs-ecs
+    EXPORT velecs-ecs-targets
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    RUNTIME DESTINATION bin
+    INCLUDES DESTINATION include
+)
+install(DIRECTORY include/ DESTINATION include)
 
 # Export the library target for use by parent projects
 if(NOT CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
     # We're being included as a submodule
     set(VELECS_ECS_LIBRARIES velecs-ecs PARENT_SCOPE)
+endif()
+
+# Conditionally build the test executable
+if(VELECS_ECS_BUILD_TESTS)
+    add_executable(velecs-ecs-test src/test/main.cpp)
+    target_link_libraries(velecs-ecs-test PRIVATE velecs-ecs)
+    set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT velecs-ecs-test)
 endif()

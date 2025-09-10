@@ -1,0 +1,17 @@
+{
+  "name": "velecs-ecs",
+  "version": "0.1.0-dev",
+  "description": "A C++ Entity Component System library",
+  "homepage": "https://github.com/greenmatthew/velecs-ecs-cpp",
+  "dependencies": [
+    "velecs-math"
+  ],
+  "vcpkg-configuration": {
+    "registries": [
+      {
+        "kind": "filesystem",
+        "path": "../vcpkg-configuration.json"
+      }
+    ]
+  }
+}

@@ -126,7 +126,7 @@ public:
 
     /// @brief Checks if this object is valid.
     /// @return True if the object has a valid world and UUID, false otherwise.
-    bool IsValid() const;
+    inline bool IsValid() const { return _world != nullptr && _uuid != Uuid::INVALID; }
 
     /// @brief Gets the object's UUID.
     /// @return The unique identifier for this object.

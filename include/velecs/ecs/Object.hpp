@@ -58,10 +58,11 @@ public:
         static_assert(std::is_base_of_v<Object, ObjectT>, "ObjectT must inherit from Object");
         
         auto objStorage = std::make_unique<ObjectT>(std::forward<Args>(args)...);
+        objStorage->_uuid = Uuid::GenerateRandom();
         auto obj = objStorage.get();
-        auto uuid = Uuid::GenerateRandom();
-        obj->_uuid = uuid;
-        obj->GetWorld()->Internal_Register<ObjectT>(std::move(objStorage));
+        auto* world = obj->GetWorld();
+        world->Internal_Register<ObjectT>(std::move(objStorage));
+        
         return obj;
     }
 
@@ -79,9 +80,10 @@ public:
         static_assert(std::is_base_of_v<StorageT, ObjectT>, "ObjectT must inherit from StorageT");
         
         auto objStorage = std::unique_ptr<StorageT>(new ObjectT(std::forward<Args>(args)...));
+        objStorage->_uuid = Uuid::GenerateRandom();
         auto* obj = objStorage.get();
-        obj->_uuid = Uuid::GenerateRandom();
-        obj->GetWorld()->Internal_Register<StorageT>(std::move(objStorage));
+        auto* world = obj->GetWorld();
+        world->Internal_Register<StorageT>(std::move(objStorage));
 
         return static_cast<ObjectT*>(obj);
     }

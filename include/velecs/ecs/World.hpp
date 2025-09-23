@@ -1,13 +1,3 @@
-/// @file    World.hpp
-/// @author  Matthew Green
-/// @date    2025-08-12 11:13:10
-/// 
-/// @section LICENSE
-/// 
-/// Copyright (c) 2025 Matthew Green - All rights reserved
-/// Unauthorized copying of this file, via any medium is strictly prohibited
-/// Proprietary and confidential
-
 #pragma once
 
 #include "velecs/ecs/Object.hpp"
@@ -30,8 +20,6 @@ namespace velecs::ecs {
 ///          Uses std::type_index for efficient type-based lookups.
 class World {
 public:
-    // Enums
-
     // Public Fields
 
     using ObjectStorage = std::unique_ptr<Object>;

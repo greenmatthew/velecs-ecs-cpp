@@ -1,13 +1,3 @@
-/// @file    Component.hpp
-/// @author  Matthew Green
-/// @date    2025-05-12 16:27:30
-/// 
-/// @section LICENSE
-/// 
-/// Copyright (c) 2025 Matthew Green - All rights reserved
-/// Unauthorized copying of this file, via any medium is strictly prohibited
-/// Proprietary and confidential
-
 #pragma once
 
 #include "velecs/ecs/TypeConstraints.hpp"
@@ -34,8 +24,6 @@ class Component {
     friend class Scene;
 
 public:
-    // Enums
-
     // Public Fields
 
     // Constructors and Destructors

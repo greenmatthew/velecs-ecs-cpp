@@ -1,13 +1,3 @@
-/// @file    Scene.hpp
-/// @author  Matthew Green
-/// @date    2025-07-27 19:03:33
-/// 
-/// @section LICENSE
-/// 
-/// Copyright (c) 2025 Matthew Green - All rights reserved
-/// Unauthorized copying of this file, via any medium is strictly prohibited
-/// Proprietary and confidential
-
 #pragma once
 
 #include "velecs/ecs/Object.hpp"
@@ -52,8 +42,6 @@ private:
     using SystemStorage = std::unique_ptr<System>;
 
 public:
-    // Enums
-
     // Public Fields
 
     /// @brief Default capacity for system storage allocation.

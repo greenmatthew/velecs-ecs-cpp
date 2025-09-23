@@ -1,13 +1,3 @@
-/// @file    Object.hpp
-/// @author  Matthew Green
-/// @date    2025-08-09 12:42:26
-/// 
-/// @section LICENSE
-/// 
-/// Copyright (c) 2025 Matthew Green - All rights reserved
-/// Unauthorized copying of this file, via any medium is strictly prohibited
-/// Proprietary and confidential
-
 #pragma once
 
 #include <velecs/common/Uuid.hpp>
@@ -26,8 +16,6 @@ class World;
 /// Rest of description.
 class Object {
 public:
-    // Enums
-
     // Public Fields
 
     // Constructors and Destructors
@@ -62,7 +50,7 @@ public:
         auto obj = objStorage.get();
         auto* world = obj->GetWorld();
         world->Internal_Register<ObjectT>(std::move(objStorage));
-        
+
         return obj;
     }
 

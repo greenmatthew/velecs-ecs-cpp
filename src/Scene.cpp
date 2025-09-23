@@ -1,13 +1,3 @@
-/// @file    Scene.cpp
-/// @author  Matthew Green
-/// @date    2025-07-27 19:13:20
-/// 
-/// @section LICENSE
-/// 
-/// Copyright (c) 2025 Matthew Green - All rights reserved
-/// Unauthorized copying of this file, via any medium is strictly prohibited
-/// Proprietary and confidential
-
 #include "velecs/ecs/Component.hpp"
 #include "velecs/ecs/Entity.hpp"
 #include "velecs/ecs/EntityBuilder.hpp"

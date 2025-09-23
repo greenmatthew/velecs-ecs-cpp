@@ -1,13 +1,3 @@
-/// @file    Transform.hpp
-/// @author  Matthew Green
-/// @date    2025-05-12 17:48:04
-/// 
-/// @section LICENSE
-/// 
-/// Copyright (c) 2025 Matthew Green - All rights reserved
-/// Unauthorized copying of this file, via any medium is strictly prohibited
-/// Proprietary and confidential
-
 #pragma once
 
 #include "velecs/ecs/Component.hpp"
@@ -41,8 +31,6 @@ public:
     using Vec3 = velecs::math::Vec3;
     using Quat = velecs::math::Quat;
     using Mat4 = velecs::math::Mat4;
-
-    // Enums
 
     // Public Fields
 

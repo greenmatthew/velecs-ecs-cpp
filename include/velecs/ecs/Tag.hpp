@@ -1,13 +1,3 @@
-/// @file    Tag.hpp
-/// @author  Matthew Green
-/// @date    2025-05-16 13:02:55
-/// 
-/// @section LICENSE
-/// 
-/// Copyright (c) 2025 Matthew Green - All rights reserved
-/// Unauthorized copying of this file, via any medium is strictly prohibited
-/// Proprietary and confidential
-
 #pragma once
 
 #include "velecs/ecs/TypeConstraints.hpp"
@@ -37,8 +27,6 @@ namespace velecs::ecs {
 /// instances, but you can check for their existence and iterate entities that have them.
 class Tag {
 public:
-    // Enums
-
     // Public Fields
 
     // Constructors and Destructors

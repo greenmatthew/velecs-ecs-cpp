@@ -1,13 +1,3 @@
-/// @file    EntityBuilder.hpp
-/// @author  Matthew Green
-/// @date    2025-05-16 11:43:43
-/// 
-/// @section LICENSE
-/// 
-/// Copyright (c) 2025 Matthew Green - All rights reserved
-/// Unauthorized copying of this file, via any medium is strictly prohibited
-/// Proprietary and confidential
-
 #pragma once
 
 #include "velecs/ecs/Entity.hpp"
@@ -28,8 +18,6 @@ class EntityBuilder {
     friend class Entity;
 
 public:
-    // Enums
-
     // Public Fields
 
     // Constructors and Destructors

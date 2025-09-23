@@ -1,13 +1,3 @@
-/// @file    Transform.cpp
-/// @author  Matthew Green
-/// @date    2025-05-12 18:04:46
-/// 
-/// @section LICENSE
-/// 
-/// Copyright (c) 2025 Matthew Green - All rights reserved
-/// Unauthorized copying of this file, via any medium is strictly prohibited
-/// Proprietary and confidential
-
 #include "velecs/ecs/components/Transform.hpp"
 
 using namespace velecs::math;

@@ -1,13 +1,3 @@
-/// @file    Entity.hpp
-/// @author  Matthew Green
-/// @date    2025-05-12 16:24:57
-/// 
-/// @section LICENSE
-/// 
-/// Copyright (c) 2025 Matthew Green - All rights reserved
-/// Unauthorized copying of this file, via any medium is strictly prohibited
-/// Proprietary and confidential
-
 #pragma once
 
 #include "velecs/ecs/Component.hpp"
@@ -43,8 +33,6 @@ class Entity : public Object {
     friend class Component;
 
 public:
-    // Enums
-
     // Public Fields
 
     static const Entity INVALID; /// @brief A constant representing an invalid/null entity.

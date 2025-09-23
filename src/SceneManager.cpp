@@ -1,13 +1,3 @@
-/// @file    SceneManager.cpp
-/// @author  Matthew Green
-/// @date    2025-07-28 12:20:09
-/// 
-/// @section LICENSE
-/// 
-/// Copyright (c) 2025 Matthew Green - All rights reserved
-/// Unauthorized copying of this file, via any medium is strictly prohibited
-/// Proprietary and confidential
-
 #include "velecs/ecs/SceneManager.hpp"
 #include "velecs/ecs/Scene.hpp"
 #include "velecs/ecs/World.hpp"

@@ -1,13 +1,3 @@
-/// @file    World.cpp
-/// @author  Matthew Green
-/// @date    2025-08-12 11:43:11
-/// 
-/// @section LICENSE
-/// 
-/// Copyright (c) 2025 Matthew Green - All rights reserved
-/// Unauthorized copying of this file, via any medium is strictly prohibited
-/// Proprietary and confidential
-
 #include "velecs/ecs/World.hpp"
 
 namespace velecs::ecs {

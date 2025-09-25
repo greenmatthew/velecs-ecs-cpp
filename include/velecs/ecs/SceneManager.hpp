@@ -75,24 +75,7 @@ public:
     template<typename SceneT, typename = IsScene<SceneT>>
     SceneT* RegisterScene(const std::string& name, std::optional<size_t> systemCapacity = std::nullopt)
     {
-        if (name.empty() || std::all_of(name.begin(), name.end(), [](char c) { return std::isspace(c); }))
-        {
-            throw std::invalid_argument("Scene name cannot be empty or contain only whitespace");
-        }
-
-        // Create concrete type but immediately upcast for storage
-        std::unique_ptr<SceneT> concreteScene = systemCapacity.has_value()
-            ? std::make_unique<SceneT>(_world, name, systemCapacity.value(), Object::ConstructorKey{})
-            : std::make_unique<SceneT>(_world, name, Object::ConstructorKey{});
-        
-        auto* ptr = concreteScene.get();
-        ptr->_uuid = Uuid::GenerateRandom();
-        
-        // Store as Scene base type
-        std::unique_ptr<Scene> sceneBase(concreteScene.release());
-        _world->Internal_Register<Scene>(std::move(sceneBase));
-        
-        return ptr;
+        return Scene::Create(_world, name, systemCapacity);
     }
 
     /// @brief Requests a scene transition to the scene identified by UUID.

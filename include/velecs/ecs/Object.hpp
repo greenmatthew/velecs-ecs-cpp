@@ -15,6 +15,8 @@ class World;
 ///
 /// Rest of description.
 class Object {
+    friend class World;
+
 public:
     // Public Fields
 
@@ -31,49 +33,16 @@ public:
     inline Object(World* const world, const std::string& name)
         : _world(world), _name(name) {}
 
-    /// @brief Creates an object of the specified type with perfect forwarding of constructor arguments.
-    /// @tparam ObjectT The type of object to create. Must inherit from Object.
-    /// @tparam Args The types of constructor arguments (automatically deduced).
-    /// @param world Pointer to the object world.
-    /// @param args Constructor arguments to forward to the ObjectT constructor.
-    /// @return Pointer to the newly created object of type ObjectT.
-    /// @details Uses perfect forwarding to support any constructor signature.
-    ///          The world parameter is always passed first, followed by the forwarded args,
-    ///          and finally the ConstructorKey for access control.
     template<typename ObjectT, typename... Args>
-    static ObjectT* Create(Args&&... args)
+    static ObjectT* Create(World* const world, Args&&... args)
     {
-        static_assert(std::is_base_of_v<Object, ObjectT>, "ObjectT must inherit from Object");
-        
-        auto objStorage = std::make_unique<ObjectT>(std::forward<Args>(args)...);
-        objStorage->_uuid = Uuid::GenerateRandom();
-        auto obj = objStorage.get();
-        auto* world = obj->GetWorld();
-        world->Internal_Register<ObjectT>(std::move(objStorage));
-
-        return obj;
+        return world->Create<ObjectT>(world, std::forward<Args>(args)...);
     }
 
-    /// @brief Creates an object but stores it under a different type for polymorphic lookup.
-    /// @tparam StorageT The type to store as (usually base class).
-    /// @tparam ObjectT The concrete type to create.
-    /// @tparam Args Constructor argument types.
-    /// @param world Pointer to the object world.
-    /// @param args Constructor arguments to forward.
-    /// @return Pointer to the newly created object of type ObjectT.
     template<typename StorageT, typename ObjectT, typename... Args>
-    static ObjectT* CreateAs(Args&&... args)
+    static ObjectT* CreateAs(World* const world, Args&&... args)
     {
-        static_assert(std::is_base_of_v<Object, ObjectT>, "ObjectT must inherit from Object");
-        static_assert(std::is_base_of_v<StorageT, ObjectT>, "ObjectT must inherit from StorageT");
-        
-        auto objStorage = std::unique_ptr<StorageT>(new ObjectT(std::forward<Args>(args)...));
-        objStorage->_uuid = Uuid::GenerateRandom();
-        auto* obj = objStorage.get();
-        auto* world = obj->GetWorld();
-        world->Internal_Register<StorageT>(std::move(objStorage));
-
-        return static_cast<ObjectT*>(obj);
+        return world->Create<ObjectT>(world, std::forward<Args>(args)...);
     }
 
     /// @brief Deleted default constructor.

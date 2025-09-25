@@ -66,12 +66,12 @@ public:
         static_assert(std::is_base_of_v<Object, ObjectT>, "ObjectT must inherit from Object");
         static_assert(std::is_base_of_v<StorageT, ObjectT>, "ObjectT must inherit from StorageT");
         
-        auto objStorage = std::unique_ptr<StorageT>(new ObjectT(std::forward<Args>(args)...));
+        auto objStorage = std::make_unique<ObjectT>(std::forward<Args>(args)...);
         objStorage->_uuid = Uuid::GenerateRandom();
         auto* obj = objStorage.get();
-        Register<StorageT>(std::move(objStorage));
+        RegisterAs<ObjectT, StorageT>(std::move(objStorage));
         
-        return static_cast<ObjectT*>(obj);
+        return obj;
     }
 
     /// @brief Attempts to retrieve an object by type and UUID.
@@ -184,19 +184,12 @@ private:
 
     // Private Methods
 
-    /// @brief Registers an object with the manager.
-    /// @tparam ObjectT The type of object being registered.
-    /// @param obj Unique pointer to the object to register.
-    /// @details Stores the object in a type-specific map using its UUID as the key.
-    ///          This should generally never fail unless there's a UUID collision (extremely rare)
-    ///          or double registration (programming error).
     template<typename ObjectT>
     void Register(std::unique_ptr<ObjectT> obj)
     {
         static_assert(std::is_base_of_v<Object, ObjectT>, "ObjectT must inherit from Object");
         
-        if (!obj)
-        {
+        if (!obj) {
             assert(false && "Cannot register null object");
             return;
         }
@@ -204,14 +197,30 @@ private:
         std::type_index typeKey = std::type_index(typeid(ObjectT));
         Uuid uuid = obj->GetUuid();
         
-        // Get or create the type map
         auto& typeMap = _objects[typeKey];
-        
-        // Attempt to insert the object
         auto [it, inserted] = typeMap.emplace(uuid, std::move(obj));
         
-        assert(inserted && "Object with this UUID already exists! This indicates either "
-                          "a double registration or UUID collision (both should never happen).");
+        assert(inserted && "Object with this UUID already exists!");
+    }
+
+    template<typename ObjectT, typename StorageT>
+    void RegisterAs(std::unique_ptr<ObjectT> obj)
+    {
+        static_assert(std::is_base_of_v<Object, ObjectT>, "ObjectT must inherit from Object");
+        static_assert(std::is_base_of_v<StorageT, ObjectT>, "ObjectT must inherit from StorageT");
+        
+        if (!obj) {
+            assert(false && "Cannot register null object");
+            return;
+        }
+
+        std::type_index typeKey = std::type_index(typeid(StorageT));
+        Uuid uuid = obj->GetUuid();
+        
+        auto& typeMap = _objects[typeKey];
+        auto [it, inserted] = typeMap.emplace(uuid, std::move(obj));
+        
+        assert(inserted && "Object with this UUID already exists!");
     }
 };
 

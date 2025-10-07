@@ -6,26 +6,13 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Enable AddressSanitizer for Debug builds with MSVC
-if(MSVC)
-    # Add compile options for Debug configuration only
-    add_compile_options(
-        /W4                 # Warning level 4
-        /WX                 # Treat warnings as errors
-        /permissive-        # Strict standards conformance
-        $<$<CONFIG:Debug>:/fsanitize=address>  # AddressSanitizer in Debug only
-        $<$<CONFIG:Debug>:/Zi>                  # Debug info
-    )
-    
-    # Add link options for Debug configuration only
-    add_link_options(
-        $<$<CONFIG:Debug>:/fsanitize=address>
-    )
-    
-    message(STATUS "AddressSanitizer will be enabled for Debug builds")
-else()
-    message(FATAL_ERROR "Only MSVC is supported. Please use Visual Studio compiler.")
-endif()
+# Enable pedantic warnings
+set(ENABLE_PEDANTIC ON CACHE BOOL "")
+include(cmake/Pedantic.cmake)
+
+# Enable AddressSanitizer
+set(ENABLE_ASAN ON CACHE BOOL "Enable AddressSanitizer")
+include(cmake/ASan.cmake)
 
 # Set output directories to bin if its the cmake build source
 if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
@@ -138,6 +125,9 @@ if(VELECS_ECS_BUILD_TESTS)
     add_executable(velecs-ecs-test src/test/main.cpp)
     target_link_libraries(velecs-ecs-test PRIVATE velecs-ecs)
     set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT velecs-ecs-test)
+    
+    # Copy ASan DLLs if needed
+    copy_asan_dlls(velecs-ecs-test)
 endif()
 
 # Export the library target for use by parent projects

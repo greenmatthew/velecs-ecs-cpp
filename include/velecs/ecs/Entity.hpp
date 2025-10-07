@@ -125,30 +125,21 @@ public:
     /// @tparam TagType The type of tag to check for. Must inherit from Tag.
     /// @return True if the entity has the specified tag, false otherwise.
     template<typename TagType, typename = IsTag<TagType>>
-    bool HasTag() const
-    {
-        return _scene->HasTag<TagType>(this);
-    }
+    bool HasTag() const;
 
     /// @brief Attempts to add a tag of the specified type to an entity.
     /// @tparam TagType The type of tag to add. Must inherit from Tag.
     /// @return True if the tag was successfully added, false if the entity already had the tag.
     /// @details Safe to call even if the entity already has the specified tag.
     template<typename TagType, typename = IsTag<TagType>>
-    bool TryAddTag()
-    {
-        return _scene->TryAddTag<TagType>(this);
-    }
+    bool TryAddTag();
 
     /// @brief Attempts to remove a tag of the specified type from an entity.
     /// @tparam TagType The type of tag to remove. Must inherit from Tag.
     /// @return True if the tag was successfully removed, false if the entity didn't have the tag.
     /// @details Safe to call even if the entity doesn't have the specified tag.
     template<typename TagType, typename = IsTag<TagType>>
-    bool TryRemoveTag()
-    {
-        return _scene->TryRemoveTag<TagType>(this);
-    }
+    bool TryRemoveTag();
 
 
 
@@ -160,30 +151,21 @@ public:
     /// @tparam ComponentType The type of component to check for. Must inherit from Component.
     /// @return True if the entity has the specified component, false otherwise.
     template<typename ComponentType, typename = IsComponent<ComponentType>>
-    bool HasComponent() const
-    {
-        return _scene->HasComponent<ComponentType>(this);
-    }
+    bool HasComponent() const;
 
     /// @brief Tries to get a mutable component of the specified type from the entity.
     /// @tparam ComponentType The type of component to get. Must inherit from Component.
     /// @param outComponent A pointer that will be set to the component if found, or nullptr if not found.
     /// @return True if the component was found, false otherwise.
     template<typename ComponentType, typename = IsComponent<ComponentType>>
-    bool TryGetComponent(ComponentType*& outComponent)
-    {
-        return _scene->TryGetComponent(this, outComponent);
-    }
+    bool TryGetComponent(ComponentType*& outComponent);
 
     /// @brief Tries to get a const component of the specified type from the entity.
     /// @tparam ComponentType The type of component to get. Must inherit from Component.
     /// @param outComponent A const pointer that will be set to the component if found, or nullptr if not found.
     /// @return True if the component was found, false otherwise.
     template<typename ComponentType, typename = IsComponent<ComponentType>>
-    bool TryGetComponent(const ComponentType*& outComponent) const
-    {
-        return _scene->TryGetComponent(this, outComponent);
-    }
+    bool TryGetComponent(const ComponentType*& outComponent) const;
 
     /// @brief Attempts to add a component of the specified type to this entity.
     /// @tparam ComponentType The type of component to add. Must inherit from Component.
@@ -192,10 +174,7 @@ public:
     /// @details The component is default-constructed and its scene/handle are automatically set.
     ///          Safe to call even if this entity already has the specified component type.
     template<typename ComponentType, typename = IsComponent<ComponentType>>
-    bool TryAddComponent(ComponentType*& outComponent)
-    {
-        return _scene->TryAddComponent<ComponentType>(this, outComponent);
-    }
+    bool TryAddComponent(ComponentType*& outComponent);
 
     /// @brief Attempts to add a const component of the specified type to this entity.
     /// @tparam ComponentType The type of component to add. Must inherit from Component.
@@ -205,10 +184,7 @@ public:
     ///          This const overload provides read-only access to the newly added component.
     ///          Safe to call even if this entity already has the specified component type.
     template<typename ComponentType, typename = IsComponent<ComponentType>>
-    bool TryAddComponent(const ComponentType*& outComponent)
-    {
-        return _scene->TryAddComponent<ComponentType>(this, outComponent);
-    }
+    bool TryAddComponent(const ComponentType*& outComponent);
 
     /// @brief Attempts to add a component of the specified type to this entity with constructor arguments.
     /// @tparam ComponentType The type of component to add. Must inherit from Component.
@@ -219,10 +195,7 @@ public:
     /// @details The component is constructed with the provided arguments and its scene/handle are automatically set.
     ///          Safe to call even if this entity already has the specified component type.
     template<typename ComponentType, typename = IsComponent<ComponentType>, typename... Args>
-    bool TryAddComponent(ComponentType*& outComponent, Args &&...args)
-    {
-        return _scene->TryAddComponent<ComponentType>(this, outComponent, std::forward<Args>(args)...);
-    }
+    bool TryAddComponent(ComponentType*& outComponent, Args &&...args);
 
     /// @brief Attempts to add a const component of the specified type to this entity with constructor arguments.
     /// @tparam ComponentType The type of component to add. Must inherit from Component.
@@ -234,20 +207,14 @@ public:
     ///          This const overload provides read-only access to the newly added component.
     ///          Safe to call even if this entity already has the specified component type.
     template<typename ComponentType, typename = IsComponent<ComponentType>, typename... Args>
-    bool TryAddComponent(const ComponentType*& outComponent, Args &&...args)
-    {
-        return _scene->TryAddComponent<ComponentType>(this, outComponent, std::forward<Args>(args)...);
-    }
+    bool TryAddComponent(const ComponentType*& outComponent, Args &&...args);
 
     /// @brief Attempts to remove a component of the specified type from this entity.
     /// @tparam ComponentType The type of component to remove. Must inherit from Component.
     /// @return True if the component was successfully removed, false if this entity didn't have the component.
     /// @details Safe to call even if this entity doesn't have the specified component type.
     template<typename ComponentType, typename = IsComponent<ComponentType>>
-    bool TryRemoveComponent()
-    {
-        return _scene->TryRemoveComponent<ComponentType>(this);
-    }
+    bool TryRemoveComponent();
 
 protected:
     // Protected Fields
@@ -270,6 +237,7 @@ private:
 
 } // namespace velecs::ecs
 
+#include "velecs/ecs/Entity.inl"
 
 /// @brief Standard library specialization for hashing Entity objects.
 namespace std {

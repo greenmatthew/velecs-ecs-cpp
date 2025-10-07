@@ -74,6 +74,7 @@ set(LIB_HEADERS
 
     # Entities
     include/velecs/ecs/Entity.hpp
+    include/velecs/ecs/Entity.inl
     include/velecs/ecs/EntityBuilder.hpp
 
     # Tags

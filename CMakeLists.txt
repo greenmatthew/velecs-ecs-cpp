@@ -6,6 +6,27 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# Enable AddressSanitizer for Debug builds with MSVC
+if(MSVC)
+    # Add compile options for Debug configuration only
+    add_compile_options(
+        /W4                 # Warning level 4
+        /WX                 # Treat warnings as errors
+        /permissive-        # Strict standards conformance
+        $<$<CONFIG:Debug>:/fsanitize=address>  # AddressSanitizer in Debug only
+        $<$<CONFIG:Debug>:/Zi>                  # Debug info
+    )
+    
+    # Add link options for Debug configuration only
+    add_link_options(
+        $<$<CONFIG:Debug>:/fsanitize=address>
+    )
+    
+    message(STATUS "AddressSanitizer will be enabled for Debug builds")
+else()
+    message(FATAL_ERROR "Only MSVC is supported. Please use Visual Studio compiler.")
+endif()
+
 # Set output directories to bin if its the cmake build source
 if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
     # Only set output directories when building this library standalone

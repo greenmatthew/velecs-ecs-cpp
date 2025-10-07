@@ -127,7 +127,7 @@ void Scene::ProcessEntityCleanup()
 {
     // deque? queue? vector? idk
     std::vector<Entity*> destructionQueue;
-    GetRegistry().view<DestroyTag>().each([&](auto e, auto& tag){
+    GetRegistry().view<DestroyTag>().each([&](auto e, auto&){
         Entity* entity = TryGetEntity(e);
         assert(entity && "Should always be able to lookup entity via entt handle");
         destructionQueue.push_back(entity);

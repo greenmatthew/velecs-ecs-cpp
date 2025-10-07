@@ -46,7 +46,7 @@ public:
     MainScene(World* const world, const std::string& name, size_t systemCapacity)
         : Scene(world, name, systemCapacity) {}
 
-    void OnEnter(void* context)
+    void OnEnter(void*)
     {
         Entity* parent = Entity::Create(this)
             .WithName("Parent Entity")
@@ -117,7 +117,7 @@ public:
     TestScene(World* const world, const std::string& name, size_t systemCapacity)
         : Scene(world, name, systemCapacity) {}
 
-    void OnEnter(void* context)
+    void OnEnter(void*)
     {
         // Create test hierarchy
         Entity* root1 = Entity::Create(this)
@@ -134,22 +134,22 @@ public:
             .WithParent(root1)
             ;
         
-        Entity* grandchild4 = Entity::Create(this)
+        Entity::Create(this)
             .WithName("4")
             .WithParent(child2)
             ;
         
-        Entity* grandchild5 = Entity::Create(this)
+        Entity::Create(this)
             .WithName("5")
             .WithParent(child2)
             ;
 
-        Entity* grandchild6 = Entity::Create(this)
+        Entity::Create(this)
             .WithName("6")
             .WithParent(child3)
             ;
         
-        Entity* grandchild7 = Entity::Create(this)
+        Entity::Create(this)
             .WithName("7")
             .WithParent(child3)
             ;

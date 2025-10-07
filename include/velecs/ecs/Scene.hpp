@@ -86,13 +86,13 @@ public:
     /// @details Override this method in derived classes to perform scene-specific
     ///          initialization such as loading assets, setting up UI, or spawning
     ///          initial entities. Default implementation does nothing.
-    virtual void OnEnter(void* context) {}
+    virtual void OnEnter([[maybe_unused]] void* context) {}
 
     /// @brief Called when the scene becomes inactive.
     /// @details Override this method in derived classes to perform scene-specific
     ///          cleanup such as saving state, unloading assets, or clearing temporary
     ///          data. Default implementation does nothing.
-    virtual void OnExit(void* context) {}
+    virtual void OnExit([[maybe_unused]] void* context) {}
 
 
 

@@ -86,7 +86,7 @@ protected:
     ///          This is the primary update phase where most gameplay systems should execute.
     ///          Only called if the system is enabled.
     ///          Default implementation does nothing.
-    virtual void Process(void* context) {}
+    virtual void Process([[maybe_unused]] void* context) {}
 
     /// @brief Called during the physics simulation phase for each frame.
     /// @param context Execution context data passed from the scene (currently void* placeholder).
@@ -95,7 +95,7 @@ protected:
     ///          runs after the main logic phase to ensure proper separation of concerns.
     ///          Only called if the system is enabled.
     ///          Default implementation does nothing.
-    virtual void ProcessPhysics(void* context) {}
+    virtual void ProcessPhysics([[maybe_unused]] void* context) {}
 
     /// @brief Called during the GUI rendering phase for each frame.
     /// @param context Execution context data passed from the scene (currently void* placeholder).
@@ -104,7 +104,7 @@ protected:
     ///          typically runs last to ensure GUI elements appear on top of game content.
     ///          Only called if the system is enabled.
     ///          Default implementation does nothing.
-    virtual void ProcessGUI(void* context) {}
+    virtual void ProcessGUI([[maybe_unused]] void* context) {}
 
 private:
     // Private Fields

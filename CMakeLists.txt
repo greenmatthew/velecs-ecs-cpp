@@ -39,7 +39,7 @@ set(LIB_SOURCES
     # Object
     src/Object.cpp
 
-    
+
     # Scene
     src/SceneManager.cpp
     src/Scene.cpp

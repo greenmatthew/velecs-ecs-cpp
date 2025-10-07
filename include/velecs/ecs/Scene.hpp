@@ -236,20 +236,7 @@ public:
     /// @details Performs consistency validation between internal system storage collections
     ///          to ensure data structure integrity.
     template<typename SystemType, typename = IsSystem<SystemType>>
-    bool HasSystem()
-    {
-        SystemId id = GetSystemId<SystemType>();
-        
-        bool inMap = _systems.find(id) != _systems.end();
-        auto iteratorIt = std::find(_systemsIterator.begin(), _systemsIterator.end(), id);
-        bool inIterator = (iteratorIt != _systemsIterator.end());
-        
-        // Ensure both collections are synchronized
-        assert(inMap == inIterator && 
-            "System storage collections out of sync - system found in one collection but not the other");
-        
-        return inMap;
-    }
+    bool HasSystem();
 
     /// @brief Attempts to register a system of the specified type with default construction.
     /// @tparam SystemType The type of system to add. Must inherit from System.
@@ -259,10 +246,7 @@ public:
     ///          of each type is allowed per scene. Systems are automatically sorted by their
     ///          GetExecutionOrder() value during insertion.
     template<typename SystemType, typename = IsSystem<SystemType>>
-    bool TryAddSystem()
-    {
-        return TryAddSystem(std::make_unique<SystemType>());
-    }
+    bool TryAddSystem();
 
     /// @brief Attempts to register a system of the specified type with constructor arguments.
     /// @tparam SystemType The type of system to add. Must inherit from System.
@@ -274,10 +258,7 @@ public:
     ///          Only one system of each type is allowed per scene. Systems are automatically
     ///          sorted by their GetExecutionOrder() value during insertion.
     template<typename SystemType, typename = IsSystem<SystemType>, typename... Args>
-    bool TryAddSystem(Args&&... args)
-    {
-        return TryAddSystem(std::make_unique<SystemType>(std::forward<Args>(args)...));
-    }
+    bool TryAddSystem(Args&&... args);
 
     /// @brief Attempts to remove a system of the specified type from the scene.
     /// @tparam SystemType The type of system to remove. Must inherit from System.
@@ -286,28 +267,7 @@ public:
     ///          and the execution order list. This ensures proper resource cleanup and maintains
     ///          data structure consistency.
     template<typename SystemType, typename = IsSystem<SystemType>>
-    bool TryRemoveSystem()
-    {
-        SystemId id = GetSystemId<SystemType>();
-    
-        auto it = _systems.find(id);
-        if (it == _systems.end()) return false;
-        
-        // Call cleanup before removal
-        it->second->Cleanup();
-
-        // Remove from map
-        _systems.erase(it);
-        
-        // Find and remove from iterator vector (simple linear search)
-        auto iteratorIt = std::find(_systemsIterator.begin(), _systemsIterator.end(), id);
-        assert(iteratorIt != _systemsIterator.end() && *iteratorIt == id && 
-               "System found in _systems map but not in _systemsIterator - data structure consistency violated");
-        
-        if (iteratorIt != _systemsIterator.end()) _systemsIterator.erase(iteratorIt);
-        
-        return true;
-    }
+    bool TryRemoveSystem();
 
     /// @brief Gets the system ID for a given system type.
     /// @tparam SystemType The type of system to get the ID for. Must inherit from System.
@@ -315,61 +275,21 @@ public:
     /// @details This provides a consistent way to identify system types across the ECS.
     ///          The ID is used internally for system storage and lookup operations.
     template<typename SystemType, typename = IsSystem<SystemType>>
-    SystemId GetSystemId()
-    {
-        return typeid(SystemType);
-    }
+    SystemId GetSystemId();
 
     // Single component with perfect forwarding
     template<typename TagOrComponent, typename Func>
-    void Query(Func&& callback)
-    {
-        auto& registry = GetRegistry();
-        registry.view<Component>().each([this, &callback](entt::entity entity, TagOrComponent& tagOrComp) {
-            Entity* entity = TryGetEntity(e);
-            assert(entity && "Should always be able to lookup entity via entt handle");
-            callback(entity, tagOrComp);
-        });
-    }
+    void Query(Func&& callback);
 
     // Multi-component with perfect forwarding  
     template<typename... TagsOrComponents, typename Func>
-    void Query(Func&& callback)
-    {
-        static_assert(sizeof...(TagsOrComponents) > 1, "Use single component Query overload for single component queries");
-        
-        GetRegistry().view<TagsOrComponents...>().each([this, callback = std::forward<Func>(callback)](entt::entity e, TagsOrComponents&... tagsOrComps) {
-            Entity* entity = TryGetEntity(e);
-            assert(entity && "Should always be able to lookup entity via entt handle");
-            callback(entity, tagsOrComps...);
-        });
-    }
+    void Query(Func&& callback);
 
     template<typename TagOrComponent>
-    void Query(std::function<void(Entity*, TagOrComponent&)> callback)
-    {
-        auto& registry = GetRegistry();
-        auto view = registry.view<TagOrComponent>();
-        
-        for (auto entity : view) {
-            Entity* entity = TryGetEntity(e);
-            assert(entity && "Should always be able to lookup entity via entt handle");
-            TagOrComponent& tagOrComp = registry.get<TagOrComponent>(entity->_handle);
-            callback(entity, tagOrComp);
-        }
-    }
+    void Query(std::function<void(Entity*, TagOrComponent&)> callback);
 
     template<typename... TagsOrComponents>
-    void Query(std::function<void(Entity*, TagsOrComponents&...)> callback)
-    {
-        static_assert(sizeof...(TagsOrComponents) > 1, "Use single component Query overload for single component queries");
-        
-        GetRegistry().view<TagsOrComponents...>().each([this, &callback](entt::entity e, TagsOrComponents&... tagsOrComps) {
-            Entity* entity = TryGetEntity(e);
-            assert(entity && "Should always be able to lookup entity via entt handle");
-            callback(entity, tagsOrComps...);
-        });
-    }
+    void Query(std::function<void(Entity*, TagsOrComponents&...)> callback);
 
 protected:
     // Protected Fields
@@ -424,25 +344,7 @@ private:
     ///          GetExecutionOrder() value during insertion to maintain deterministic execution order.
     ///          Only one system of each type is allowed per scene.
     template<typename SystemType, typename = IsSystem<SystemType>>
-    inline bool TryAddSystem(std::unique_ptr<SystemType> system)
-    {
-        SystemId id = GetSystemId<SystemType>();
-        
-        if (_systems.find(id) != _systems.end()) return false;
-        
-        auto [it, inserted] = _systems.emplace(id, std::move(system));
-        assert(inserted && "System emplace failed after find() check");
-
-        // Sorted insertion using execution order
-        auto insertPos = std::lower_bound(_systemsIterator.begin(), _systemsIterator.end(), id,
-            [this](const SystemId& a, const SystemId& b) {
-                return _systems.at(a)->GetExecutionOrder() < _systems.at(b)->GetExecutionOrder();
-            });
-        _systemsIterator.insert(insertPos, id);
-
-        it->second->Init();
-        return inserted;
-    }
+    bool TryAddSystem(std::unique_ptr<SystemType> system);
 
     /// @brief Destroys a specific entity from this scene's registry.
     /// @param entity The entity to destroy.

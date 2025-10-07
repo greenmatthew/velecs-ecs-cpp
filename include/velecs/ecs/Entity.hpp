@@ -2,7 +2,6 @@
 
 #include "velecs/ecs/Component.hpp"
 #include "velecs/ecs/Object.hpp"
-#include "velecs/ecs/Scene.hpp"
 #include "velecs/ecs/TypeConstraints.hpp"
 
 #include <entt/entt.hpp>

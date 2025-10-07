@@ -11,19 +11,19 @@ namespace velecs::ecs {
 template<typename TagType, typename>
 bool Entity::HasTag() const
 {
-    return _scene->HasTag<TagType>(this);
+    return _scene->template HasTag<TagType>(this);
 }
 
 template<typename TagType, typename>
 bool Entity::TryAddTag()
 {
-    return _scene->TryAddTag<TagType>(this);
+    return _scene->template TryAddTag<TagType>(this);
 }
 
 template<typename TagType, typename>
 bool Entity::TryRemoveTag()
 {
-    return _scene->TryRemoveTag<TagType>(this);
+    return _scene->template TryRemoveTag<TagType>(this);
 }
 
 
@@ -35,13 +35,13 @@ bool Entity::TryRemoveTag()
 template<typename ComponentType, typename>
 bool Entity::HasComponent() const
 {
-    return _scene->HasComponent<ComponentType>(this);
+    return _scene->template HasComponent<ComponentType>(this);
 }
 
 template<typename ComponentType, typename>
 bool Entity::TryGetComponent(ComponentType*& outComponent)
 {
-    return _scene->TryGetComponent(this, outComponent);
+    return _scene->template TryGetComponent(this, outComponent);
 }
 
 template<typename ComponentType, typename>
@@ -53,31 +53,31 @@ bool Entity::TryGetComponent(const ComponentType*& outComponent) const
 template<typename ComponentType, typename>
 bool Entity::TryAddComponent(ComponentType*& outComponent)
 {
-    return _scene->TryAddComponent<ComponentType>(this, outComponent);
+    return _scene->template TryAddComponent<ComponentType>(this, outComponent);
 }
 
 template<typename ComponentType, typename>
 bool Entity::TryAddComponent(const ComponentType*& outComponent)
 {
-    return _scene->TryAddComponent<ComponentType>(this, outComponent);
+    return _scene->template TryAddComponent<ComponentType>(this, outComponent);
 }
 
 template<typename ComponentType, typename, typename... Args>
 bool Entity::TryAddComponent(ComponentType*& outComponent, Args &&...args)
 {
-    return _scene->TryAddComponent<ComponentType>(this, outComponent, std::forward<Args>(args)...);
+    return _scene->template TryAddComponent<ComponentType>(this, outComponent, std::forward<Args>(args)...);
 }
 
 template<typename ComponentType, typename, typename... Args>
 bool Entity::TryAddComponent(const ComponentType*& outComponent, Args &&...args)
 {
-    return _scene->TryAddComponent<ComponentType>(this, outComponent, std::forward<Args>(args)...);
+    return _scene->template TryAddComponent<ComponentType>(this, outComponent, std::forward<Args>(args)...);
 }
 
 template<typename ComponentType, typename>
 bool Entity::TryRemoveComponent()
 {
-    return _scene->TryRemoveComponent<ComponentType>(this);
+    return _scene->template TryRemoveComponent<ComponentType>(this);
 }
 
 // Protected Methods

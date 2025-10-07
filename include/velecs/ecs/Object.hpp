@@ -34,16 +34,10 @@ public:
         : _world(world), _name(name) {}
 
     template<typename ObjectT, typename... Args>
-    static ObjectT* Create(World* const world, Args&&... args)
-    {
-        return world->Create<ObjectT>(world, std::forward<Args>(args)...);
-    }
+    static ObjectT* Create(World* const world, Args&&... args);
 
     template<typename StorageT, typename ObjectT, typename... Args>
-    static ObjectT* CreateAs(World* const world, Args&&... args)
-    {
-        return world->Create<ObjectT>(world, std::forward<Args>(args)...);
-    }
+    static ObjectT* CreateAs(World* const world, Args&&... args);
 
     /// @brief Deleted default constructor.
     /// @details Objects must always be associated with a world.
@@ -124,7 +118,7 @@ private:
 
 } // namespace velecs::ecs
 
-
+#include "velecs/ecs/Object.inl"
 
 /// @brief Standard library specialization for hashing Object instances.
 namespace std {

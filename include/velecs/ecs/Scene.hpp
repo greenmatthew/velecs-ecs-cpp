@@ -122,10 +122,7 @@ public:
     /// @param entity The entity to check.
     /// @return True if the entity has the specified tag, false otherwise.
     template<typename TagType, typename = IsTag<TagType>>
-    bool HasTag(const Entity* const entity) const
-    {
-        return GetRegistry().all_of<TagType>(entity->_handle);
-    }
+    bool HasTag(const Entity* const entity) const;
 
     /// @brief Attempts to add a tag of the specified type to an entity.
     /// @tparam TagType The type of tag to add. Must inherit from Tag.
@@ -133,12 +130,7 @@ public:
     /// @return True if the tag was successfully added, false if the entity already had the tag.
     /// @details Safe to call even if the entity already has the specified tag.
     template<typename TagType, typename = IsTag<TagType>>
-    bool TryAddTag(Entity* const entity)
-    {
-        if (HasTag<TagType>(entity)) return false;
-        GetRegistry().emplace<TagType>(entity->_handle);
-        return true;
-    }
+    bool TryAddTag(Entity* const entity);
 
     /// @brief Attempts to remove a tag of the specified type from an entity.
     /// @tparam TagType The type of tag to remove. Must inherit from Tag.
@@ -146,10 +138,7 @@ public:
     /// @return True if the tag was successfully removed, false if the entity didn't have the tag.
     /// @details Safe to call even if the entity doesn't have the specified tag.
     template<typename TagType, typename = IsTag<TagType>>
-    bool TryRemoveTag(Entity* const entity)
-    {
-        return GetRegistry().remove<TagType>(entity->_handle) > 0;
-    }
+    bool TryRemoveTag(Entity* const entity);
 
 
 
@@ -162,10 +151,7 @@ public:
     /// @param entity The entity to check.
     /// @return True if the entity has the specified component, false otherwise.
     template<typename ComponentType, typename = IsComponent<ComponentType>>
-    bool HasComponent(const Entity* const entity) const
-    {
-        return GetRegistry().all_of<ComponentType>(entity->_handle);
-    }
+    bool HasComponent(const Entity* const entity) const;
 
     /// @brief Tries to get a mutable component from an entity.
     /// @tparam ComponentType The type of component to get. Must inherit from Component.
@@ -174,12 +160,7 @@ public:
     /// @return True if the component was found, false otherwise.
     /// @details This non-const overload allows modification of the retrieved component.
     template<typename ComponentType, typename = IsComponent<ComponentType>>
-    bool TryGetComponent(const Entity* const entity, ComponentType*& outComponent)
-    {
-        assert(entity && entity->IsValid() && "Entity must be valid");
-        outComponent = GetRegistry().try_get<ComponentType>(entity->_handle);
-        return (outComponent != nullptr);
-    }
+    bool TryGetComponent(const Entity* const entity, ComponentType*& outComponent);
 
     /// @brief Tries to get a const component from an entity.
     /// @tparam ComponentType The type of component to get. Must inherit from Component.
@@ -188,12 +169,7 @@ public:
     /// @return True if the component was found, false otherwise.
     /// @details This const overload provides read-only access to the retrieved component.
     template<typename ComponentType, typename = IsComponent<ComponentType>>
-    bool TryGetComponent(const Entity* const entity, const ComponentType*& outComponent) const
-    {
-        assert(entity && entity->IsValid() && "Entity must be valid");
-        outComponent = GetRegistry().try_get<ComponentType>(entity->_handle);
-        return (outComponent != nullptr);
-    }
+    bool TryGetComponent(const Entity* const entity, const ComponentType*& outComponent) const;
 
     /// @brief Attempts to add a component of the specified type to an entity.
     /// @tparam ComponentType The type of component to add. Must inherit from Component.
@@ -203,20 +179,7 @@ public:
     /// @details The component is default-constructed and its scene/handle are automatically set.
     ///          Safe to call even if the entity already has the specified component type.
     template<typename ComponentType, typename = IsComponent<ComponentType>>
-    bool TryAddComponent(Entity* const entity, ComponentType*& outComponent)
-    {
-        assert(entity && entity->IsValid() && "Entity must be valid");
-        if (HasComponent<ComponentType>(entity))
-        {
-            outComponent = nullptr;
-            return false;
-        }
-
-        ComponentType& comp = GetRegistry().emplace<ComponentType>(entity->_handle);
-        comp._owner = entity;
-        outComponent = &comp;
-        return true;
-    }
+    bool TryAddComponent(Entity* const entity, ComponentType*& outComponent);
 
     /// @brief Attempts to add a const component of the specified type to an entity.
     /// @tparam ComponentType The type of component to add. Must inherit from Component.
@@ -227,20 +190,7 @@ public:
     ///          This const overload provides read-only access to the newly added component.
     ///          Safe to call even if the entity already has the specified component type.
     template<typename ComponentType, typename = IsComponent<ComponentType>>
-    bool TryAddComponent(Entity* const entity, const ComponentType*& outComponent)
-    {
-        assert(entity && entity->IsValid() && "Entity must be valid");
-        if (HasComponent<ComponentType>(entity))
-        {
-            outComponent = nullptr;
-            return false;
-        }
-
-        ComponentType& comp = GetRegistry().emplace<ComponentType>(entity->_handle);
-        comp._owner = entity;
-        outComponent = &comp;
-        return true;
-    }
+    bool TryAddComponent(Entity* const entity, const ComponentType*& outComponent);
 
     /// @brief Attempts to add a component of the specified type to an entity with constructor arguments.
     /// @tparam ComponentType The type of component to add. Must inherit from Component.
@@ -252,20 +202,7 @@ public:
     /// @details The component is constructed with the provided arguments and its scene/handle are automatically set.
     ///          Safe to call even if the entity already has the specified component type.
     template<typename ComponentType, typename = IsComponent<ComponentType>, typename... Args>
-    bool TryAddComponent(Entity* const entity, ComponentType*& outComponent, Args &&...args)
-    {
-        assert(entity && entity->IsValid() && "Entity must be valid");
-        if (HasComponent<ComponentType>(entity))
-        {
-            outComponent = nullptr;
-            return false;
-        }
-
-        ComponentType& comp = GetRegistry().emplace<ComponentType>(entity->_handle, std::forward<Args>(args)...);
-        comp._owner = entity;
-        outComponent = &comp;
-        return true;
-    }
+    bool TryAddComponent(Entity* const entity, ComponentType*& outComponent, Args &&...args);
 
     /// @brief Attempts to add a const component of the specified type to an entity with constructor arguments.
     /// @tparam ComponentType The type of component to add. Must inherit from Component.
@@ -278,34 +215,14 @@ public:
     ///          This const overload provides read-only access to the newly added component.
     ///          Safe to call even if the entity already has the specified component type.
     template<typename ComponentType, typename = IsComponent<ComponentType>, typename... Args>
-    bool TryAddComponent(Entity* const entity, const ComponentType*& outComponent, Args &&...args)
-    {
-        assert(entity && entity->IsValid() && "Entity must be valid");
-        if (HasComponent<ComponentType>(entity))
-        {
-            outComponent = nullptr;
-            return false;
-        }
-
-        ComponentType& comp = GetRegistry().emplace<ComponentType>(entity->_handle, std::forward<Args>(args)...);
-        comp._owner = entity;
-        outComponent = &comp;
-        return true;
-    }
-
+    bool TryAddComponent(Entity* const entity, const ComponentType*& outComponent, Args &&...args);
     /// @brief Attempts to remove a component of the specified type from an entity.
     /// @tparam ComponentType The type of component to remove. Must inherit from Component.
     /// @param entity The entity to remove the component from.
     /// @return True if the component was successfully removed, false if the entity didn't have the component.
     /// @details Safe to call even if the entity doesn't have the specified component type.
     template<typename ComponentType, typename = IsComponent<ComponentType>>
-    bool TryRemoveComponent(Entity* const entity)
-    {
-        assert(entity && entity->IsValid() && "Entity must be valid");
-        if (!HasComponent<ComponentType>(entity)) return false;
-        GetRegistry().remove<ComponentType>(entity->_handle);
-        return true;
-    }
+    bool TryRemoveComponent(Entity* const entity);
     
 
 
@@ -561,3 +478,5 @@ private:
 };
 
 } // namespace velecs::ecs
+
+#include "velecs/ecs/Scene.inl"

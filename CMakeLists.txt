@@ -33,29 +33,32 @@ add_subdirectory(libs/entt)
 set(LIB_SOURCES
     src/test/main.cpp
 
-    # Objects
+    # World
     src/World.cpp
+
+    # Object
     src/Object.cpp
 
-    # Scenes
+    
+    # Scene
     src/SceneManager.cpp
     src/Scene.cpp
     
 
-    # Entities
+    # Entity
     src/Entity.cpp
     src/EntityBuilder.cpp
 
 
-    # Tags
+    # Tag
     src/Tag.cpp
     
 
-    # Components
+    # Component
     src/Component.cpp
     src/Components/Transform.cpp
 
-    # Systems
+    # System
     src/System.cpp
 )
 
@@ -64,28 +67,33 @@ set(LIB_HEADERS
     include/velecs/ecs/Common.hpp
     include/velecs/ecs/TypeConstraints.hpp
 
-    # Objects
+    # World
     include/velecs/ecs/World.hpp
+    include/velecs/ecs/World.inl
+
+    # Object
     include/velecs/ecs/Object.hpp
+    include/velecs/ecs/Object.inl
     
-    # Scenes
+    # Scene
     include/velecs/ecs/SceneManager.hpp
     include/velecs/ecs/Scene.hpp
+    include/velecs/ecs/Scene.inl
 
-    # Entities
+    # Entity
     include/velecs/ecs/Entity.hpp
     include/velecs/ecs/Entity.inl
     include/velecs/ecs/EntityBuilder.hpp
 
-    # Tags
+    # Tag
     include/velecs/ecs/Tag.hpp
     include/velecs/ecs/Tags/DestroyTag.hpp
 
-    # Components
+    # Component
     include/velecs/ecs/Component.hpp
     include/velecs/ecs/Components/Transform.hpp
 
-    # Systems
+    # System
     include/velecs/ecs/System.hpp
 )
 

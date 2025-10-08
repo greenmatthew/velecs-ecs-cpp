@@ -30,16 +30,12 @@ endif()
 
 # Set output directories to bin if its the cmake build source
 if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
-    # Only set output directories when building this library standalone
     set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin)
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
-# Option to control whether to build the test executable
-option(VELECS_ECS_BUILD_TESTS "Build test executable for velecs-ecs" OFF)
 
 if(NOT TARGET velecs-common)
     add_subdirectory(../velecs-common ${CMAKE_BINARY_DIR}/velecs-common)
@@ -53,29 +49,23 @@ add_subdirectory(libs/entt)
 
 # Source files for the library
 set(LIB_SOURCES
-    src/test/main.cpp
-
     # World
     src/World.cpp
 
     # Object
     src/Object.cpp
 
-
     # Scene
     src/SceneManager.cpp
     src/Scene.cpp
     
-
     # Entity
     src/Entity.cpp
     src/EntityBuilder.cpp
 
-
     # Tag
     src/Tag.cpp
     
-
     # Component
     src/Component.cpp
     src/Components/Transform.cpp
@@ -119,7 +109,7 @@ set(LIB_HEADERS
     include/velecs/ecs/System.hpp
 )
 
-# Always build the library
+# Build the library
 add_library(velecs-ecs ${LIB_SOURCES} ${LIB_HEADERS})
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${LIB_SOURCES} ${LIB_HEADERS})
 
@@ -134,16 +124,39 @@ target_link_libraries(velecs-ecs
     PUBLIC EnTT::EnTT
 )
 
-# Conditionally build the test executable
-if(VELECS_ECS_BUILD_TESTS)
-    add_executable(velecs-ecs-test src/test/main.cpp)
-    target_link_libraries(velecs-ecs-test PRIVATE velecs-ecs)
-    set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT velecs-ecs-test)
+# Fetch Google Test (will reuse if already fetched by parent)
+include(FetchContent)
+FetchContent_Declare(
+    googletest
+    GIT_REPOSITORY https://github.com/google/googletest.git
+    GIT_TAG v1.15.2
+    FIND_PACKAGE_ARGS NAMES GTest
+)
 
-    # Copy ASan DLLs if needed
-    if(PROJECT_IS_TOP_LEVEL)
-        copy_asan_dlls(velecs-ecs-test)
-    endif()
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(googletest)
+
+enable_testing()
+
+# Create test executable
+add_executable(velecs-ecs-tests
+    tests/test.cpp
+    # Add more test files here
+)
+
+target_link_libraries(velecs-ecs-tests
+    PRIVATE velecs-ecs
+    PRIVATE GTest::gtest_main
+    PRIVATE GTest::gmock
+)
+
+# Discover tests for CTest
+include(GoogleTest)
+gtest_discover_tests(velecs-ecs-tests)
+
+# Copy ASan DLLs if needed
+if(PROJECT_IS_TOP_LEVEL)
+    copy_asan_dlls(velecs-ecs-tests)
 endif()
 
 # Export the library target for use by parent projects

@@ -23,7 +23,11 @@ bool SceneManager::TryRequestSceneTransition(const std::string& name)
 {
     std::vector<Scene*> scenes = _world->TryGet<Scene>(name);
 
-    if (scenes.empty()) return false;
+    if (scenes.empty())
+    {
+        std::cerr << "[WARNING] No scenes with name '" << name << "' found." << std::endl;
+        return false;
+    }
 
     if (scenes.size() >= 2) std::cerr << "[WARNING] Multiple scenes with name '" << name << "' found. Using first scene." << std::endl;
 

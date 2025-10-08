@@ -6,13 +6,27 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Enable pedantic warnings
-set(ENABLE_PEDANTIC ON CACHE BOOL "")
-include(cmake/Pedantic.cmake)
+# Only fetch cmake utils when standalone
+if(PROJECT_IS_TOP_LEVEL)
+    include(FetchContent)
+    FetchContent_Declare(
+        velecs_cmake_utils
+        GIT_REPOSITORY https://github.com/greenmatthew/velecs-cmake-utils.git
+        GIT_TAG master
+    )
+    FetchContent_MakeAvailable(velecs_cmake_utils)
 
-# Enable AddressSanitizer
-set(ENABLE_ASAN ON CACHE BOOL "Enable AddressSanitizer")
-include(cmake/ASan.cmake)
+    # Add to module path
+    list(APPEND CMAKE_MODULE_PATH ${velecs_cmake_utils_SOURCE_DIR}/cmake)
+
+    # Enable pedantic warnings
+    set(ENABLE_PEDANTIC ON CACHE BOOL "Enable pedantic compiler warnings")
+    include(compile/Pedantic)
+
+    # Enable AddressSanitizer
+    set(ENABLE_ASAN ON CACHE BOOL "Enable AddressSanitizer")
+    include(compile/ASan)
+endif()
 
 # Set output directories to bin if its the cmake build source
 if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
@@ -125,9 +139,11 @@ if(VELECS_ECS_BUILD_TESTS)
     add_executable(velecs-ecs-test src/test/main.cpp)
     target_link_libraries(velecs-ecs-test PRIVATE velecs-ecs)
     set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT velecs-ecs-test)
-    
+
     # Copy ASan DLLs if needed
-    copy_asan_dlls(velecs-ecs-test)
+    if(PROJECT_IS_TOP_LEVEL)
+        copy_asan_dlls(velecs-ecs-test)
+    endif()
 endif()
 
 # Export the library target for use by parent projects

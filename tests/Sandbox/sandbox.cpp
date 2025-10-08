@@ -182,8 +182,40 @@ public:
     }
 };
 
+// Test 1: Heap buffer overflow
+void test_heap_buffer_overflow()
+{
+    int* array = new int[10];
+    array[10] = 42;  // Out of bounds! ASan should catch this
+    delete[] array;
+}
+
+// Test 2: Use after free
+void test_use_after_free()
+{
+    int* ptr = new int(42);
+    delete ptr;
+    std::cout << *ptr << std::endl;  // Use after free! ASan should catch this
+}
+
+// Test 3: Stack buffer overflow
+void test_stack_buffer_overflow()
+{
+    int array[10];
+    array[10] = 42;  // Out of bounds! ASan should catch this
+}
+
 int main()
 {
+    std::cout << "Testing AddressSanitizer...\n";
+    
+    // Uncomment ONE test at a time to verify ASan catches it:
+    // test_heap_buffer_overflow();
+    test_use_after_free();
+    // test_stack_buffer_overflow();
+    
+    std::cout << "If you see this without an ASan error, ASan might not be enabled!\n";
+    
     try
     {
         auto worldStorage = std::make_unique<World>();

@@ -7,10 +7,6 @@ generator := "Visual Studio 17 2022"
 build := "build"
 # Where the executable gets compiled to
 bin := "bin"
-# Where the library gets compiled to
-libs := "libs"
-
-lib_name := "velecs-ecs"
 
 # Default target to show available commands
 @default: help
@@ -25,12 +21,12 @@ lib_name := "velecs-ecs"
 
 # Build the library in debug mode
 build: _setup-solution
-    @echo "Building {{lib_name}} library (debug)..."
+    @echo "Building library (debug)..."
     cmake --build {{build}} --config Debug
 
 # Build the library in release mode
 build-release: _setup-solution
-    @echo "Building {{lib_name}} library (release)..."
+    @echo "Building library (release)..."
     cmake --build {{build}} --config Release
 
 # Run tests

@@ -1,0 +1,53 @@
+# Set shell for Windows
+set windows-shell := ["powershell.exe", "-NoLogo", "-Command"]
+
+# Generator used for project
+generator := "Visual Studio 17 2022"
+# Where the project gets generated at
+build_dir := "build"
+# Where the executable gets compiled to
+bin_dir := "bin"
+# Name of the final binary file
+bin_name := "velecs-ecs-sandbox.exe"
+
+# Default target to show available commands
+@default: help
+
+# Show available commands
+@help:
+    just --list
+
+# Setup the Visual Studio solution
+@_setup-solution:
+    if (!(Test-Path {{build_dir}})) { New-Item -ItemType Directory -Path {{build_dir}} -Force | Out-Null }
+    cmake -S . -B {{build_dir}} -G "{{generator}}"
+
+# Build the project in debug mode
+@build: _setup-solution
+    echo "Building (debug)..."
+    cmake --build {{build_dir}} --config Debug
+
+# Build the project in release mode
+@build-release: _setup-solution
+    echo "Building (release)..."
+    cmake --build {{build_dir}} --config Release
+
+# Run the binary (debug)
+@run: build
+    echo "Running binary (debug)..."
+    ./{{bin_dir}}/Debug/{{bin_name}}
+
+# Run the binary (release)
+@run-release: build-release
+    echo "Running binary (release)..."
+    ./{{bin_dir}}/Release/{{bin_name}}
+
+# Clean build directories
+@clean:
+    echo "Cleaning build directories..."
+    if (Test-Path {{build_dir}}) { Remove-Item -Recurse -Force {{build_dir}} }
+
+# Clean everything
+@clean-all: clean
+    echo "Cleaning everything..."
+    if (Test-Path {{bin_dir}}) { Remove-Item -Recurse -Force {{bin_dir}} }
